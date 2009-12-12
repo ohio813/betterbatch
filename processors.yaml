@@ -1,0 +1,64 @@
+Includes:
+ - test.yaml
+ 
+Variables:
+  cur_date: November 18, 2009
+  lang: deu
+  root: c:\_temp
+  
+  # example of using a command to fill in a date
+  current_date: SYSTEM: date /t
+
+  Set_current_date:
+    PYTHON: |
+      from datetime import datetime
+      date = datetime.today()
+      current_date_py = date.strftime("%Y-\n%m\n%d")
+
+
+
+robocopy
+
+
+test_python :
+    Run:
+        - python: |
+            def Function1():
+                print "123423123"
+            def function2():
+                print "Current date is:", current_date_py
+                Function1()
+                
+            function2()
+        - echo <current_date_py>
+    limit:
+        lang: [deu, fra, esp, ita]
+
+test_perl:
+    Run:
+        - perl: |
+            $descritpion = "magnificent";
+            print ("Perl is $descritpion\n");
+            if (1){ 
+            print 234 . "\n";
+            }
+
+
+test_batch:
+    Run:
+        - BATCH: |
+            cd <root>
+            set xxxxxxxxxxxxxxxxxxxxxxxxxx=23
+            echo %xxxxxxxxxxxxxxxxxxxxxxxxxx%
+            set
+
+test_echo_vars:
+    run:
+        - echo <current_date>
+        - echo <current_date_py> 
+
+test_config_update:
+    run:
+        - (UpdateConfig):
+            config_file:
+            

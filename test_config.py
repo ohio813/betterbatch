@@ -13,7 +13,7 @@ from pprint import pprint
 
 # two problems:
 # (a)
-# Variables:
+# Variables:    
 #  var1: <<var2>>
 #  var2:
 # even though <<var2>> is NOT a variable reference - it may get treated as one
