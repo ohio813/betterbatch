@@ -1,4 +1,9 @@
 "Read a config file and execute commands from it"
+
+# todo: work on logging
+# Todo: remote Python Perl Extensions
+# Todo: add unit tests!!!!
+
 import re
 import sys
 import yaml
@@ -7,7 +12,6 @@ import os
 from iStr import iStr
 import subprocess
 import logging
-import traceback
 import tempfile
 from pprint import pprint
 
@@ -29,12 +33,8 @@ from pprint import pprint
 
 #pylint: disable-msg=R0903
 
-EXECUTABLE_BLOCKS = {
-    'perl': 'pl',
-    'python': 'py',
-    'batch': 'bat',
-    'system': None,
-}
+
+SYSTEM_MARKER = re.compile("^\s*\(\s*SYSTEM\s*\)\s*(.*)$", re.I)
 
 
 def CreateLogger():
@@ -74,35 +74,32 @@ class PreRequisiteErrorCollection(RuntimeError):
 
 class PreRequisiteError(object):
     "Error when a pre-requisite is missing"
-    def __init__(self, text):
-        self.value_text = text
+    def __init__(self, item):
         self.names = []
-        self.message = "Error: %s'%s' - No information"
+        self.message = "'%s' - No information"% item
 
     def __str__(self):
         names_text = ''
         if self.names:
             names_text = "%s: "% "->".join(reversed(self.names))
 
-        return self.message % (names_text, self.value_text)
+        return names_text + self.message
 
     def __eq__(self, other):
         if type(self) != type(other):
             return False
 
         return (
-            self.value_text == other.value_text and
             self.names == other.names and
             self.message == other.message)
 
 
 class VariableMissingError(PreRequisiteError):
     "Class used to track errors when a used variable is is missing"
-    def __init__(self, text, missing_var):
-        PreRequisiteError.__init__(self, text)
-        self.missing_var = missing_var
-        self.message = "Error: %%s'%%s - Variable '%s' is not defined,'"% (
-            missing_var)
+    def __init__(self, text_where_var_missing, missing_var):
+        PreRequisiteError.__init__(self, text_where_var_missing)
+        self.message = "'%s'  Variable '%s' is not defined,'"% (
+            text_where_var_missing, missing_var)
 
 
 class NonStringValueError(PreRequisiteError):
@@ -113,7 +110,7 @@ class NonStringValueError(PreRequisiteError):
 
     def __init__(self, text):
         PreRequisiteError.__init__(self, text)
-        message = ("Error: %%s%%s is not a string. Please "
+        self.message = ("%%s is not a string. Please "
                 "surround it with single quotes e.g. '%s'")% str(text)
 
 
@@ -123,8 +120,20 @@ class MissingFileDirError(PreRequisiteError):
     def __init__(self, text, path):
         PreRequisiteError.__init__(self, text)
         self.path = path
-        self.message = "Error: %s'%s - File/Dir not be found"
+        self.message = "'%s' - File/Dir not be found - %s"% (path, text)
 
+
+class FailedExternalCheck(PreRequisiteError):
+    def __init__(self, command, ret, output):
+        PreRequisiteError.__init__(self, command)
+        self.message = (
+            "External command '%s' failed "
+            "with non zero return (%d).")% (command, ret)
+        
+        if output:
+            output = output.strip()
+            output = output.replace('\r\n', "\r\n   ")
+            self.message += "\n   " + output
 
 
 def LoadConfigFile(config_file):
@@ -143,11 +152,14 @@ def LoadConfigFile(config_file):
         # ensure that the keys in the config file are case insensitive
         errors = []
         
-        config_data, was_error = ForEachKeyValue(
+        config_data, was_error_case = ForEachKeyValue(
             config_data, MakeKeysCaseInsensitive, None, errors)
-            
-        config_data, was_error = ForEachKeyValue(
+        
+        config_data, was_error_string = ForEachKeyValue(
             config_data, EnsureStringValue, None, errors)
+            
+        if was_error_case or was_error_string:
+            print errors
             
         variables = {}
         commands = {}
@@ -244,18 +256,23 @@ def ParseArguments():
     # ensure that the keys are all treated case insensitively
     variables, commands = LoadConfigFile(config_file)
     
+    
+    print repr(options), options
+    print dir(options)
     # get the variable overrides passed at the command line
     variable_overrides = {}
     errors = []
-    if 'variables' in args:
+    if options.variables:
         variable_overrides, was_error = ForEachKeyValue(
-            ParseVariableOverrides(args.variables), 
+            ParseVariableOverrides(options.variables), 
             MakeKeysCaseInsensitive, 
             None,
             errors
             )
         if was_error:
             print errors
+
+    print "xxxx", variable_overrides
 
     # update the read variables from the overrides
     variables = OverrideVariables(variables, variable_overrides)
@@ -264,9 +281,9 @@ def ParseArguments():
     # todo - don't do this yet!!
     CalculateValues(variables)
 
-    print options
+    LOG.debug("Options: %s"% options)
     if options.execute:
-        ExecuteCommands(variables, commands, args)
+        ExecuteCommands(variables, commands, options.execute)
     elif options.list:
         ListCommands(variables, commands, args)
     #elif options.test:
@@ -275,6 +292,26 @@ def ParseArguments():
         sys.exit()
 
     os.environ["xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"] = "34"
+
+
+def CalculateValues(variables):
+    """Run through the variables and for any value that needs to be calculated
+    Get it's value and run it."""
+
+    # for each of the variables
+    for key, value in variables.items():
+        print key, value
+        if SYSTEM_MARKER.match(value):
+            
+            # remove the system marker
+            system_command = SYSTEM_MARKER.search(value).group(1)
+            
+            ret, out = ExecuteSystemCommand(system_command)
+            variables[key] = out.strip()
+            
+            if ret:
+                print ret, out
+                raise RuntimeError("possible error setting variable from system command")
 
 
 def EnsureStringValue(key, value, data, errors):
@@ -383,41 +420,6 @@ def ParseVariableOverrides(variable_overrides):
     return overrides
 
 
-def CalculateValues(variables):
-    """Run through the variables and for any value that needs to be calculated
-    Get it's value and run it."""
-
-    # for each of the variables
-    for key, value in variables.items():
-    
-        # If the variable is a dict then it must be a processor
-        if isinstance(value, dict):
-            
-            # it should have only one key which is the type of processor
-            if len(value) != 1:
-                print value
-            processor = value.keys()[0]
-            
-            # the code to be executed is the 'value' of by the processor (key)
-            code = value.values()[0]
-            
-            if processor.lower() in EXECUTABLE_BLOCKS:
-                extension = EXECUTABLE_BLOCKS[processor.lower()]
-                
-                if not extension:
-                    ret, out, errs = ExecuteSystemCommand(
-                        code, capture_output = True)
-                else:
-                    ret, out, errs = ExecuteCode(
-                        code, extension, capture_output = True)
-
-                variables[key] = out.strip()
-            else:
-                raise RuntimeError(
-                    "Unknown Processor '%s' available processors - %s"% (
-                    processor, EXECUTABLE_BLOCKS.keys()))
-
-
 def ReplaceVarRefsInStructure(structure, vars):
     "Replace all variable references in a structure"
     errors = []
@@ -520,7 +522,6 @@ def ReplaceVariableReferences(item, vars):
     return item, errors
 
 
-
 def ListCommands(variables, commands, args):
     "Print out the available commands"
     print "Availale commands are:   "
@@ -528,33 +529,157 @@ def ListCommands(variables, commands, args):
         print "  ", cmd
 
 
-def ExecuteCommands(variables, commands, args):
+def ExecuteCommands(variables, commands, to_run):
     "Execute the commands passed in"
 
     available_commands = commands.keys()
 
     # commands are in a comma separated list, so we split them,
     # make them case insesitive, and strip off any spaces
-    commands_to_run = [iStr(arg.strip()) for arg in args.commands.split(",")]
-
-    # check that they all exist before running the first
-    unknown_cmds = set(commands_to_run).difference(available_commands)
-
-    if unknown_cmds:
-        LOG.fatal("The following requested commands are not known: %s"% 
-            ", ".join([str(cmd) for cmd in unknown_cmds]))
-        sys.exit(-1)
+    commands_to_run = [iStr(cmd.strip()) for cmd in to_run.split(",")]
 
     # try to execute the commands in order
-    LOG.debug("Commands to run:    %s"% ", ".join(commands_to_run))
-    LOG.debug("Available commands: %s"% ", ".join(available_commands))
-    for cmd_name in commands_to_run:
+    #LOG.debug("Commands to run:    %s"% ", ".join(commands_to_run))
+    #LOG.debug("Available commands: %s"% ", ".join(available_commands))
+
+    errs =  False
+    for cmd_to_lookup in commands_to_run:
+        matches = []
+        cmd_to_lookup = cmd_to_lookup.lower()
+        for command in available_commands:
+            if cmd_to_lookup == command.lower():
+                matches = [command]
+                break
+            elif command.lower().startswith(cmd_to_lookup):
+                matches.append(command)
+    
+        if len(matches) > 1:
+            LOG.fatal("The command you requested is ambiguous it matches: %s"% 
+                ", ".join([str(cmd) for cmd in matches]))
+            errs = True
+            
+        if not matches:
+            LOG.fatal("Requested command '%s' not in available commands: %s"% (
+                cmd_to_lookup, ", ".join([str(cmd) for cmd in unknown_cmds])))
+            errs = True
+
+    
         try:
-            cmd = Command(commands[cmd_name], cmd_name, variables)
+            cmd = Command(commands[matches[0]], matches[0], variables)
             cmd.CheckPrerequisites()
             cmd.Execute()
         except PreRequisiteErrorCollection, e:            
             print e
+
+
+def OverrideVariables(variables, overrides):
+    "We want to work with the variables case sensitively"
+
+    for ovr_key, ovr_value in overrides.items():
+        if ovr_key in variables:
+            print "INFO: Variable '%s', value '%s' overriden with value '%s'"% (
+                ovr_key, variables[ovr_key], ovr_value)
+
+        variables[ovr_key] = ovr_value
+
+    return variables
+
+
+def ExecuteSystemCommand(command, capture_output = True):
+    "Execute a system command, and optionally capture the output"
+    if capture_output:
+        new_stdout = tempfile.TemporaryFile()
+        #new_stderr = tempfile.TemporaryFile()
+    else:
+        new_stdout = sys.stdout
+        #new_stderr = sys.stderr
+
+    ret_value = subprocess.call(
+        command,
+        shell = True,
+        stdout = new_stdout,
+        stderr = subprocess.STDOUT)
+
+    output = ''
+    if capture_output:
+        new_stdout.seek(0)
+        output = new_stdout.read()
+
+        #new_stderr.seek(0)
+        #errors = new_stderr.read()
+
+    return ret_value, output
+
+
+class Command(object):
+    "Represent a command that can be run"
+
+    def __init__(self, cmd_info, cmd_name, variables):
+        self.cmd_info = cmd_info
+        self.cmd_name = cmd_name
+
+        self.ReplaceVars(variables)
+        self.variables = variables
+
+    def ReplaceVars(self, variables):
+        updated_structure, errors = ReplaceVarRefsInStructure(
+            self.cmd_info, variables)
+
+        if errors:
+            for error in errors:
+                error.names.append(self.cmd_name)
+            raise PreRequisiteErrorCollection(errors)
+        else:
+            self.cmd_info = updated_structure
+
+    def CheckPrerequisites(self):
+        "Run a check that the required files/folders exist"
+
+        # if there are no pre-requisites - then just return
+        if 'prechecks' not in self.cmd_info:
+            return
+
+        failed_prereqs = []
+        pre_reqs = self.cmd_info['prechecks']
+        for item in pre_reqs:
+            # if it is just a plain string then check that the file exists
+            if isinstance(item, basestring):
+                if SYSTEM_MARKER.match(item):
+                    # remove the system marker
+                    system_command = SYSTEM_MARKER.search(item).group(1)
+                    
+                    ret, out = ExecuteSystemCommand(system_command)
+                    
+                    if ret != 0:
+                        failed_prereqs.append(
+                            FailedExternalCheck(command, ret, output))
+
+                elif not os.path.exists(os.path.normpath(item)):
+                    failed_prereqs.append(MissingFileDirError(item, item))
+
+            else:
+                raise RuntimeError("Should not have a list or dict within "
+                    "the pre-requisites")
+        
+        if failed_prereqs:    
+            raise PreRequisiteErrorCollection(failed_prereqs)
+
+
+    def Execute(self):
+        "Run the command after checking pre-requisites"
+        self.CheckPrerequisites()
+        #if missing:
+        #    raise RuntimeError(
+        #        "Some requirements are missing. Command cannot execute: %s"%
+        #         str(missing))
+
+        steps = self.cmd_info['run']
+        for step in steps:
+            ret, output = ExecuteSystemCommand(step)
+            print output
+            if ret:
+                print "Possible error return!!"
+                print output
 
 
 #def MakeKeysCaseInsensitive(structure):
@@ -581,171 +706,69 @@ def ExecuteCommands(variables, commands, args):
 #
 #    return new_struct
 #
-
-def OverrideVariables(variables, overrides):
-    "We want to work with the variables case sensitively"
-
-    for ovr_key, ovr_value in overrides.items():
-        if ovr_key in variables:
-            print "INFO: Variable '%s', value '%s' overriden with value '%s'"% (
-                ovr_key, variables[ovr_key], ovr_value)
-
-        variables[ovr_key] = ovr_value
-
-    return variables
-
-
-class Command(object):
-    "Represent a command that can be run"
-
-    def __init__(self, cmd_info, cmd_name, variables):
-        self.cmd_info = cmd_info
-        self.vars_replaced = False
-        self.cmd_name = cmd_name
-
-        self.ReplaceVars(variables)
-        self.variables = variables
-
-    def ReplaceVars(self, variables):
-        updated_structure, errors = ReplaceVarRefsInStructure(
-            self.cmd_info, variables)
-
-        if errors:
-            for error in errors:
-                error.names.append(self.cmd_name)
-            raise PreRequisiteErrorCollection(errors)
-        else:
-            self.cmd_info = updated_structure
-            self.vars_replaced = True
-
-    def CheckPrerequisites(self):
-        "Run a check that the required files/folders exist"
-
-        # if there are no pre-requisites - then just return
-        if 'mustexist' not in self.cmd_info:
-            return
-
-        missing_items = []
-        pre_reqs = self.cmd_info['mustexist']
-        for item in pre_reqs:
-            if not os.path.exists(os.path.normpath(item)):
-                missing_items.append(MissingFileDirError(item, item))
-        raise PreRequisiteErrorCollection(missing_items)
+#
+#def ExecutePythonCode(python_code, variables = {}, allow_var_update = False):
+#    "Execute Python code"
+#    LOG.debug("PYTHON CODE:\n" + python_code)
+#    try:
+#        # execute the python code
+#        # pass it a copy of the variables (becuase we don't want it updating
+#        # anything
+#        if not allow_var_update:
+#            variables = variables.copy()
+#        exec(python_code, variables)
+#
+#        return 0, '', ''
+#
+#    except Exception, e:
+#        print "Exception in embedded Python code"
+#        s = traceback.format_exc()
+#        # get rid of the first 3 lines - as these are references to
+#        # this file and the exec call
+#        s = s.splitlines()
+#        del s[0:3]
+#        print "\n".join(s)
+#        sys.exit()
+#
+#
+#def ExecuteCode(code, extension, capture_output = False):
+#    "Write the code to a temporary file and execute the file using the shell"
+#    
+#    # create a temporary file which will store the code to run
+#    temp_file, filename = tempfile.mkstemp(
+#        prefix = "temp_code_", suffix = extension, text = True)
+#    
+#    # write the code to it
+#    os.write(temp_file, code)
+#    
+#    # close the file
+#    os.close(temp_file)
+#    
+#    # execute the file via the shell
+#    exec_return, output = ExecuteSystemCommand(
+#        filename, capture_output)
+#    
+#    # delete the temporary code file file
+#    os.unlink(filename)
+#    
+#    return exec_return, output
+#    
 
 
-    def Execute(self):
-        "Run the command after checking pre-requisites"
-        self.CheckPrerequisites()
-        #if missing:
-        #    raise RuntimeError(
-        #        "Some requirements are missing. Command cannot execute: %s"%
-        #         str(missing))
-        steps = self.cmd_info['run']
-        for step in steps:
-            # If the step is a dictionary - then it must be a processor
-            if isinstance(step, dict):
-                # get the processory name and value
-                for key, value in step.items():
-                    # if it is a known processor
-                    if key.lower() in PROCESSORS:
-                        PROCESSORS[key.lower()](value, self.variables)
-                    else:
-                        LOG.fatal("'%s' is not a known processor"% key)
-            else:
-                #f1 = open ("f1", "w+b")
-                #f2 = open ("f2", "w+b")
-                subprocess.call(step, shell = True)#, stdout = f1, stderr =f2)
-                #f1.seek(0)
-                #f2.seek(0)
-
-
-def ExecutePythonCode(python_code, variables = {}, allow_var_update = False):
-    "Execute Python code"
-    LOG.debug("PYTHON CODE:\n" + python_code)
-    try:
-        # execute the python code
-        # pass it a copy of the variables (becuase we don't want it updating
-        # anything
-        if not allow_var_update:
-            variables = variables.copy()
-        exec(python_code, variables)
-
-        return 0, '', ''
-
-    except Exception, e:
-        print "Exception in embedded Python code"
-        s = traceback.format_exc()
-        # get rid of the first 3 lines - as these are references to
-        # this file and the exec call
-        s = s.splitlines()
-        del s[0:3]
-        print "\n".join(s)
-        sys.exit()
-
-
-def ExecuteCode(code, extension, capture_output = False):
-    "Write the code to a temporary file and execute the file using the shell"
+#def ExecuteBatchScript(batch_code):
+#    "Write batch_code to a temporary file and execute it"
+#    
+#    #todo - tempfile.NamedTemporary or something like that
+#    f = open(r"c:\_temp\temp_batch_code.bat", "w")
+#    f.write(batch_code)
+#    f.close()
+#
+#    return subprocess.call(
+#        r"c:\_temp\temp_batch_code.bat",
+#        shell = True,
+#        cwd = os.getcwd())
+#
     
-    # create a temporary file
-    temp_file, filename = tempfile.mkstemp(
-        suffix = extension, prefix = "temp_code_", text = True)
-    
-    # write the code to it
-    os.write(temp_file, code)
-    
-    # close the file
-    os.close(temp_file)
-    
-    # execute the file via the shell
-    exec_return = ExecuteSystemCommand(
-        r"c:\_temp\temp_perl_code.pl", capture_output)
-    
-    # delete the temporary file
-    os.unlink(filename)
-    
-    return exec_return
-    
-    
-def ExecuteSystemCommand(command, capture_output = False):
-    "Execute a system command, and optionally capture the output"
-    if capture_output:
-        new_stdout = tempfile.TemporaryFile()
-        new_stderr = tempfile.TemporaryFile()
-    else:
-        new_stdout = sys.stdout
-        new_stderr = sys.stderr
-
-    ret_value = subprocess.call(
-        command,
-        shell = True,
-        stdout = new_stdout,
-        stderr = new_stderr,
-        cwd = os.getcwd())
-
-    output = errors = ''
-    if capture_output:
-        new_stdout.seek(0)
-        output = new_stdout.read()
-
-        new_stderr.seek(0)
-        errors = new_stderr.read()
-
-    return ret_value, output, errors
-
-
-def ExecuteBatchScript(batch_code):
-    "Write batch_code to a temporary file and execute it"
-    
-    #todo - tempfile.NamedTemporary or something like that
-    f = open(r"c:\_temp\temp_batch_code.bat", "w")
-    f.write(batch_code)
-    f.close()
-
-    return subprocess.call(
-        r"c:\_temp\temp_batch_code.bat",
-        shell = True,
-        cwd = os.getcwd())
-
 
 def Test(variables, commands, args):
     "Perform some simple tests and exit"
