@@ -1,26 +1,39 @@
 Includes:
- - test.yaml
+# - test.yaml
  
 Variables:
-  cur_date: November 18, 2009
-  lang: deu
-  root: c:\_temp
-  
-  # example of using a command to fill in a date
-  current_date: SYSTEM: date /t
+    cur_date: November 18, 2009
+    lang: deu
+    dotnetlang: (SYSTEM) TOOLS\GetLang.bat dot_net deu
+    root: c:\_temp
 
-  Set_current_date:
-    PYTHON: |
-      from datetime import datetime
-      date = datetime.today()
-      current_date_py = date.strftime("%Y-\n%m\n%d")
+    # example of using a command to fill in a date
+    current_date: (SYSTEM) date /t
 
+    #Set_current_date:
+    #    PYTHON: |
+    #        from datetime import datetime
+    #        date = datetime.today()
+    #        current_date_py = date.strftime("%Y-\n%m\n%d")
 
+ 
+gentest:
+    Description: Do some generic tests
+    prechecks:
+     - (SYSTEM) Checks\NonZeroFileSize.py test.yaml
+     -          processors.yaml
+     - test.yaml
+ 
+    Run:
+      - 
+        echo the CURRENT 
+        DATE IS  <current_date>
 
-robocopy
-
-
-test_python :
+test_python:
+    
+    pre-checks:
+        - (SYSTEM) Checks\NonZeroFileSize.py test.yaml
+        - (Exists) Checks\NonZeroFileSize.pyzz test.yaml
     Run:
         - python: |
             def Function1():

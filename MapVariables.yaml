@@ -1,0 +1,24 @@
+Variables:
+    project:  tavarua
+    PROJECTS_ROOT_FOLDER: G:\Projects
+
+    PROJECT_FOLDER: <PROJECTS_ROOT_FOLDER>\<PROJECT>
+    
+
+    COMMON_BUILD_TOOLS_DIR: <BUILD_TOOLS_DIR>\common_tools
+    BUILD_TOOLS_DIR:        <PROJECTS_ROOT_FOLDER>\_build_tools
+
+    CONFIG_DIR:
+        <PROJECTS_ROOT_FOLDER>\config_files
+    
+    swl_vault_autocad_root: 
+        https://projectpoint.buzzsaw.com/client/wwl/SW_Vault/Projects/PSEB/AutoCAD/Hammer_2011
+
+    BUILD_FOLDER: <PROJECT_FOLDER>\<VERSION>P_SWL
+    
+    PASSOLO_DIR:  
+        c:\Program Files\SDL Passolo 2009
+    LOCFILES_FOLDER: 
+        <BUILD_FOLDER>\locFiles
+    
+    test: '23' 

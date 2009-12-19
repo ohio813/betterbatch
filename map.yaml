@@ -1,0 +1,35 @@
+
+includes:
+- MapVariables.yaml
+
+variables:
+  test: a
+#  Test: b
+  dotNetLang: {RUN: tools\GetLang.bat deu}
+
+prepare_acad_lpu_for_baseupdate:    
+- Exists: <COMMON_BUILD_TOOLS_DIR>\BuzzCopy.py 
+- Exists: <CONFIG_DIR>\hammer_msi.ini
+- Exists: <PASSOLO_DIR>\pslcmd.exe
+
+# this is like calling a count function with 2 arguments
+- count: [<COMMON_BUILD_TOOLS_DIR>, 5]
+
+
+# download AutoCAD databases
+- RUN: <COMMON_BUILD_TOOLS_DIR>\BuzzCopy.py -d -v <swl_vault_autocad_root>/Databases/<LANG>/<ACAD_BUILD>  <LOCFILES_FOLDER>\ref_dbs\<ACAD_BUILD>  *.lpu
+
+- RUN: copy <CONFIG_DIR>\hammer_msi.ini <LOCFILES_FOLDER>\ref_dbs\<ACAD_BUILD>\<lang>_hammer_msi.ini
+
+# run addDelRen.bas on the database
+# need to jump through a tiny hoop to deal with spaces in the passolo path
+#There are other ways this could have been handled, e.g.:
+# a) A tool to ensure paths area already escaped in variables  passolo_exe: (SYSTEM) EscpaePath.py <PASSOLO_DIR>\pslcmd.exe
+# b) quote the whole string in '' and use "" around the path (similar to shown below
+- RUN: 
+    - <PASSOLO_DIR>\pslcmd.exe
+    - <LOCFILES_FOLDER>\ref_dbs\<ACAD_BUILD>\<lang>_Hammer_Msi.lpu
+    - /runmacro=addDelRen.bas
+
+- <PASSOLO_DIR>\pslcmd.exe <LOCFILES_FOLDER>\ref_dbs\<ACAD_BUILD>\<lang>_Hammer_Msi.lpu  /runmacro=addDelRen.bas
+
