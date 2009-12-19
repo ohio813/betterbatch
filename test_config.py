@@ -222,7 +222,7 @@ def LoadConfigFile(config_file):
             except NumericVarNotAllowedError, e:
                 all_errors.append(e)
                 continue
-            print name, value, var
+
             # check that we don't have two variables the same
             if (name.lower() in this_file_variables and 
                 this_file_variables[name.lower()] != value):
@@ -552,7 +552,7 @@ def Main():
         variables, commands = LoadConfigFile(config_file)
     except ErrorCollection, e:
         for err in e.errors:
-            LOG.fatal(e)
+            LOG.fatal(err)
         sys.exit()
 
     # get the variable overrides passed at the command line
@@ -574,7 +574,7 @@ def Main():
 
         if errors:
             for e in errors:
-                print e
+                print 'nnnn', e
             sys.exit()
 
         try:
