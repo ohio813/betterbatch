@@ -62,16 +62,15 @@ class ErrorCollection(RuntimeError):
         self.errors = errors
 
     def FilterDuplicateErrors(self):
-        err_messages = []
+        filtered = []
         for error in self.errors:
             if str(error) not in filtered:
-                print "----", str(error)
                 filtered.append(str(error))
         return filtered
 
     def __str__(self):
         return "\n".join([msg for msg in self.FilterDuplicateErrors()])
-    
+
 
 class ParseError(RuntimeError):
     def __init__(self, data):
@@ -115,10 +114,10 @@ class NumericVarNotAllowedError(TypeError):
     Only strings are supported to ensure that values like 01, 0x409, are
     kept as strings - i.e. it will have the same textual representation"""
 
-    def __init__(self, variable, value):
-        self.msg = ("Variable '%s' is of type %s. Please "
+    def __init__(self, variable, value, file):
+        self.msg = ("Variable '%s' ('%s') is of type %s. Please "
                 "surround it with single quotes e.g. '%s'")% (
-                    variable, type(value).__name__, str(value))
+                    variable, file, type(value).__name__, str(value))
 
     def __str__(self):
         return self.msg
@@ -130,17 +129,17 @@ class Variable(object):
         self.key = name.lower()
         self.value = value
         self.file = file
-        
+
         if isinstance(value, (int, float, long)):
-            raise NumericVarNotAllowedError(name, value)
+            raise NumericVarNotAllowedError(name, value, file)
 
     def resolve(self, variables):
-            
+
         # replace any variables
         value, errors = ReplaceVariableReferences(self.value, variables)
         if errors:
             raise ErrorCollection(errors)
-        
+
         # calculate any values
         if SYSTEM_MARKER.match(value):
             LOG.debug("Calculating variable: %s - %s"% (
@@ -151,88 +150,19 @@ class Variable(object):
 
             # run the external command and grab it's output
             ret, out = built_in_commands.SystemCommand(system_command)
-            
+
             out.strip()
 
             if ret:
                 raise RuntimeError("possible error setting variable from system command")
-        
+
         return value
+
+    #def __str__(self):
+    #    return self.value
 
     def __repr__(self):
         return "<var:'%s'>"% (self.name)
-
-
-class Variables(dict):
-    def __init__(self, var_structure, file):
-        
-        if isinstance(var_structure, Variables):
-            return var_structure
-            
-        errors = []
-        for name, value in var_structure.items():
-            # wrap the variable
-            var = Variable(name, value, file)
-            
-            # check that we don't have two variables the same
-            if var.key in self and self[var.key] != value:
-                errors.append((
-                    "Key already in structure but different values, Key: '%s'"
-                    "\n\tVal1: '%s'"
-                    "\n\tVal2: '%s'")% (name, self[var.key], value))
-            else:
-                self[var.key] = var
-        
-        if errors:
-            raise ErrorCollection(errors)
-    
-    def update(self, other):
-        assert(isinstance(other, Variables))
-        dict.update(self, other)
-
-    def __getitem__(self, key):
-        return dict.__getitem__(self, key.lower())
-
-
-def CaseInsenstitizeKeys(data):
-    errors = []
-    if isinstance(data, dict):
-        new_dict = {}
-        for key, val in data:
-            
-            # make sure that the value has case insensitive keys also
-            new_val, val_errs = CaseInsenstitizeKeys(val)
-            # even though there may be errors - we don't stop at this point
-            # so that we can report as many issues as possible
-            for e in val_errs:
-                e.context.append(key)
-                errors.append(e)
-
-            if not val_errs:
-                val = new_val
-            
-            new_key = iStr(key)
-            if new_key in new_dict and val != new_dict[new_key]:
-                e = ParseError("")
-                errors.append()
-            else:
-                new_dict[new_key] = val
-        data = new_dict
-                
-    elif isinstance(data, list):
-        for i, item in enumerate(data):
-            new_item, item_errs = CaseInsenstitizeKeys(item)
-            
-            new_item.extend(item_errs)
-            
-            if not item_errs:
-                data[i] = new_item
-            
-    else:
-        pass
-    
-    return data, item
-
 
 
 def LoadConfigFile(config_file):
@@ -251,50 +181,80 @@ def LoadConfigFile(config_file):
 
         # update the config data to have lower case keys
         # only for the root level (e.g. includes/variables/commands)
+        if not config_data:
+            return {}, {}
         config_data = dict([(k.lower(), v) for k, v in config_data.items()])
-        
-        variables = Variables({}, config_file)
-        commands = {}
 
-        # Parse the includes files
+
+        # Parse the includes files first (so the including config file
+        # can override items as necessary)
+        variables = {}
+        inc_commands = {}
         if 'includes' in config_data and config_data['includes']:
             # load each of the included config files
             for inc in config_data['includes']:
-                inc_vars, inc_cmds, errors = LoadConfigFile(inc)
-
-                if not errors:
-                    all_errors.extend(errors)
+                inc = os.path.join(os.path.dirname(config_file), inc)
+                try:
+                    inc_vars, inc_cmds = LoadConfigFile(inc)
+                except ErrorCollection, e:
+                    all_errors.extend(e.errors)
 
                 variables.update(inc_vars)
-                commands.update(inc_cmds)
+                inc_commands.update(inc_cmds)
 
             # we don't need this anymore
             del config_data['includes']
 
+        config_vars = config_data.get('variables', {})
+        
+        # if the variables have been defined as a list - then
+        # convert it to a dictionary
+        if isinstance(config_vars, list):
+            temp = {}
+            [temp.update(v) for v in config_vars]
+            config_vars = temp
+            
+        this_file_variables = {}
+        for name, value in config_vars.items():
+            # wrap the variable
+            try:
+                var = Variable(name, value, config_file)
+            except NumericVarNotAllowedError, e:
+                all_errors.append(e)
+                continue
+            print name, value, var
+            # check that we don't have two variables the same
+            if (name.lower() in this_file_variables and 
+                this_file_variables[name.lower()] != value):
+                errors.append((
+                    "Key already defined with different value, Key: '%s'"
+                    "\n\tVal1: '%s'"
+                    "\n\tVal2: '%s'")% (
+                        name, this_file_variables[name.lower()], value))
+            else:
+                this_file_variables[name.lower()] = var
+        
+        variables.update(this_file_variables)
+        
         # Now update the variables from this particular config file
         if 'variables' in config_data:
-                
-            variables.update(
-                Variables(config_data['variables'], config_file))
             del config_data['variables']
 
-        #all_errors.extend(CheckVariablesNonNumeric(variables))
+        commands = {}
 
         # And the commands (everything else is a command)
         commands.update(config_data)
-        
 
-        #print "---" * 20
-        #print "CONF PARSING ERRS:", all_errors
+        if all_errors:
+            raise ErrorCollection(all_errors)
 
-        return variables, commands, all_errors
+        return variables, commands
 
     except yaml.parser.ScannerError, e:
-        LOG.fatal("%s - %s"% (config_file, e))
-        sys.exit()
+        raise RuntimeError("%s - %s"% (config_file, e))
+
     except yaml.parser.ParserError, e:
-        LOG.fatal("%s - %s"% (config_file, e))
-        sys.exit()
+        raise RuntimeError("%s - %s"% (config_file, e))
 
 
 def CalculateValues(variables):
@@ -319,147 +279,6 @@ def CalculateValues(variables):
                 raise RuntimeError("possible error setting variable from system command")
 
 
-def MakeKeysCaseInsensitive(key, value):
-    "Make the key case insensitive"
-    if key is not None:
-        key = key.lower()
-    return key, value, []
-
-
-def ForEachKeyValue(structure, func):
-    """Allow a function to be run on all key/value pairs
-
-    For dictionaries both key and value are passed to func
-    for Lists - we just interate the values
-    for items - we pass just the value to func"""
-
-    errors = []
-
-    was_error = False
-
-    # Handle different structure types differently
-    if isinstance(structure, dict):
-
-        # build up the new structure
-        new_struct = {}
-        # iterate over all the values in the dictionary
-        for key, value in structure.items():
-
-            # get new key, new value 
-            new_key, new_value, func_errs = func(key, value)
-
-            # if there were errors then stop
-            if func_errs:
-                return None, func_errs
-            
-            # use the new value
-            value = new_value
-
-            #  now iterate over all the value (as it may be a structure)
-            new_value, func_errs = ForEachKeyValue(new_value, func)
-
-            # if there were errors then stop
-            if func_errs:
-                return None, func_errs
-
-            # again use the value if there were no errors
-            value = new_value
-
-            # before adding the item - check if it exists already
-            if new_key in new_struct and new_value != new_struct[new_key]:
-                errors.append((
-                    "Key already in structure - have you specified the same "
-                    "key but only differing in case, Key: '%s'"
-                    "\n\tVal1: '%s'"
-                    "\n\tVal2: '%s'")% (
-                        new_key, new_value, new_struct[new_key]))
-
-            else:
-                new_struct[new_key] = new_value
-
-        structure = new_struct
-
-    elif isinstance(structure, list):
-        # Similar to dicts above - iterate over the list
-        # calling ourselves recursively for each element
-        # and only updating the value if there were no errors
-        # note - we don't call the func for the list as a whole but rather
-        # it will be called for each of the individual items
-        for i, value in enumerate(structure):
-            new_val, func_errs = ForEachKeyValue(value, func)
-
-            errors.extend(func_errs)
-            if not func_errs:
-                structure[i] = new_val
-    else:
-        # It is a value - we can replace the variable references directly
-        new_key, new_val, func_errs = func(None, structure)
-
-        errors.extend(func_errs)
-
-        if not func_errs:
-            structure = new_val
-
-    # return the updated structure and any errors
-    return structure, errors
-
-
-def HandleCommandLine():
-    config_file, options = cmd_line.ParseArguments()
-    # ensure that the keys are all treated case insensitively
-    variables, commands, errors = LoadConfigFile(config_file)
-
-    if errors:
-        for e in errors:
-            LOG.fatal(e)
-        sys.exit()
-
-    #variables, erors = ForEachKeyValue(variables, MakeKeysCaseInsensitive)
-
-    if errors:
-        for e in errors:
-            LOG.fatal(e)
-        sys.exit()
-
-    # get the variable overrides passed at the command line
-    variable_overrides = {}
-    errors = []
-    variables.update(ParseVariableOverrides(options.variables))
-
-    # update the read variables from the overrides
-    #variables = OverrideVariables(variables, variable_overrides)
-
-    # calculate any values that need to be processed
-    # todo - don't do this yet!!
-    #CalculateValues(variables)
-
-    LOG.debug("Options: %s"% options)
-    if options.execute:
-        found_commands, errors = GetCommands(
-            commands, options.execute, variables)
-
-        if errors:
-            for e in errors: 
-                print e
-            sys.exit()
-        
-        try:
-            for cmd in found_commands:
-                cmd.Execute()
-        except ErrorCollection, e:
-            print "xxxx" ,e
-        
-    elif options.list:
-        ListCommands(variables, commands, args)
-    #elif options.test:
-    #    Test(variables, commands, args)
-    elif options.validate:
-        sys.exit()
-
-
-
-
-
 def ParseVariableOverrides(variable_overrides):
     "Parse variable overrides passed on the command line"
     overrides = {}
@@ -472,7 +291,7 @@ def ParseVariableOverrides(variable_overrides):
         var = var.strip()
 
         overrides[var] = value
-    
+
     return Variables(overrides, 'PARAMETER')
 
 
@@ -573,12 +392,12 @@ def ReplaceVariableReferences(item, vars):
                 item = item.replace("<%s>"%(var), replace_with)
             except ErrorCollection, e:
                 errors.extend(e.errors)
-            
+
             #replace_with, sub_errors = ReplaceVariableReferences(
             #    vars[var_name_lower], vars)
             #errors.extend(sub_errors)
             #if not sub_errors:
-            
+
         else:
             errors.append(VariableMissingError(item, var))
 
@@ -616,7 +435,7 @@ def GetCommands(commands_info, requested_commands, variables):
             if cmd_requested == command:
                 matched_cmd_names = [command]
                 break
-            
+
             # if it doesn't match exactly - we need to find all matching commands
             elif command.lower().startswith(cmd_requested):
                 matched_cmd_names.append(command)
@@ -633,13 +452,13 @@ def GetCommands(commands_info, requested_commands, variables):
         if not matched_cmd_names:
             errors.append(
                 "Requested command '%s' not in available commands: %s"% (
-                    cmd_requested, 
+                    cmd_requested,
                     ", ".join([str(cmd) for cmd in available_commands])))
             return [], errors
 
         cmd_name = matched_cmd_names[0]
         command_steps = commands_info[cmd_name]
-        
+
         try:
             matched_commands.append(
                 Command(command_steps, cmd_name, variables))
@@ -649,34 +468,21 @@ def GetCommands(commands_info, requested_commands, variables):
     return matched_commands, errors
 
 
-#def OverrideVariables(variables, overrides):
-#    "We want to work with the variables case sensitively"
-#
-#    for ovr_key, ovr_value in overrides.items():
-#        if ovr_key in variables:
-#            print "INFO: Variable '%s', value '%s' overriden with value '%s'"% (
-#                ovr_key, variables[ovr_key], ovr_value)
-
-#        variables[ovr_key] = ovr_value
-
-#    return variables
-
-
 class Step(object):
     def __init__(self, action_type, params):
         # split up the action_type - as it may have qualifiers:
         qualifiers = action_type.strip().split()
-        
-        # if there are qualifiers then the action type is the 
+
+        # if there are qualifiers then the action type is the
         # first element, and the qualifiers are after that.
         if len(qualifiers) > 1:
             action_type = qualifiers[0]
             del qualifiers[0]
-        
+
         action_type = action_type.lower()
         if action_type not in built_in_commands.NAME_ACTION_MAPPING:
             raise RuntimeError("Unknown action type: '%s'"% action_type)
-        
+
         self.action_type = action_type
         self.action = built_in_commands.NAME_ACTION_MAPPING[action_type]
         self.qualifiers = qualifiers
@@ -718,11 +524,11 @@ class Command(object):
                 #ensure only a single value
                 if len(item) != 1:
                     raise RuntimeError("Item must be action: command: '%s'"% item)
-                
+
                 # get the values
                 step_type, step_info = item.items()[0]
                 step_type = step_type.lower()
-                
+
                 step = Step(step_type, step_info)
                 try:
                     step.Execute()
@@ -736,151 +542,53 @@ class Command(object):
             if step_type in built_in_commands.NAME_ACTION_MAPPING:
                 step_function = built_in_commands.NAME_ACTION_MAPPING[step_type]
                 LOG.debug("Executing step '%s': '%s'"% (step_type, step_info))
-                
-#                try:
-#                    returned = step_function(step_info)
-#                except RuntimeError, e:
-#                    
-#                    LOG.critical(e)
-#                    return
-#                    
-#                if isinstance(returned , tuple):
-#                    ret = returned[0]
-#                    output = returned[1]
-#                else:
-#                    ret = returned
-#                    output = ''
-#
-#                if ret:
-#                    LOG.warning(
-#                        "Command '%s' returned error code = %d\n%s"%
-#                            (step_type, ret, output))
-#
-            #if step_type.lower == 'check':
-            #    ret, output = SystemCommand(step_info)
-            #    print output
-            #    if ret:
-            #        print "Possible error return!!"
-            #        print output
-
-#    def CheckPrerequisites(self):
-#        "Run a check that the required files/folders exist"
-#
-#        # if there are no pre-requisites - then just return
-#        if 'prechecks' not in self.cmd_info:
-#            return
-#
-#        failed_prereqs = []
-#        pre_reqs = self.cmd_info['prechecks']
-#        for item in pre_reqs:
-#            # if it is just a plain string then check that the file exists
-#            if isinstance(item, basestring):
-#                if SYSTEM_MARKER.match(item):
-#                    # remove the system marker
-#                    system_command = SYSTEM_MARKER.search(item).group(1)
-#
-#                    ret, out = SystemCommand(system_command)
-#
-#                    if ret != 0:
-#                        failed_prereqs.append(
-#                            FailedExternalCheck(command, ret, output))
-#
-#                elif not os.path.exists(os.path.normpath(item)):
-#                    failed_prereqs.append(MissingFileDirError(item, item))
-#
-#            else:
-#                raise RuntimeError("Should not have a list or dict within "
-#                    "the pre-requisites")
-#
-#        if failed_prereqs:
-#            raise ErrorCollection(failed_prereqs)
-#
-#def MakeKeysCaseInsensitive(structure):
-#    if isinstance(structure, dict):
-#        new_struct = dict()
-#        # Make the keys of the dict case insensitive
-#        for name, value in structure.items():
-#            # check if the key already exists (i.e. - different in case only!
-#            if name in new_struct:
-#                if value != new_struct[name]:
-#                    LOG.warn(("Warning - you have specified the value for %s "
-#                        "more than once, with different values "
-#                        "\n\t'%s'\n\t'%s')")%
-#                            (str(name), str(value), str(new_struct[name])
-#                        ))
-#            else:
-#                new_struct[iStr(name)] = MakeKeysCaseInsensitive(value)
-#    elif isinstance(structure, list):
-#        new_struct = list()
-#        for list_item in structure:
-#            new_struct.append(MakeKeysCaseInsensitive(list_item))
-#    else:
-#        new_struct = structure
-#
-#    return new_struct
-#
-#
-#def ExecutePythonCode(python_code, variables = {}, allow_var_update = False):
-#    "Execute Python code"
-#    LOG.debug("PYTHON CODE:\n" + python_code)
-#    try:
-#        # execute the python code
-#        # pass it a copy of the variables (becuase we don't want it updating
-#        # anything
-#        if not allow_var_update:
-#            variables = variables.copy()
-#        exec(python_code, variables)
-#
-#        return 0, '', ''
-#
-#    except Exception, e:
-#        print "Exception in embedded Python code"
-#        s = traceback.format_exc()
-#        # get rid of the first 3 lines - as these are references to
-#        # this file and the exec call
-#        s = s.splitlines()
-#        del s[0:3]
-#        print "\n".join(s)
-#        sys.exit()
-#
-#
-#def ExecuteCode(code, extension, capture_output = False):
-#    "Write the code to a temporary file and execute the file using the shell"
-#
-#    # create a temporary file which will store the code to run
-#    temp_file, filename = tempfile.mkstemp(
-#        prefix = "temp_code_", suffix = extension, text = True)
-#
-#    # write the code to it
-#    os.write(temp_file, code)
-#
-#    # close the file
-#    os.close(temp_file)
-#
-#    # execute the file via the shell
-#    exec_return, output = SystemCommand(
-#        filename, capture_output)
-#
-#    # delete the temporary code file file
-#    os.unlink(filename)
-#
-#    return exec_return, output
-#
 
 
-#def ExecuteBatchScript(batch_code):
-#    "Write batch_code to a temporary file and execute it"
-#
-#    #todo - tempfile.NamedTemporary or something like that
-#    f = open(r"c:\_temp\temp_batch_code.bat", "w")
-#    f.write(batch_code)
-#    f.close()
-#
-#    return subprocess.call(
-#        r"c:\_temp\temp_batch_code.bat",
-#        shell = True,
-#        cwd = os.getcwd())
-#
+def Main():
+    config_file, options = cmd_line.ParseArguments()
+
+    try:
+        # ensure that the keys are all treated case insensitively
+        variables, commands = LoadConfigFile(config_file)
+    except ErrorCollection, e:
+        for err in e.errors:
+            LOG.fatal(e)
+        sys.exit()
+
+    # get the variable overrides passed at the command line
+    variable_overrides = {}
+    errors = []
+    variables.update(ParseVariableOverrides(options.variables))
+
+    # update the read variables from the overrides
+    #variables = OverrideVariables(variables, variable_overrides)
+
+    # calculate any values that need to be processed
+    # todo - don't do this yet!!
+    #CalculateValues(variables)
+
+    LOG.debug("Options: %s"% options)
+    if options.execute:
+        found_commands, errors = GetCommands(
+            commands, options.execute, variables)
+
+        if errors:
+            for e in errors:
+                print e
+            sys.exit()
+
+        try:
+            for cmd in found_commands:
+                cmd.Execute()
+        except ErrorCollection, e:
+            print "xxxx" ,e
+
+    elif options.list:
+        ListCommands(variables, commands, args)
+    #elif options.test:
+    #    Test(variables, commands, args)
+    elif options.validate:
+        sys.exit()
 
 
 def Test(variables, commands, args):
@@ -907,5 +615,5 @@ def Test(variables, commands, args):
     # check that > and < work OK (begining, middle and end of the string)
 
 if __name__ == '__main__':
-    HandleCommandLine()
+    Main()
 
