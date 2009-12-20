@@ -47,7 +47,7 @@ def CreateLogger():
     # make the output format very simple
     basic_formatter = logging.Formatter("%(levelname)s - %(message)s")
     stdout_handler.setFormatter(basic_formatter)
-    
+
     # set up the logger with handler and to output debug messages
     logger = logging.getLogger("config_expert")
     logger.setLevel(logging.DEBUG)
@@ -137,9 +137,7 @@ class Variable(object):
     def resolve(self, variables):
 
         # replace any variables
-        value, errors = ReplaceVariableReferences(self.value, variables)
-        if errors:
-            raise ErrorCollection(errors)
+        value = ReplaceVariableReferences(self.value, variables)
 
         # calculate any values
         if SYSTEM_MARKER.match(value):
@@ -159,8 +157,6 @@ class Variable(object):
 
         return value
 
-    #def __str__(self):
-    #    return self.value
 
     def __repr__(self):
         return "<var:'%s'>"% (self.name)
@@ -210,7 +206,7 @@ def LoadConfigFile(config_file):
             del config_data['includes']
 
         config_vars = config_data.get('variables', {})
-        
+
         # if the variables have been defined as a list - then
         # convert it to a dictionary
         if isinstance(config_vars, list):
@@ -221,11 +217,11 @@ def LoadConfigFile(config_file):
                         "Variable not defined correctly: '%s'"% v)
             [temp.update(v) for v in config_vars]
             config_vars = temp
-        
+
         # if there are no variables
         elif isinstance(config_vars, type(None)):
             config_vars = {}
-        
+
         this_file_variables = {}
         for name, value in config_vars.items():
             # wrap the variable
@@ -236,18 +232,18 @@ def LoadConfigFile(config_file):
                 continue
 
             # check that we don't have two variables the same
-            if (name.lower() in this_file_variables and 
+            if (name.lower() in this_file_variables and
                 this_file_variables[name.lower()] != value):
-                errors.append((
+                all_errors.append((
                     "Key already defined with different value, Key: '%s'"
                     "\n\tVal1: '%s'"
                     "\n\tVal2: '%s'")% (
                         name, this_file_variables[name.lower()], value))
             else:
                 this_file_variables[name.lower()] = var
-        
+
         variables.update(this_file_variables)
-        
+
         # Now update the variables from this particular config file
         if 'variables' in config_data:
             del config_data['variables']
@@ -301,7 +297,7 @@ def ParseVariableOverrides(variable_overrides):
 
         var, value = parsed
         var = var.strip()
-        
+
 
         overrides[var.lower()] = Variable(var, value, "SCRIPT ARG")
 
@@ -317,45 +313,41 @@ def ReplaceVarRefsInStructure(structure, vars):
         # check all the values in the dictionary
         for key, value in structure.items():
 
-            # call this function recursively - as the value may itself
-            # be a dictionary or a list
-            new_val, sub_errors = ReplaceVarRefsInStructure(value, vars)
+            try:
+                # call this function recursively - as the value may itself
+                # be a dictionary or a list
+                new_val = ReplaceVarRefsInStructure(value, vars)
+                structure[key] = new_val
+            except ErrorCollection, e:
+                errors.extend(e.errors)
 
             # if there were errors
-            if sub_errors:
+            #if sub_errors:
 
                 # update each of the errors with the current key
                 # makes it easier to track down the particular instance
-                for se in sub_errors:
-                    se.names.append(key)
-                errors.extend(sub_errors)
-            else:
+                #for se in sub_errors:
+                #    se.names.append(key)
+                #errors.extend(sub_errors)
+            #else:
                 # only update the value if there were no errrors
                 # Even if there were errors new_val may have been partially
                 # updated
-                structure[key] = new_val
 
     elif isinstance(structure, list):
         # Similar to dicts above - iterate over the list
         # calling ourselves recursively for each element
         # and only updating the value if there were no errors
         for i, value in enumerate(structure):
-            new_val, sub_errors = ReplaceVarRefsInStructure(value, vars)
-
-            if sub_errors:
-                errors.extend(sub_errors)
-            else:
-                structure[i] = new_val
+            new_val = ReplaceVarRefsInStructure(value, vars)
+            structure[i] = new_val
     else:
         # It is a value - we can replace the variable references directly
-        new_val, sub_errors = ReplaceVariableReferences(structure, vars)
-        if sub_errors:
-            errors.extend(sub_errors)
-        else:
-            structure = new_val
+        new_val = ReplaceVariableReferences(structure, vars)
+        structure = new_val         
 
     # return the updated structure and any errors
-    return structure, errors
+    return structure
 
 
 VARIABLE_REFERENCE_RE = re.compile("\<([^\>\<]+)\>")
@@ -365,16 +357,17 @@ def ReplaceVariableReferences(item, vars):
     # If item is None just return
     # and there were no errors because we didn't do anything.
     if item is None or item == '':
-        return item, []
+        return item
 
     # Force that the YAML data only has string values - imagine
     # a float that can't be represented, instead of having 1.1 - you might end
     # up with 1.000000009 :(
-    if isinstance(item, float):
-        return None, [NumericVarNotAllowedError('', item, '')]
+    if isinstance(item, (int, long, float)):
+        raise NumericVarNotAllowedError('', item, '')
 
+    # the item is not a base string - just return it
     if not isinstance(item, basestring):
-        return item, []
+        return item
 
     # We need some way to allow > and < so the user doubles them when
     # they are not supposed to be around a variable reference.
@@ -413,10 +406,14 @@ def ReplaceVariableReferences(item, vars):
         else:
             errors.append(VariableMissingError(item, var))
 
+    # if there have been errors - then raise then
+    if errors:
+        raise ErrorCollection(errors)
+
     item = item.replace("{LT}", "<")
     item = item.replace("{GT}", ">")
 
-    return item, errors
+    return item
 
 
 def ListCommands(commands):
@@ -560,11 +557,11 @@ def Main():
         # ensure that the keys are all treated case insensitively
         variables, commands = LoadConfigFile(config_file)
     except ErrorCollection, e:
-        for err in e.errors:
+        for err in sorted(e.errors):
             LOG.fatal(err)
         sys.exit()
 
-    # get the variable overrides passed at the command line and 
+    # get the variable overrides passed at the command line and
     # update the read variables from the overrides
     variables.update(ParseVariableOverrides(options.variables))
 
@@ -580,7 +577,7 @@ def Main():
             commands, options.execute, variables)
 
         if errors:
-            for e in errors:
+            for e in sorted([str(e) for e in errors]):
                 LOG.fatal(e)
             sys.exit()
 
@@ -597,29 +594,6 @@ def Main():
     elif options.validate:
         sys.exit()
 
-
-def Test(variables, commands, args):
-    "Perform some simple tests and exit"
-
-    # check parsing a value with no vars
-    assert ReplaceVariableReferences(
-        "test string", []) == ("test string", [])
-    assert ReplaceVariableReferences(
-        ">>test string>>", []) == (">test string>", [])
-    assert ReplaceVariableReferences(
-        "<<test string<<" ,{}) == ("<test string<", [])
-    assert ReplaceVariableReferences(
-        "<<test string>>", {}) == ("<test string>", [])
-    assert ReplaceVariableReferences(
-        "<<<var>", {"var": "value"}) == ("<value", [])
-    assert ReplaceVariableReferences(
-        "<var>>>", {"var": "value"}) == ("value>", [])
-    print("PASSED: No Errors")
-    sys.exit()
-
-    # check parsing a value with 1 var
-    # check parsing a value which is only a variable reference
-    # check that > and < work OK (begining, middle and end of the string)
 
 if __name__ == '__main__':
     Main()
