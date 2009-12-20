@@ -3,9 +3,8 @@ includes:
 - MapVariables.yaml
 
 variables:
-  test: a
 #  Test: b
-  dotNetLang: {RUN: tools\GetLang.bat deu}
+  dotNetLang: (SYSTEM) tools\GetLang.bat deu
 
 prepare_acad_lpu_for_baseupdate:    
 - Exists: <COMMON_BUILD_TOOLS_DIR>\BuzzCopy.py 
@@ -13,7 +12,7 @@ prepare_acad_lpu_for_baseupdate:
 - Exists: <PASSOLO_DIR>\pslcmd.exe
 
 # this is like calling a count function with 2 arguments
-- count: [<COMMON_BUILD_TOOLS_DIR>, 5]
+- count 5: <COMMON_BUILD_TOOLS_DIR>
 
 
 # download AutoCAD databases
@@ -31,5 +30,6 @@ prepare_acad_lpu_for_baseupdate:
     - <LOCFILES_FOLDER>\ref_dbs\<ACAD_BUILD>\<lang>_Hammer_Msi.lpu
     - /runmacro=addDelRen.bas
 
-- <PASSOLO_DIR>\pslcmd.exe <LOCFILES_FOLDER>\ref_dbs\<ACAD_BUILD>\<lang>_Hammer_Msi.lpu  /runmacro=addDelRen.bas
+- |
+    "<PASSOLO_DIR>\pslcmd.exe" <LOCFILES_FOLDER>\ref_dbs\<ACAD_BUILD>\<lang>_Hammer_Msi.lpu  /runmacro=addDelRen.bas
 
