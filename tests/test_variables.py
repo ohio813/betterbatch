@@ -10,7 +10,7 @@ from test_config import *
 TEST_PATH = os.path.dirname(__file__)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
-class LoadConfigTests(unittest.TestCase):
+class VariableTests(unittest.TestCase):
     "Unit tests for the loadconfig function"
     
     def test_empty(self):
