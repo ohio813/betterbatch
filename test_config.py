@@ -513,15 +513,15 @@ class Command(object):
         self.variables = variables
 
     def ReplaceVars(self, variables):
-        updated_structure, errors = ReplaceVarRefsInStructure(
+        updated_structure = ReplaceVarRefsInStructure(
             self.cmd_info, variables)
 
-        if errors:
-            for error in errors:
-                error.names.append(self.cmd_name)
-            raise ErrorCollection(errors)
-        else:
-            self.cmd_info = updated_structure
+        #if errors:
+        #    for error in errors:
+        #        error.names.append(self.cmd_name)
+        #    raise ErrorCollection(errors)
+        #else:
+        self.cmd_info = updated_structure
 
     def Execute(self):
         "Run the command after checking pre-requisites"
