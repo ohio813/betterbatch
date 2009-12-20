@@ -1,0 +1,148 @@
+The config file is made up of 2 named sections and commands:
+
+
+Inclues Section (Optional).
+Here you specify which other configuration files you would like to include.
+Items defined in an earlier include can be overridden in later config files and 
+the current config file (the file which includes the other files) can override
+anything else
+
+example
+Includes:
+ - IncludeFile_1.yaml
+ - IncludeFile_2.yaml
+ 
+In this example IncludeFile_2.yaml can override any variable/command defined in 
+IncludeFile_1.yaml
+
+
+Variables Section (Optional - but highly recommended)
+Here you can specify variables that can be referenced later by putting angle
+brackets around the variable name e.g. 
+Variables:
+ test_var:  test
+ test_2_var = <test_var>_more_text
+ 
+The resulting value of test_2_var will be "test_more_text"
+
+If a variable is defined using a another variable that is not set e.g.
+Variables:
+ using_unknown_var:  This is <adjective>
+
+an error will NOT be raised until something uses the 'using_unknown_var' variable.
+
+
+
+
+Variable Overriding:
+Variables can be overriden at many points:
+a) you can force a particular value by specifying it at the command line
+If you do this - this WILL be the value of that variable!
+
+b) If the config file specified at the command line will defines that variable
+and it is not overridden at the command line it's value will be used.
+
+c) Variables will be taken from the included files if not overriden on the command
+line or in the main config file. If more than one included config file has the 
+variable then values in earlier config files will be overridden by later included
+config files.
+
+
+
+
+
+Trouble Shooting:
+
+Spaces in paths for "RUN" commands
+This can be difficult but there are a number of ways around it.
+
+All of the following will work as they are all valid YAML - it's up to you 
+which you prefer
+
+a) Wrap the whole command in single quotes (') and the path that has spaces in 
+double quotes.
+e.g. 
+ - Run: '"c:\program files\SDL Passolo 2009\pslcmd.exe" project.lpu /generate'
+
+b) use one of the block string processors ('|' or '>'), put the command line on
+the next line and finally surround the path with spaces in double quotes
+e.g. 
+ - Run: |  # > would have worked just as well
+    "c:\program files\SDL Passolo 2009\pslcmd.exe" project.lpu /generate
+
+c) Split it up into separate arguments by creating a list
+e.g. 
+ - Run: 
+    - c:\program files\SDL Passolo 2009\pslcmd.exe
+    - project.lpu 
+    - /generate
+
+
+Integers and decimals
+These are not accepted as variable values because the representation of the 
+value may not be the same as the value. For example if you have the following variable
+specification
+Variables:
+   MyVar: 0001
+
+After parsing MyVar will be the integer value 1, when in fact you probably wanted
+a string value '0001'. To resolve this wrap the value in single or double quotes.
+
+Similarly for decimals, leading and trailing 0's will be stripped off, and more
+complicated due to how computers represent decimal values the following may happen
+Variables:
+  MyVar: 0.1
+
+If you need to use MyVar as a string you may well see "0.10000000000000001".
+
+For these reasons you cannot provide a normal variable value as an integer or decimal value.
+
+
+
+Ideal localization automation process:
+
+Variables separate from scripts (e.g. YAML or something simpler)
+
+Tools are commands (i.e. not specialized scripts that only work with the framework)
+
+Lots of checking on the environment before each build step.
+
+
+Common structure that will work for all projects
+\Builds
+\Tools
+	\CUP (should be stored outside of build environemt - i.e. similar to Perl/Python?)
+	\AutoMaster 
+	\Parsers
+	\Macros
+	\ETC
+\Config
+
+Very easy to call separate parts of the process (I see in Map batch files similar to 
+	1_DownloadEnuBuild.bat, 
+	2_UpdateFilespec.bat, 
+	3_AnalyzeFilespecNow.txt
+	4_Extractfiles.bat
+I like this - but there needs to be a better way to share environment between the scripts (and also validation of the environment)
+	
+Tools should often work on single files and on multiple files:
+ e.g. 
+ 	upload_to_pp srcfile1.lpu dest username password
+ 	upload_to_pp srcfile2.lpu dest username password
+ 	upload_to_pp srcfile3.lpu dest username password
+ 	upload_to_pp srcfile4.lpu dest username password
+ 
+ it is so much nicer to write 
+  	upload_to_pp srcfile?.lpu dest username password
+ or maybe
+ 	upload_to_pp srcfile[1-4].lpu dest username password
+
+
+Maybe:
+	YAML config file, specifies main variables, etc
+	
+Run 2_UpdateFilespec 26.6 DEU
+	reads configuration
+	Checks the environment
+	creates batch file
+	Runs Batch File
