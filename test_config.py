@@ -38,15 +38,16 @@ SYSTEM_MARKER = re.compile("^\s*\(\s*SYSTEM\s*\)\s*(.*)$", re.I)
 
 def CreateLogger():
     "Create and set up the logger - returns the new logger"
-    stdout_handler = logging.StreamHandler()
+
     # allow the handler to  print everything - we will set the actual level
     # through the logger
+    stdout_handler = logging.StreamHandler()
     stdout_handler.setLevel(logging.DEBUG)
 
     # make the output format very simple
     basic_formatter = logging.Formatter("%(levelname)s - %(message)s")
     stdout_handler.setFormatter(basic_formatter)
-
+    
     # set up the logger with handler and to output debug messages
     logger = logging.getLogger("config_expert")
     logger.setLevel(logging.DEBUG)
@@ -104,8 +105,8 @@ class VariableMissingError(PreRequisiteError):
     "Class used to track errors when a used variable is is missing"
     def __init__(self, text_where_var_missing, missing_var):
         PreRequisiteError.__init__(self, text_where_var_missing)
-        self.message = "Variable '%s' is not defined '%s''"% (
-            missing_var, text_where_var_missing)
+        self.message = "Undefined Variable '%s' '%s''"% (
+            missing_var, text_where_var_missing[:50])
 
 
 class NumericVarNotAllowedError(TypeError):
@@ -151,7 +152,7 @@ class Variable(object):
             # run the external command and grab it's output
             ret, out = built_in_commands.SystemCommand(system_command)
 
-            out.strip()
+            value = out.strip()
 
             if ret:
                 raise RuntimeError("possible error setting variable from system command")
@@ -172,12 +173,14 @@ def LoadConfigFile(config_file):
     first so that data will be overridden by the including config file.
     """
     all_errors = []
-    LOG.debug("Parsing include: '%s'"% config_file)
     try:
         # load the config file
-        f = open(config_file, "rb")
-        config_data = yaml.load(f.read())
-        f.close()
+        try:
+            f = open(config_file, "rb")
+            config_data = yaml.load(f.read())
+            f.close()
+        except IOError, e:
+            raise ErrorCollection([e])
 
         # update the config data to have lower case keys
         # only for the root level (e.g. includes/variables/commands)
@@ -193,14 +196,15 @@ def LoadConfigFile(config_file):
         if 'includes' in config_data and config_data['includes']:
             # load each of the included config files
             for inc in config_data['includes']:
+                LOG.debug("Parsing include: '%s'"% inc)
                 inc = os.path.join(os.path.dirname(config_file), inc)
                 try:
                     inc_vars, inc_cmds = LoadConfigFile(inc)
+                    variables.update(inc_vars)
+                    inc_commands.update(inc_cmds)
                 except ErrorCollection, e:
                     all_errors.extend(e.errors)
 
-                variables.update(inc_vars)
-                inc_commands.update(inc_cmds)
 
             # we don't need this anymore
             del config_data['includes']
@@ -211,9 +215,17 @@ def LoadConfigFile(config_file):
         # convert it to a dictionary
         if isinstance(config_vars, list):
             temp = {}
+            for v in config_vars:
+                if isinstance(v, basestring):
+                    raise RuntimeError(
+                        "Variable not defined correctly: '%s'"% v)
             [temp.update(v) for v in config_vars]
             config_vars = temp
-            
+        
+        # if there are no variables
+        elif isinstance(config_vars, type(None)):
+            config_vars = {}
+        
         this_file_variables = {}
         for name, value in config_vars.items():
             # wrap the variable
@@ -289,10 +301,11 @@ def ParseVariableOverrides(variable_overrides):
 
         var, value = parsed
         var = var.strip()
+        
 
-        overrides[var] = value
+        overrides[var.lower()] = Variable(var, value, "SCRIPT ARG")
 
-    return Variables(overrides, 'PARAMETER')
+    return overrides
 
 
 def ReplaceVarRefsInStructure(structure, vars):
@@ -358,11 +371,10 @@ def ReplaceVariableReferences(item, vars):
     # a float that can't be represented, instead of having 1.1 - you might end
     # up with 1.000000009 :(
     if isinstance(item, float):
-        return None, [NumericVarNotAllowedError(item)]
+        return None, [NumericVarNotAllowedError('', item, '')]
 
     if not isinstance(item, basestring):
         return item, []
-
 
     # We need some way to allow > and < so the user doubles them when
     # they are not supposed to be around a variable reference.
@@ -407,7 +419,7 @@ def ReplaceVariableReferences(item, vars):
     return item, errors
 
 
-def ListCommands(variables, commands, args):
+def ListCommands(commands):
     "Print out the available commands"
     print "Availale commands are:   "
     for cmd in sorted(commands.keys()):
@@ -531,7 +543,7 @@ class Command(object):
 
                 step = Step(step_type, step_info)
                 try:
-                    step.Execute()
+                    ret, output = step.Execute()
                 except Exception, e:
                     print "sssssssssssssssssssssss", e
 
@@ -539,9 +551,6 @@ class Command(object):
                 raise RuntimeError(
                     "unknown type - use only strings or dictionaries")
 
-            if step_type in built_in_commands.NAME_ACTION_MAPPING:
-                step_function = built_in_commands.NAME_ACTION_MAPPING[step_type]
-                LOG.debug("Executing step '%s': '%s'"% (step_type, step_info))
 
 
 def Main():
@@ -555,17 +564,15 @@ def Main():
             LOG.fatal(err)
         sys.exit()
 
-    # get the variable overrides passed at the command line
-    variable_overrides = {}
-    errors = []
-    variables.update(ParseVariableOverrides(options.variables))
-
+    # get the variable overrides passed at the command line and 
     # update the read variables from the overrides
-    #variables = OverrideVariables(variables, variable_overrides)
+    variables.update(ParseVariableOverrides(options.variables))
 
     # calculate any values that need to be processed
     # todo - don't do this yet!!
     #CalculateValues(variables)
+
+    errors = []
 
     LOG.debug("Options: %s"% options)
     if options.execute:
@@ -574,7 +581,7 @@ def Main():
 
         if errors:
             for e in errors:
-                print 'nnnn', e
+                LOG.fatal(e)
             sys.exit()
 
         try:
@@ -584,7 +591,7 @@ def Main():
             print "xxxx" ,e
 
     elif options.list:
-        ListCommands(variables, commands, args)
+        ListCommands(commands)
     #elif options.test:
     #    Test(variables, commands, args)
     elif options.validate:
