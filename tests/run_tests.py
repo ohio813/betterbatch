@@ -8,10 +8,11 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
 import test_config
 import cmd_line
 import built_in_commands
-modules = [test_config, cmd_line, built_in_commands]
+modules_to_test = [test_config, cmd_line, built_in_commands]
 
 excludes = []
 def run_tests():
@@ -48,7 +49,7 @@ def run_tests():
     unittest.TextTestRunner(verbosity=1).run(suite)
     cov.stop()
     #print cov.analysis()
-    print cov.report(modules)
+    print cov.report(modules_to_test)
 
 if __name__ == '__main__':
     run_tests()
