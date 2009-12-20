@@ -6,6 +6,7 @@ sys.path.append(".")
 sys.path.append("..")
 
 from test_config import LoadConfigFile
+from test_config import ErrorCollection
 
 TEST_PATH = os.path.dirname(__file__)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
@@ -14,8 +15,7 @@ class LoadConfigTests(unittest.TestCase):
     "Unit tests for the loadconfig function"
     
     def test_emtpy_file(self):
-        """
-        """
+        """"""
         vars_and_commands = LoadConfigFile(
             os.path.join(TEST_FILES_PATH, "empty.yaml"))
         self.assertEquals(vars_and_commands, ({}, {}))
@@ -31,14 +31,43 @@ class LoadConfigTests(unittest.TestCase):
             os.path.join(TEST_FILES_PATH, "test_rel_include.yaml"))
         self.assertEquals(vars['test'].value, "Hello World")
 
+
+    def test_missing_file(self):
+        """"""
+        
+        self.assertRaises(
+            ErrorCollection,
+            LoadConfigFile,
+            os.path.join(TEST_FILES_PATH, "missing.yaml"))
+
+    def test_missing_include(self):
+        """"""
+        
+        self.assertRaises(
+            ErrorCollection,
+            LoadConfigFile,
+            os.path.join(TEST_FILES_PATH, "missing_include.yaml"))
+
+
     def test_variables_as_list(self):
-        """
-        """
+        """"""
         
         vars, commands = LoadConfigFile(
             os.path.join(TEST_FILES_PATH, "variables_as_list.yaml"))
         self.assertEquals(vars['test'].value, "Hello World")
+
         
+    def test_numeric_variable(self):
+        """"""
+        
+        try:
+            LoadConfigFile(os.path.join(TEST_FILES_PATH, "number_variables.yaml"))
+        except ErrorCollection, e:
+            self.assertEquals(len(e.errors), 2)
+            
+
+
+
 
 if __name__ == "__main__":
     unittest.main()
