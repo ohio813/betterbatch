@@ -1,10 +1,6 @@
 "Read a config file and execute commands from it"
 
 # todo: work on logging
-# Todo: remote Python Perl Extensions
-# Todo: add unit tests!!!!
-
-# todo - warn/fail for integers in variables
 
 import re
 import sys
@@ -33,7 +29,7 @@ import cmd_line
 #pylint: disable-msg=R0903
 
 
-SYSTEM_MARKER = re.compile("^\s*\(\s*SYSTEM\s*\)\s*(.*)$", re.I)
+SYSTEM_VARIABLE = re.compile("^\s*\(\s*SYSTEM\s*\)\s*(?P<cmd>.*)$", re.I)
 
 
 def CreateLogger():
@@ -57,12 +53,16 @@ LOG = CreateLogger()
 cmd_line.LOG = LOG
 built_in_commands.LOG = LOG
 
+
 class ErrorCollection(RuntimeError):
     "Class used to track many errors "
+
     def __init__(self, errors):
         self.errors = errors
 
     def FilterDuplicateErrors(self):
+        "Remove duplicate error messages"
+
         filtered = []
         for error in self.errors:
             if str(error) not in filtered:
@@ -73,14 +73,9 @@ class ErrorCollection(RuntimeError):
         return "\n".join([msg for msg in self.FilterDuplicateErrors()])
 
 
-class ParseError(RuntimeError):
-    def __init__(self, data):
-        self.names = []
-        self.data = data
-
-
 class PreRequisiteError(object):
     "Error when a pre-requisite is missing"
+
     def __init__(self, item):
         self.names = []
         self.message = "'%s' - No information"% item
@@ -101,12 +96,13 @@ class PreRequisiteError(object):
             self.message == other.message)
 
 
-class VariableMissingError(PreRequisiteError):
+class UndefinedVariableError(PreRequisiteError):
     "Class used to track errors when a used variable is is missing"
+
     def __init__(self, text_where_var_missing, missing_var):
         PreRequisiteError.__init__(self, text_where_var_missing)
         self.message = "Undefined Variable '%s' '%s''"% (
-            missing_var, text_where_var_missing[:50])
+            missing_var, text_where_var_missing)
 
 
 class NumericVarNotAllowedError(TypeError):
@@ -115,176 +111,224 @@ class NumericVarNotAllowedError(TypeError):
     Only strings are supported to ensure that values like 01, 0x409, are
     kept as strings - i.e. it will have the same textual representation"""
 
-    def __init__(self, variable, value, file):
+    def __init__(self, variable, value, config_file):
         self.msg = ("Variable '%s' ('%s') is of type %s. Please "
                 "surround it with single quotes e.g. '%s'")% (
-                    variable, file, type(value).__name__, str(value))
+                    variable, config_file, type(value).__name__, str(value))
 
     def __str__(self):
         return self.msg
 
 
 class Variable(object):
-    def __init__(self, name, value, file):
+    "Represents a single variable definition"
+
+    def __init__(self, name, value, config_file):
         self.name = name
         self.key = name.lower()
         self.value = value
-        self.file = file
+        self.file = config_file
 
         if isinstance(value, (int, float, long)):
-            raise NumericVarNotAllowedError(name, value, file)
+            raise NumericVarNotAllowedError(name, value, config_file)
 
     def resolve(self, variables):
+        """Fully resolve the variable
+
+        If the variable has variables then they will be replaced
+        If the variable is a 'system' variable then the command will be run
+        and the output retrieved."""
+
 
         # replace any variables
         value = ReplaceVariableReferences(self.value, variables)
 
         # calculate any values
-        if SYSTEM_MARKER.match(value):
+        system_variable = SYSTEM_VARIABLE.match(value)
+        if system_variable:
             LOG.debug("Calculating variable: %s - %s"% (
                 repr(self.key), repr(value)))
 
-            # remove the system marker
-            system_command = SYSTEM_MARKER.search(value).group(1)
-
             # run the external command and grab it's output
-            ret, out = built_in_commands.SystemCommand(system_command)
-
-            value = out.strip()
+            ret, out = built_in_commands.SystemCommand(
+                system_variable.group('cmd'))
 
             if ret:
-                raise RuntimeError("possible error setting variable from system command")
+                raise RuntimeError(
+                    "possible error setting variable from system command")
+
+            # remove any extra spaces that may have been present
+            value = out.strip()
 
         return value
-
 
     def __repr__(self):
         return "<var:'%s'>"% (self.name)
 
 
-def LoadConfigFile(config_file):
+def ParseYAMLFile(yaml_file):
+    """Parse a single YAML file
+
+    Most of the work of this function is to convert various different errors
+    into RuntimeErrors
+    """
+    try:
+
+        f = open(yaml_file, "rb")
+        # load the config file
+        config_data = yaml.load(f.read())
+        f.close()
+        return config_data
+
+    except IOError, e:
+        raise RuntimeError(e)
+
+    except yaml.parser.ScannerError, e:
+        raise RuntimeError("%s - %s"% (yaml_file, e))
+
+    except yaml.parser.ParserError, e:
+        raise RuntimeError("%s - %s"% (yaml_file, e))
+
+
+def LoadIncludes(includes, base_path):
+    "Load each of the include files"
+
+    if not includes:
+        return {}, {}
+
+    all_included_vars = {}
+    all_included_cmds = {}
+    errors = []
+    # load each of the included config files
+    for inc in includes:
+        if not inc:
+            continue
+        LOG.debug("Parsing include: '%s'"% inc)
+        inc = os.path.join(base_path, inc)
+        try:
+            inc_vars, inc_cmds = ParseConfigFile(inc)
+
+            # Update the total included vars
+            all_included_vars.update(inc_vars)
+            all_included_cmds.update(inc_cmds)
+        except ErrorCollection, e:
+            errors.extend(e.errors)
+
+    if errors:
+        raise ErrorCollection(errors)
+
+    return all_included_vars, all_included_cmds
+
+
+def ParseVariableBlock(var_block, config_file):
+    "Parse the variable block and return the variables"
+
+
+    # if there are no variables
+    if not var_block:
+        return {}
+
+
+    # if the variables have been defined as a list - then fix the block by
+    # converting it to a dictionary
+    elif isinstance(var_block, list):
+        temp = {}
+        for v in var_block:
+            # if the variable isn't "key: value" then raise an error
+            if isinstance(v, basestring):
+                raise RuntimeError(
+                    "Variable not defined correctly: '%s'"% v)
+
+        # get the single item dict from each of the array items and update
+        # the variables
+        [temp.update(v) for v in var_block]
+
+        # replace the existing block with the improved data
+        var_block = temp
+
+    all_errors = []
+    this_file_variables = {}
+    for name, value in var_block.items():
+        # wrap the variable
+        try:
+            var = Variable(name, value, config_file)
+        except NumericVarNotAllowedError, e:
+            all_errors.append(e)
+            continue
+
+        # check that we don't have two variables the same
+        if (name.lower() in this_file_variables and
+            this_file_variables[name.lower()] != value):
+            all_errors.append((
+                "Key already defined with different value, Key: '%s'"
+                "\n\tVal1: '%s'"
+                "\n\tVal2: '%s'")% (
+                    name, this_file_variables[name.lower()], value))
+        else:
+            this_file_variables[name.lower()] = var
+
+    if all_errors:
+        raise ErrorCollection(all_errors)
+
+    return this_file_variables
+
+
+def ParseConfigFile(config_file):
     """Load the config files -return the variables and commands
 
     Recursively parse any included config files. Included files are parsed
     first so that data will be overridden by the including config file.
     """
+
     all_errors = []
+    config_data = {}
     try:
-        # load the config file
-        try:
-            f = open(config_file, "rb")
-            config_data = yaml.load(f.read())
-            f.close()
-        except IOError, e:
-            raise ErrorCollection([e])
+        config_data = ParseYAMLFile(config_file)
+    except RuntimeError, e:
+        raise ErrorCollection([e])
 
-        # update the config data to have lower case keys
-        # only for the root level (e.g. includes/variables/commands)
-        if not config_data:
-            return {}, {}
-        config_data = dict([(k.lower(), v) for k, v in config_data.items()])
+    # file is empty - just return empty data
+    if not config_data:
+        return {}, {}
 
+    # update the config data to have lower case keys
+    # only for the root level (e.g. includes/variables/commands)
+    config_data = dict([(k.lower(), v) for k, v in config_data.items()])
 
-        # Parse the includes files first (so the including config file
-        # can override items as necessary)
-        variables = {}
-        inc_commands = {}
-        if 'includes' in config_data and config_data['includes']:
-            # load each of the included config files
-            for inc in config_data['includes']:
-                LOG.debug("Parsing include: '%s'"% inc)
-                inc = os.path.join(os.path.dirname(config_file), inc)
-                try:
-                    inc_vars, inc_cmds = LoadConfigFile(inc)
-                    variables.update(inc_vars)
-                    inc_commands.update(inc_cmds)
-                except ErrorCollection, e:
-                    all_errors.extend(e.errors)
+    # Parse the includes files first (so the including config file
+    # can override items as necessary)
+    variables = {}
+    commands = {}
+    includes = config_data.setdefault('includes', {})
+    # load and parse all the data from the included files
+    try:
+        variables, commands = LoadIncludes(
+            includes, os.path.dirname(config_file))
+    except ErrorCollection, e:
+        # don't raise errors yet - just collect the errors. If there are
+        # errors - then we will raise all the errors before returning
+        all_errors.extend(e.errors)
 
+    config_vars = config_data.setdefault('variables', {})
+    this_file_variables = ParseVariableBlock(config_vars, config_file)
+    variables.update(this_file_variables)
 
-            # we don't need this anymore
-            del config_data['includes']
+    # we don't need this anymore
+    del config_data['includes']
 
-        config_vars = config_data.get('variables', {})
+    # Now delete the variables from the config data - so that all we have
+    # are the commands
+    del config_data['variables']
 
-        # if the variables have been defined as a list - then
-        # convert it to a dictionary
-        if isinstance(config_vars, list):
-            temp = {}
-            for v in config_vars:
-                if isinstance(v, basestring):
-                    raise RuntimeError(
-                        "Variable not defined correctly: '%s'"% v)
-            [temp.update(v) for v in config_vars]
-            config_vars = temp
+    commands = {}
 
-        # if there are no variables
-        elif isinstance(config_vars, type(None)):
-            config_vars = {}
+    # And the commands (everything else is a command)
+    commands.update(config_data)
 
-        this_file_variables = {}
-        for name, value in config_vars.items():
-            # wrap the variable
-            try:
-                var = Variable(name, value, config_file)
-            except NumericVarNotAllowedError, e:
-                all_errors.append(e)
-                continue
+    if all_errors:
+        raise ErrorCollection(all_errors)
 
-            # check that we don't have two variables the same
-            if (name.lower() in this_file_variables and
-                this_file_variables[name.lower()] != value):
-                all_errors.append((
-                    "Key already defined with different value, Key: '%s'"
-                    "\n\tVal1: '%s'"
-                    "\n\tVal2: '%s'")% (
-                        name, this_file_variables[name.lower()], value))
-            else:
-                this_file_variables[name.lower()] = var
-
-        variables.update(this_file_variables)
-
-        # Now update the variables from this particular config file
-        if 'variables' in config_data:
-            del config_data['variables']
-
-        commands = {}
-
-        # And the commands (everything else is a command)
-        commands.update(config_data)
-
-        if all_errors:
-            raise ErrorCollection(all_errors)
-
-        return variables, commands
-
-    except yaml.parser.ScannerError, e:
-        raise RuntimeError("%s - %s"% (config_file, e))
-
-    except yaml.parser.ParserError, e:
-        raise RuntimeError("%s - %s"% (config_file, e))
-
-
-def CalculateValues(variables):
-    """Run through the variables and for any value that needs to be calculated
-    Get it's value and run it."""
-
-    # for each of the variables
-    for key, value in variables.items():
-        print value
-        print value.resolve(variables)
-        if SYSTEM_MARKER.match(value):
-            LOG.debug("Calculate variable: %s - %s"% (repr(key), repr(value)))
-
-            # remove the system marker
-            system_command = SYSTEM_MARKER.search(value).group(1)
-
-            ret, out = built_in_commands.SystemCommand(system_command)
-            variables[key] = out.strip()
-
-            if ret:
-                print `ret`, out
-                raise RuntimeError("possible error setting variable from system command")
+    return variables, commands
 
 
 def ParseVariableOverrides(variable_overrides):
@@ -293,7 +337,8 @@ def ParseVariableOverrides(variable_overrides):
     for override in variable_overrides:
         parsed = override.split("=")
         if len(parsed) != 2:
-            raise RuntimeError("overrides need to be var=value: '%s'"% override)
+            raise RuntimeError(
+                "overrides need to be var=value: '%s'"% override)
 
         var, value = parsed
         var = var.strip()
@@ -344,13 +389,12 @@ def ReplaceVarRefsInStructure(structure, vars):
     else:
         # It is a value - we can replace the variable references directly
         new_val = ReplaceVariableReferences(structure, vars)
-        structure = new_val         
+        structure = new_val
 
     # return the updated structure and any errors
     return structure
 
 
-VARIABLE_REFERENCE_RE = re.compile("\<([^\>\<]+)\>")
 def ReplaceVariableReferences(item, vars):
     """Replace variable references like <VAR_NAME> with the variable value"""
 
@@ -380,8 +424,9 @@ def ReplaceVariableReferences(item, vars):
     # not from the start
     item = "{GT}".join(item.rsplit(">>"))
 
+    variable_reference_re = re.compile("\<([^\>\<]+)\>")
     # find all the variable references
-    found = VARIABLE_REFERENCE_RE.findall(item)
+    found = variable_reference_re.findall(item)
 
     errors = []
     # for each of the variables we found
@@ -404,7 +449,7 @@ def ReplaceVariableReferences(item, vars):
             #if not sub_errors:
 
         else:
-            errors.append(VariableMissingError(item, var))
+            errors.append(UndefinedVariableError(item, var))
 
     # if there have been errors - then raise then
     if errors:
@@ -445,7 +490,8 @@ def GetCommands(commands_info, requested_commands, variables):
                 matched_cmd_names = [command]
                 break
 
-            # if it doesn't match exactly - we need to find all matching commands
+            # if it doesn't match exactly - we need to find all matching
+            # commands
             elif command.lower().startswith(cmd_requested):
                 matched_cmd_names.append(command)
 
@@ -470,7 +516,7 @@ def GetCommands(commands_info, requested_commands, variables):
 
         try:
             matched_commands.append(
-                Command(command_steps, cmd_name, variables))
+                BatchSteps(command_steps, cmd_name, variables))
         except ErrorCollection, e:
             errors.extend(e.errors)
 
@@ -478,6 +524,8 @@ def GetCommands(commands_info, requested_commands, variables):
 
 
 class Step(object):
+    "Represent a single step"
+
     def __init__(self, action_type, params):
         # split up the action_type - as it may have qualifiers:
         qualifiers = action_type.strip().split()
@@ -498,12 +546,13 @@ class Step(object):
         self.params = params
 
     def Execute(self):
+        "Execute the step"
         LOG.debug("Executing step '%s': '%s'"% (self.action_type, self.params))
         return self.action(self.params, self.qualifiers)
 
 
-class Command(object):
-    "Represent a command that can be run"
+class BatchSteps(object):
+    "Represent a set of steps"
 
     def __init__(self, cmd_info, cmd_name, variables):
         self.cmd_info = cmd_info
@@ -513,6 +562,7 @@ class Command(object):
         self.variables = variables
 
     def ReplaceVars(self, variables):
+        "Replace the vars in all steps"
         updated_structure = ReplaceVarRefsInStructure(
             self.cmd_info, variables)
 
@@ -532,7 +582,8 @@ class Command(object):
             if isinstance(item, dict):
                 #ensure only a single value
                 if len(item) != 1:
-                    raise RuntimeError("Item must be action: command: '%s'"% item)
+                    raise RuntimeError(
+                        "Item must be action: command: '%s'"% item)
 
                 # get the values
                 step_type, step_info = item.items()[0]
@@ -549,13 +600,14 @@ class Command(object):
                     "unknown type - use only strings or dictionaries")
 
 
-
 def Main():
+    "Parse command line arguments, read config and dispatch the request(s)"
+
     config_file, options = cmd_line.ParseArguments()
 
     try:
         # ensure that the keys are all treated case insensitively
-        variables, commands = LoadConfigFile(config_file)
+        variables, commands = ParseConfigFile(config_file)
     except ErrorCollection, e:
         for err in sorted(e.errors):
             LOG.fatal(err)
@@ -564,10 +616,6 @@ def Main():
     # get the variable overrides passed at the command line and
     # update the read variables from the overrides
     variables.update(ParseVariableOverrides(options.variables))
-
-    # calculate any values that need to be processed
-    # todo - don't do this yet!!
-    #CalculateValues(variables)
 
     errors = []
 
@@ -585,7 +633,7 @@ def Main():
             for cmd in found_commands:
                 cmd.Execute()
         except ErrorCollection, e:
-            print "xxxx" ,e
+            print "xxxx", e
 
     elif options.list:
         ListCommands(commands)
@@ -597,4 +645,3 @@ def Main():
 
 if __name__ == '__main__':
     Main()
-
