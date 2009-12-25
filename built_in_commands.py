@@ -11,7 +11,7 @@ import os.path
 import glob
 import subprocess
 import tempfile
-
+import sys
 
 RESULT_SUCCESS = 0
 RESULT_FAILURE = 1
@@ -80,9 +80,9 @@ def FileExists(path, dummy):
     "Check if the file exists"
 
     if os.path.exists(path):
-        return RESULT_SUCCESS, ''
+        return RESULT_SUCCESS, 'SUCCESS: Path exists'
     else:
-        raise RuntimeError("File not found: '%s'"% path)
+        raise RuntimeError("Required file not found: '%s'"% path)
 
 
 def Output(message, dummy):
@@ -93,42 +93,39 @@ def Output(message, dummy):
     return RESULT_SUCCESS, ''
 
 
-def CheckedSystemCommand(command, capture_output = True):
-    ret, output = SystemCommand(command, capture_output)
-
-    if ret:
-        raise RuntimeError(
-            "Non zero return (%d) from command:\n  %s:\nOUTPUT: %s"%(
-                ret, command, output))
-
-    else:
-        return ret, output
-
-def SystemCommand(command, capture_output = True):
+def SystemCommand(command, qualifiers):
     "Execute a system command, and optionally capture the output"
 
-    if capture_output:
+    new_stdout = sys.stdout
+    print qualifiers
+    if 'ui' not in qualifiers:
         new_stdout = tempfile.TemporaryFile()
 
     ret_value = subprocess.call(
         command,
         shell = True,
         stdout = new_stdout,
-        stderr = subprocess.STDOUT)
+        stderr = new_stdout)
 
     output = ''
-    if capture_output:
+    if 'ui' not in qualifiers:
         new_stdout.seek(0)
         output = new_stdout.read()
 
         #new_stderr.seek(0)
         #errors = new_stderr.read()
 
+    if 'nocheck' not in qualifiers and ret_value:
+        output = "\n".join(["   " + line for line in output.split("\r\n")])
+        raise RuntimeError(
+            "Non zero return (%d) from command:\n  %s:\nOUTPUT:\n%s"%(
+                ret_value, command, output))
+
     return ret_value, output
 
 
 NAME_ACTION_MAPPING = {
-    'run':         CheckedSystemCommand,
+    'run':         SystemCommand,
     'exists':      FileExists,
     'count':       VerifyFileCount,
     'print':       repr,
