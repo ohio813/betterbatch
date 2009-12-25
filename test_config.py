@@ -101,7 +101,7 @@ class UndefinedVariableError(PreRequisiteError):
 
     def __init__(self, text_where_var_missing, missing_var):
         PreRequisiteError.__init__(self, text_where_var_missing)
-        self.message = "Undefined Variable '%s' '%s''"% (
+        self.message = "Undefined Variable '%s' '%s'"% (
             missing_var, text_where_var_missing)
 
 
@@ -351,33 +351,15 @@ def ParseVariableOverrides(variable_overrides):
 
 def ReplaceVarRefsInStructure(structure, vars):
     "Replace all variable references in a structure"
-    errors = []
 
     # Handle different structure types differently
     if isinstance(structure, dict):
         # check all the values in the dictionary
         for key, value in structure.items():
-
-            try:
-                # call this function recursively - as the value may itself
-                # be a dictionary or a list
-                new_val = ReplaceVarRefsInStructure(value, vars)
-                structure[key] = new_val
-            except ErrorCollection, e:
-                errors.extend(e.errors)
-
-            # if there were errors
-            #if sub_errors:
-
-                # update each of the errors with the current key
-                # makes it easier to track down the particular instance
-                #for se in sub_errors:
-                #    se.names.append(key)
-                #errors.extend(sub_errors)
-            #else:
-                # only update the value if there were no errrors
-                # Even if there were errors new_val may have been partially
-                # updated
+            # call this function recursively - as the value may itself
+            # be a dictionary or a list
+            new_val = ReplaceVarRefsInStructure(value, vars)
+            structure[key] = new_val
 
     elif isinstance(structure, list):
         # Similar to dicts above - iterate over the list
@@ -478,7 +460,7 @@ def GetCommands(commands_info, requested_commands, variables):
     requested_commands = [
         cmd.strip().lower() for cmd in requested_commands.split(",")]
 
-    matched_commands = []
+    steps_to_run = []
     errors = []
     for cmd_requested in requested_commands:
         matched_cmd_names = []
@@ -501,7 +483,7 @@ def GetCommands(commands_info, requested_commands, variables):
                 "Requested command '%s'is ambiguous it matches: %s"% (
                 cmd_requested,
                 ", ".join([str(cmd) for cmd in matched_cmd_names])))
-            return [], errors
+            continue
 
         # it doesn't match any more command
         if not matched_cmd_names:
@@ -509,24 +491,48 @@ def GetCommands(commands_info, requested_commands, variables):
                 "Requested command '%s' not in available commands: %s"% (
                     cmd_requested,
                     ", ".join([str(cmd) for cmd in available_commands])))
-            return [], errors
+            continue
 
         cmd_name = matched_cmd_names[0]
         command_steps = commands_info[cmd_name]
+        
+        for step_data in command_steps:
+            #try:                    
+            steps_to_run.append(Step(step_data, variables))
+            #except RuntimeError, e:
+            #    errors.extend(e)
 
-        try:
-            matched_commands.append(
-                BatchSteps(command_steps, cmd_name, variables))
-        except ErrorCollection, e:
-            errors.extend(e.errors)
+    if errors:
+        raise ErrorCollection(errors)
 
-    return matched_commands, errors
+    return steps_to_run
 
 
 class Step(object):
     "Represent a single step"
 
-    def __init__(self, action_type, params):
+    def __init__(self, step_data, variables):
+        
+        # default is RUN action - if no action given RUN will be assumed
+        if isinstance(step_data, basestring):
+            step_data = {'run': step_data}
+        
+        # ensure it is a dictionary with a single value
+        if isinstance(step_data, dict):
+            #ensure only a single value
+            if len(step_data) != 1:
+                raise RuntimeError(
+                    'Step must be in format "- ACTION: COMMAND_INFO" \'%s\''%
+                        step_data)
+
+            # get the action type, and parameters
+            action_type, step_info = step_data.items()[0]
+            action_type = action_type.lower()
+        else:
+            raise RuntimeError(
+                'Step must be in format "- ACTION: COMMAND_INFO" \'%s\''%
+                    step_data)
+        
         # split up the action_type - as it may have qualifiers:
         qualifiers = action_type.strip().split()
 
@@ -534,21 +540,32 @@ class Step(object):
         # first element, and the qualifiers are after that.
         if len(qualifiers) > 1:
             action_type = qualifiers[0]
-            del qualifiers[0]
 
-        action_type = action_type.lower()
+        # remove the action type from the qualifiers
+        del qualifiers[0]
+
+        step_info = ReplaceVarRefsInStructure(step_info, variables)
+
         if action_type not in built_in_commands.NAME_ACTION_MAPPING:
             raise RuntimeError("Unknown action type: '%s'"% action_type)
 
         self.action_type = action_type
         self.action = built_in_commands.NAME_ACTION_MAPPING[action_type]
         self.qualifiers = qualifiers
-        self.params = params
+        self.params = step_info
 
     def Execute(self):
         "Execute the step"
+        
         LOG.debug("Executing step '%s': '%s'"% (self.action_type, self.params))
-        return self.action(self.params, self.qualifiers)
+        ret, output = self.action(self.params, self.qualifiers)
+
+        if output:
+            indented_output = "\n".join(
+                ["   " + line for line in output.split("\r\n")])
+            
+            LOG.debug("Output from command:\n%s"% indented_output)
+        return ret, output
 
 
 class BatchSteps(object):
@@ -563,6 +580,7 @@ class BatchSteps(object):
 
     def ReplaceVars(self, variables):
         "Replace the vars in all steps"
+        pprint(self.cmd_info)
         updated_structure = ReplaceVarRefsInStructure(
             self.cmd_info, variables)
 
@@ -592,8 +610,15 @@ class BatchSteps(object):
                 step = Step(step_type, step_info)
                 try:
                     ret, output = step.Execute()
+                    LOG.debug(output)
                 except Exception, e:
-                    print "sssssssssssssssssssssss", e
+                    LOG.exception(e)
+                    raise
+                
+                if ret != 0:
+                    LOG.critical("Non Zero error return")
+                    raise RuntimeError("Non Zero return value")
+                    
 
             else:
                 raise RuntimeError(
@@ -613,6 +638,17 @@ def Main():
             LOG.fatal(err)
         sys.exit()
 
+    if 'logfile' in variables:
+        log_filename = variables['logfile'].resolve(variables)
+        if os.path.exists(log_filename):
+            os.unlink(log_filename)
+        h = logging.FileHandler(log_filename)
+        # make the output format very simple
+        basic_formatter = logging.Formatter("%(levelname)s - %(message)s")
+        h.setFormatter(basic_formatter)
+        
+        LOG.addHandler(h)
+        
     # get the variable overrides passed at the command line and
     # update the read variables from the overrides
     variables.update(ParseVariableOverrides(options.variables))
@@ -621,19 +657,22 @@ def Main():
 
     LOG.debug("Options: %s"% options)
     if options.execute:
-        found_commands, errors = GetCommands(
-            commands, options.execute, variables)
-
-        if errors:
-            for e in sorted([str(e) for e in errors]):
-                LOG.fatal(e)
+        try:
+            executable_steps = GetCommands(
+                commands, options.execute, variables)
+        except ErrorCollection, e:
+            for err in e.errors:
+                LOG.fatal(err)
             sys.exit()
 
         try:
-            for cmd in found_commands:
+            for cmd in executable_steps:
                 cmd.Execute()
         except ErrorCollection, e:
-            print "xxxx", e
+            for err in e.errors:
+                LOG.fatal(err)
+        except RuntimeError, e:
+            LOG.fatal(e)
 
     elif options.list:
         ListCommands(commands)
