@@ -1,6 +1,6 @@
 Variables:
     project:  tavarua
-    PROJECTS_ROOT_FOLDER: G:\Projects
+    PROJECTS_ROOT_FOLDER: c:\_Projects\2011_tavarua\KIT_build_machine
 
     PROJECT_FOLDER: <PROJECTS_ROOT_FOLDER>\<PROJECT>
     
@@ -20,5 +20,3 @@ Variables:
         c:\Program Files\SDL Passolo 2009
     LOCFILES_FOLDER: 
         <BUILD_FOLDER>\locFiles
-    
-    test: '23' 

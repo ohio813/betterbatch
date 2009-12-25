@@ -5,15 +5,20 @@ includes:
 variables:
 #  Test: b
   dotNetLang: (SYSTEM) tools\GetLang.bat deu
+  logfile: blahblah.log
 
 prepare_acad_lpu_for_baseupdate:    
 - Exists: <COMMON_BUILD_TOOLS_DIR>\BuzzCopy.py 
-- Exists: <CONFIG_DIR>\hammer_msi.ini
+- Exists: <CONFIG_DIR>\adddelren_hammer_msi.ini
 - Exists: <PASSOLO_DIR>\pslcmd.exe
 
 # this is like calling a count function with 2 arguments
-- count 5: <COMMON_BUILD_TOOLS_DIR>
+#- count 5: <COMMON_BUILD_TOOLS_DIR>
 
+- RUN: dir
+- RUN ui: dir
+- RUN nocheck: "dir n:"
+- RUN: dir  "n:"
 
 # download AutoCAD databases
 - RUN: <COMMON_BUILD_TOOLS_DIR>\BuzzCopy.py -d -v <swl_vault_autocad_root>/Databases/<LANG>/<ACAD_BUILD>  <LOCFILES_FOLDER>\ref_dbs\<ACAD_BUILD>  *.lpu
