@@ -26,7 +26,7 @@ import cmd_line
 
 # recursive definition var: <var>
 
-#pylint: disable-msg=R0903
+# too few public methods   #pylint: disable-msg=R0903  
 
 
 SYSTEM_VARIABLE = re.compile("^\s*\(\s*SYSTEM\s*\)\s*(?P<cmd>.*)$", re.I)
@@ -73,19 +73,20 @@ class ErrorCollection(RuntimeError):
         return "\n".join([msg for msg in self.FilterDuplicateErrors()])
 
 
-class PreRequisiteError(object):
-    "Error when a pre-requisite is missing"
+class UndefinedVariableError(RuntimeError):
+    "Class used to track errors when a used variable is is missing"
 
-    def __init__(self, item):
+    def __init__(self, text_where_var_missing, missing_var):
         self.names = []
-        self.message = "'%s' - No information"% item
+        self.msg = "Undefined Variable '%s' '%s'"% (
+            missing_var, text_where_var_missing)
 
     def __str__(self):
         names_text = ''
         #if self.names:
         #    names_text = "%s: "% "->".join(reversed(self.names))
 
-        return names_text + self.message
+        return names_text + self.msg
 
     def __eq__(self, other):
         if type(self) != type(other):
@@ -93,16 +94,7 @@ class PreRequisiteError(object):
 
         return (
             self.names == other.names and
-            self.message == other.message)
-
-
-class UndefinedVariableError(PreRequisiteError):
-    "Class used to track errors when a used variable is is missing"
-
-    def __init__(self, text_where_var_missing, missing_var):
-        PreRequisiteError.__init__(self, text_where_var_missing)
-        self.message = "Undefined Variable '%s' '%s'"% (
-            missing_var, text_where_var_missing)
+            self.msg == other.msg)
 
 
 class NumericVarNotAllowedError(TypeError):
@@ -568,75 +560,13 @@ class Step(object):
         return ret, output
 
 
-class BatchSteps(object):
-    "Represent a set of steps"
-
-    def __init__(self, cmd_info, cmd_name, variables):
-        self.cmd_info = cmd_info
-        self.cmd_name = cmd_name
-
-        self.ReplaceVars(variables)
-        self.variables = variables
-
-    def ReplaceVars(self, variables):
-        "Replace the vars in all steps"
-        pprint(self.cmd_info)
-        updated_structure = ReplaceVarRefsInStructure(
-            self.cmd_info, variables)
-
-        #if errors:
-        #    for error in errors:
-        #        error.names.append(self.cmd_name)
-        #    raise ErrorCollection(errors)
-        #else:
-        self.cmd_info = updated_structure
-
-    def Execute(self):
-        "Run the command after checking pre-requisites"
-
-        for item in self.cmd_info:
-            if isinstance(item, basestring):
-                item = {'run': item}
-            if isinstance(item, dict):
-                #ensure only a single value
-                if len(item) != 1:
-                    raise RuntimeError(
-                        "Item must be action: command: '%s'"% item)
-
-                # get the values
-                step_type, step_info = item.items()[0]
-                step_type = step_type.lower()
-
-                step = Step(step_type, step_info)
-                try:
-                    ret, output = step.Execute()
-                    LOG.debug(output)
-                except Exception, e:
-                    LOG.exception(e)
-                    raise
-                
-                if ret != 0:
-                    LOG.critical("Non Zero error return")
-                    raise RuntimeError("Non Zero return value")
-                    
-
-            else:
-                raise RuntimeError(
-                    "unknown type - use only strings or dictionaries")
-
-
 def Main():
     "Parse command line arguments, read config and dispatch the request(s)"
 
     config_file, options = cmd_line.ParseArguments()
 
-    try:
-        # ensure that the keys are all treated case insensitively
-        variables, commands = ParseConfigFile(config_file)
-    except ErrorCollection, e:
-        for err in sorted(e.errors):
-            LOG.fatal(err)
-        sys.exit()
+    # ensure that the keys are all treated case insensitively
+    variables, commands = ParseConfigFile(config_file)
 
     if 'logfile' in variables:
         log_filename = variables['logfile'].resolve(variables)
@@ -653,17 +583,10 @@ def Main():
     # update the read variables from the overrides
     variables.update(ParseVariableOverrides(options.variables))
 
-    errors = []
-
     LOG.debug("Options: %s"% options)
     if options.execute:
-        try:
-            executable_steps = GetCommands(
-                commands, options.execute, variables)
-        except ErrorCollection, e:
-            for err in e.errors:
-                LOG.fatal(err)
-            sys.exit()
+        
+        executable_steps = GetCommands(commands, options.execute, variables)
 
         try:
             for cmd in executable_steps:
@@ -683,4 +606,12 @@ def Main():
 
 
 if __name__ == '__main__':
-    Main()
+    try:
+        Main()
+    except ErrorCollection, e:
+        for err in e.errors:
+            LOG.fatal(err)
+    except RuntimeError, e:
+        LOG.critical(e)
+    except Exception, e:
+        LOG.critical('Unknown Error: ' + e)
