@@ -1,11 +1,41 @@
-The config file is made up of 2 named sections and commands:
+BetterBatch Readme
+
+====================================
+Introduction
+====================================
+BetterBatch is meant as a replacement for batch files. It has the following 
+advantages over batch files:
+ - able to include easily data from other files
+ - allow setting of variables from the output of commands
+ - Automatic checking of the return value of executed commands
+ - Built in commands to allow easy checking of conditions (e.g. that a file exists)
+ - Easier to understand variable format
+ - Strongly encourages separation of code and configuration
+    - No branching/looping constructs in configuration files
+    - Allow easily using code in external files
 
 
+
+
+
+====================================
+Config Files
+====================================
+
+The config file is made up of named sections:
+ - "Includes" section
+ - "Variables" section
+ - Section for each command group
+
+
+====================================
 Inclues Section (Optional).
-Here you specify which other configuration files you would like to include.
-Items defined in an earlier include can be overridden in later config files and 
-the current config file (the file which includes the other files) can override
-anything else
+====================================
+Here you specify which configuration files you would like to include. Included 
+files are read in the order they are displayed.Which means that tems defined in 
+an earlier include can be overridden in subsequent include files and the current 
+config file (the file which specifies the includes) can override information in
+included files.
 
 example
 Includes:
@@ -16,25 +46,27 @@ In this example IncludeFile_2.yaml can override any variable/command defined in
 IncludeFile_1.yaml
 
 
-Variables Section (Optional - but highly recommended)
+====================================
+Variables Section (Optional)
+====================================
 Here you can specify variables that can be referenced later by putting angle
 brackets around the variable name e.g. 
 Variables:
  test_var:  test
  test_2_var = <test_var>_more_text
  
-The resulting value of test_2_var will be "test_more_text"
+The resulting value of test_2_var will be "test_more_text".
 
-If a variable is defined using a another variable that is not set e.g.
+If a variable is defined referencing a variable that is not defined e.g.
 Variables:
- using_unknown_var:  This is <adjective>
+ using_unknown_var:  This <noun> is remarkable
 
-an error will NOT be raised until something uses the 'using_unknown_var' variable.
-
+an error will NOT be raised unless something uses the 'using_unknown_var' variable.
 
 
 
 Variable Overriding:
+-----------------------------------
 Variables can be overriden at many points:
 a) you can force a particular value by specifying it at the command line
 If you do this - this WILL be the value of that variable!
@@ -49,9 +81,9 @@ config files.
 
 
 
-
-
+====================================
 Trouble Shooting:
+====================================
 
 Spaces in paths for "RUN" commands
 This can be difficult but there are a number of ways around it.
