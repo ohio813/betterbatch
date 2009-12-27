@@ -131,7 +131,7 @@ def SystemCommand(command, qualifiers = None):
     if 'nocheck' not in qualifiers and ret_value:
         output = "\n".join(["   " + line for line in output.split("\r\n")])
         raise RuntimeError(
-            "Non zero return (%d) from command:\n  %s:\nOUTPUT:\n%s"%(
+            'Non zero return (%d) from command:\n  "%s"\nOUTPUT:\n%s'%(
                 ret_value, command, output))
 
     return ret_value, output
