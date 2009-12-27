@@ -10,6 +10,8 @@ import logging
 from pprint import pprint
 import built_in_commands
 import cmd_line
+import shlex
+import ConfigParser
 # two problems:
 # (a)
 # Variables:
@@ -26,7 +28,7 @@ import cmd_line
 
 # recursive definition var: <var>
 
-# too few public methods   #pylint: disable-msg=R0903  
+# too few public methods   #pylint: disable-msg=R0903
 
 
 SYSTEM_VARIABLE = re.compile("^\s*\(\s*SYSTEM\s*\)\s*(?P<cmd>.*)$", re.I)
@@ -38,7 +40,7 @@ def CreateLogger():
     # allow the handler to  print everything - we will set the actual level
     # through the logger
     stdout_handler = logging.StreamHandler()
-    stdout_handler.setLevel(logging.DEBUG)
+    stdout_handler.setLevel(logging.INFO)
 
     # make the output format very simple
     basic_formatter = logging.Formatter("%(levelname)s - %(message)s")
@@ -59,8 +61,8 @@ class ErrorCollection(RuntimeError):
 
     def __init__(self, errors):
         self.errors = errors
-
-    def FilterDuplicateErrors(self):
+    
+    def FilteredErrors(self):
         "Remove duplicate error messages"
 
         filtered = []
@@ -68,9 +70,6 @@ class ErrorCollection(RuntimeError):
             if str(error) not in filtered:
                 filtered.append(str(error))
         return filtered
-
-    def __str__(self):
-        return "\n".join([msg for msg in self.FilterDuplicateErrors()])
 
 
 class UndefinedVariableError(RuntimeError):
@@ -110,52 +109,6 @@ class NumericVarNotAllowedError(TypeError):
 
     def __str__(self):
         return self.msg
-
-
-class Variable(object):
-    "Represents a single variable definition"
-
-    def __init__(self, name, value, config_file):
-        self.name = name
-        self.key = name.lower()
-        self.value = value
-        self.file = config_file
-
-        if isinstance(value, (int, float, long)):
-            raise NumericVarNotAllowedError(name, value, config_file)
-
-    def resolve(self, variables):
-        """Fully resolve the variable
-
-        If the variable has variables then they will be replaced
-        If the variable is a 'system' variable then the command will be run
-        and the output retrieved."""
-
-
-        # replace any variables
-        value = ReplaceVariableReferences(self.value, variables)
-
-        # calculate any values
-        system_variable = SYSTEM_VARIABLE.match(value)
-        if system_variable:
-            LOG.debug("Calculating variable: %s - %s"% (
-                repr(self.key), repr(value)))
-
-            # run the external command and grab it's output
-            ret, out = built_in_commands.SystemCommand(
-                system_variable.group('cmd'))
-
-            if ret:
-                raise RuntimeError(
-                    "possible error setting variable from system command")
-
-            # remove any extra spaces that may have been present
-            value = out.strip()
-
-        return value
-
-    def __repr__(self):
-        return "<var:'%s'>"% (self.name)
 
 
 def ParseYAMLFile(yaml_file):
@@ -200,7 +153,7 @@ def LoadIncludes(includes, base_path):
         try:
             inc_vars, inc_cmds = ParseConfigFile(inc)
 
-            # Update the total included vars
+            # Update the total included variables
             all_included_vars.update(inc_vars)
             all_included_cmds.update(inc_cmds)
         except ErrorCollection, e:
@@ -215,11 +168,9 @@ def LoadIncludes(includes, base_path):
 def ParseVariableBlock(var_block, config_file):
     "Parse the variable block and return the variables"
 
-
     # if there are no variables
     if not var_block:
         return {}
-
 
     # if the variables have been defined as a list - then fix the block by
     # converting it to a dictionary
@@ -238,31 +189,29 @@ def ParseVariableBlock(var_block, config_file):
         # replace the existing block with the improved data
         var_block = temp
 
-    all_errors = []
-    this_file_variables = {}
+    errors = []
+    variables = {}
     for name, value in var_block.items():
         # wrap the variable
-        try:
-            var = Variable(name, value, config_file)
-        except NumericVarNotAllowedError, e:
-            all_errors.append(e)
+        if isinstance(value, (int, float, long)):
+            errors.append(NumericVarNotAllowedError(name, value, config_file))
             continue
-
+            
         # check that we don't have two variables the same
-        if (name.lower() in this_file_variables and
-            this_file_variables[name.lower()] != value):
-            all_errors.append((
+        if (name.lower() in variables and
+            variables[name.lower()] != value):
+            errors.append((
                 "Key already defined with different value, Key: '%s'"
                 "\n\tVal1: '%s'"
                 "\n\tVal2: '%s'")% (
-                    name, this_file_variables[name.lower()], value))
+                    name, variables[name.lower()], value))
         else:
-            this_file_variables[name.lower()] = var
+            variables[name.lower()] = value
 
-    if all_errors:
-        raise ErrorCollection(all_errors)
+    if errors:
+        raise ErrorCollection(errors)
 
-    return this_file_variables
+    return variables
 
 
 def ParseConfigFile(config_file):
@@ -323,25 +272,30 @@ def ParseConfigFile(config_file):
     return variables, commands
 
 
-def ParseVariableOverrides(variable_overrides):
-    "Parse variable overrides passed on the command line"
-    overrides = {}
-    for override in variable_overrides:
-        parsed = override.split("=")
-        if len(parsed) != 2:
-            raise RuntimeError(
-                "overrides need to be var=value: '%s'"% override)
+def CalculateExternalVariable(variable):
+    """If variable has (system) marking it as an external variable - calculate 
+    and return"""
 
-        var, value = parsed
-        var = var.strip()
+    # calculate any values
+    system_variable = SYSTEM_VARIABLE.match(variable)
+    if not system_variable:
+        return variable
+
+    LOG.debug("Calculating variable: %s"% repr(variable))
+
+    # run the external command and grab it's output
+    ret, out = built_in_commands.SystemCommand(
+        system_variable.group('cmd'))
+
+    if ret:
+        raise RuntimeError(
+            "possible error setting variable from system command")
+
+    # remove any extra spaces that may have been present
+    return out.strip()
 
 
-        overrides[var.lower()] = Variable(var, value, "SCRIPT ARG")
-
-    return overrides
-
-
-def ReplaceVarRefsInStructure(structure, vars):
+def ReplaceVarRefsInStructure(structure, variables):
     "Replace all variable references in a structure"
 
     # Handle different structure types differently
@@ -350,7 +304,7 @@ def ReplaceVarRefsInStructure(structure, vars):
         for key, value in structure.items():
             # call this function recursively - as the value may itself
             # be a dictionary or a list
-            new_val = ReplaceVarRefsInStructure(value, vars)
+            new_val = ReplaceVarRefsInStructure(value, variables)
             structure[key] = new_val
 
     elif isinstance(structure, list):
@@ -358,18 +312,18 @@ def ReplaceVarRefsInStructure(structure, vars):
         # calling ourselves recursively for each element
         # and only updating the value if there were no errors
         for i, value in enumerate(structure):
-            new_val = ReplaceVarRefsInStructure(value, vars)
+            new_val = ReplaceVarRefsInStructure(value, variables)
             structure[i] = new_val
     else:
         # It is a value - we can replace the variable references directly
-        new_val = ReplaceVariableReferences(structure, vars)
+        new_val = ReplaceVariableReferences(structure, variables)
         structure = new_val
 
     # return the updated structure and any errors
     return structure
 
 
-def ReplaceVariableReferences(item, vars):
+def ReplaceVariableReferences(item, variables):
     """Replace variable references like <VAR_NAME> with the variable value"""
 
     # If item is None just return
@@ -403,34 +357,42 @@ def ReplaceVariableReferences(item, vars):
     found = variable_reference_re.findall(item)
 
     errors = []
-    # for each of the variables we found
+    # for each of the refernece variables in this variable
     for var in found:
         var_name_lower = var.lower()
-        if var_name_lower in vars and vars[var_name_lower]:
+        if var_name_lower in variables and variables[var_name_lower]:
             # get the text to replace it with (replacing any references in
             # the replacement text first
             # This is the best time to replace the references in the variable
             # as we only replace the ones we use
             try:
-                replace_with = vars[var_name_lower].resolve(vars)
+                replace_with = ReplaceVariableReferences(
+                    variables[var_name_lower], variables)
+
                 item = item.replace("<%s>"%(var), replace_with)
+
             except ErrorCollection, e:
                 errors.extend(e.errors)
 
             #replace_with, sub_errors = ReplaceVariableReferences(
-            #    vars[var_name_lower], vars)
+            #    variables[var_name_lower], variables)
             #errors.extend(sub_errors)
             #if not sub_errors:
 
         else:
             errors.append(UndefinedVariableError(item, var))
 
+    item = item.replace("{LT}", "<")
+    item = item.replace("{GT}", ">")
+
+    try:
+        item = CalculateExternalVariable(item)
+    except RuntimeError, e:
+        errors.append(e)
+
     # if there have been errors - then raise then
     if errors:
         raise ErrorCollection(errors)
-
-    item = item.replace("{LT}", "<")
-    item = item.replace("{GT}", ">")
 
     return item
 
@@ -487,9 +449,9 @@ def GetCommands(commands_info, requested_commands, variables):
 
         cmd_name = matched_cmd_names[0]
         command_steps = commands_info[cmd_name]
-        
+
         for step_data in command_steps:
-            #try:                    
+            #try:
             steps_to_run.append(Step(step_data, variables))
             #except RuntimeError, e:
             #    errors.extend(e)
@@ -504,11 +466,11 @@ class Step(object):
     "Represent a single step"
 
     def __init__(self, step_data, variables):
-        
+
         # default is RUN action - if no action given RUN will be assumed
         if isinstance(step_data, basestring):
             step_data = {'run': step_data}
-        
+
         # ensure it is a dictionary with a single value
         if isinstance(step_data, dict):
             #ensure only a single value
@@ -524,7 +486,7 @@ class Step(object):
             raise RuntimeError(
                 'Step must be in format "- ACTION: COMMAND_INFO" \'%s\''%
                     step_data)
-        
+
         # split up the action_type - as it may have qualifiers:
         qualifiers = action_type.strip().split()
 
@@ -538,6 +500,21 @@ class Step(object):
 
         step_info = ReplaceVarRefsInStructure(step_info, variables)
 
+        command = ''
+        if action_type == 'run':
+            if isinstance(step_info, list):
+                command = step_info[0]
+            elif isinstance(step_info, basestring):
+                command = shlex.split(step_info)[0]
+        command_filename = os.path.basename(command)
+        param_filename = os.path.splitext(command_filename)[0] + ".ini"
+        param_filename = os.path.join("params", param_filename)
+        if os.path.exists(param_filename):
+
+            # open the file
+            cp = ConfigParser.ConfigParser()
+            params = cp.read(param_filename)
+
         if action_type not in built_in_commands.NAME_ACTION_MAPPING:
             raise RuntimeError("Unknown action type: '%s'"% action_type)
 
@@ -548,51 +525,57 @@ class Step(object):
 
     def Execute(self):
         "Execute the step"
-        
-        LOG.debug("Executing step '%s': '%s'"% (self.action_type, self.params))
+
+        LOG.debug("Executing step '%s': '%s'"% (
+            self.action_type, self.params))
         ret, output = self.action(self.params, self.qualifiers)
+        
+        if ret:
+            LOG.warning("Command returned non zero(%d) return value", ret)
 
         if output:
             indented_output = "\n".join(
                 ["   " + line for line in output.split("\r\n")])
-            
+
             LOG.debug("Output from command:\n%s"% indented_output)
+
         return ret, output
 
 
 def Main():
     "Parse command line arguments, read config and dispatch the request(s)"
 
-    config_file, options = cmd_line.ParseArguments()
+    options = cmd_line.GetValidatedOptions()
 
     # ensure that the keys are all treated case insensitively
-    variables, commands = ParseConfigFile(config_file)
+    variables, commands = ParseConfigFile(options.config_file)
 
     if 'logfile' in variables:
-        log_filename = variables['logfile'].resolve(variables)
+        log_filename = ReplaceVariableReferences(
+            variables['logfile'], variables)
         if os.path.exists(log_filename):
             os.unlink(log_filename)
         h = logging.FileHandler(log_filename)
         # make the output format very simple
         basic_formatter = logging.Formatter("%(levelname)s - %(message)s")
         h.setFormatter(basic_formatter)
-        
+
         LOG.addHandler(h)
-        
+
     # get the variable overrides passed at the command line and
     # update the read variables from the overrides
-    variables.update(ParseVariableOverrides(options.variables))
+    variables.update(options.variables)
 
     LOG.debug("Options: %s"% options)
     if options.execute:
-        
+
         executable_steps = GetCommands(commands, options.execute, variables)
 
         try:
             for cmd in executable_steps:
                 cmd.Execute()
         except ErrorCollection, e:
-            for err in e.errors:
+            for err in e.FilteredErrors():
                 LOG.fatal(err)
         except RuntimeError, e:
             LOG.fatal(e)
@@ -608,10 +591,12 @@ def Main():
 if __name__ == '__main__':
     try:
         Main()
-    except ErrorCollection, e:
-        for err in e.errors:
-            LOG.fatal(err)
-    except RuntimeError, e:
-        LOG.critical(e)
-    except Exception, e:
-        LOG.critical('Unknown Error: ' + e)
+    except ErrorCollection, err:
+        for error in err.FilteredErrors():
+            LOG.fatal(error)
+        LOG.fatal
+    except RuntimeError, err:
+        LOG.critical(err)
+    except Exception, err:
+        LOG.critical('Unknown Error: %s'% err)
+        LOG.exception(err)

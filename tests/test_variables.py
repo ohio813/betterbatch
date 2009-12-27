@@ -33,40 +33,45 @@ class VariableTests(unittest.TestCase):
         vars, commands = ParseConfigFile(
             os.path.join(TEST_FILES_PATH, "standard_variables.yaml"))
         
-        self.assertEquals(vars['simple'].resolve(vars), 'here')
+        self.assertEquals(
+            ReplaceVariableReferences(vars['simple'], vars), 'here')
 
     def test_replacement(self):
         """"""
         vars, commands = ParseConfigFile(
             os.path.join(TEST_FILES_PATH, "standard_variables.yaml"))
 
-        self.assertEquals(vars['replace'].resolve(vars), 'This is here')
+        self.assertEquals(
+            ReplaceVariableReferences(vars['replace'], vars),
+            'This is here')
 
     def test_system(self):
         """"""
         vars, commands = ParseConfigFile(
             os.path.join(TEST_FILES_PATH, "standard_variables.yaml"))
 
-        self.assertEquals(vars['system'].resolve(vars), 'This is a test')
+        self.assertEquals(
+            ReplaceVariableReferences(vars['system'], vars),
+            'This is a test')
 
     def test_replace_and_system(self):
         """"""
         vars, commands = ParseConfigFile(
             os.path.join(TEST_FILES_PATH, "standard_variables.yaml"))
 
+        
         self.assertEquals(
-            vars['system+replace'].resolve(vars), 
+            ReplaceVariableReferences(vars['system+replace'], vars),
             'This is here that is there')
 
-    def test_repr(self):
-        """"""
-        var = Variable('my_var', "German - Germany", "test_file")
-        self.assertEquals(repr(var), "<var:'my_var'>")
 
     def test_system_variable_error(self):
         """"""
-        var = Variable('my_var', "(system) failure", "no_file")
-        self.assertRaises(RuntimeError, var.resolve, {})
+        
+        self.assertRaises(
+            ErrorCollection, 
+            ReplaceVariableReferences, 
+            "(system) failure", {})
 
 
 if __name__ == "__main__":

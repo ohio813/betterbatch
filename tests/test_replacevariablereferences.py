@@ -15,8 +15,8 @@ class VarReplacementTests(unittest.TestCase):
     
     def setUp(self):
         self.vars = {}
-        self.vars['var'] = Variable('var', "value", 'testing')
-        self.vars['var2'] = Variable('var2', "value<here>", 'testing')
+        self.vars['var'] = "value"
+        self.vars['var2'] = "value<here>"
 
     def test_no_var(self):
         replaced = ReplaceVariableReferences("test string", {})

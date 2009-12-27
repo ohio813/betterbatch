@@ -29,7 +29,7 @@ class LoadConfigTests(unittest.TestCase):
         """        
         vars, commands = ParseConfigFile(
             os.path.join(TEST_FILES_PATH, "test_rel_include.yaml"))
-        self.assertEquals(vars['test'].value, "Hello World")
+        self.assertEquals(vars['test'], "Hello World")
 
 
     def test_missing_file(self):
@@ -54,7 +54,7 @@ class LoadConfigTests(unittest.TestCase):
         
         vars, commands = ParseConfigFile(
             os.path.join(TEST_FILES_PATH, "variables_as_list.yaml"))
-        self.assertEquals(vars['test'].value, "Hello World")
+        self.assertEquals(vars['test'], "Hello World")
 
         
     def test_numeric_variable(self):

@@ -46,21 +46,47 @@ def ParseArguments():
         help='Validate the config files')
 
     # parse the command line
-    options, args = parser.parse_args()
+    return parser.parse_args()
 
+
+def ParseVariableOverrides(variable_overrides):
+    "Parse variable overrides passed on the command line"
+    overrides = {}
+    for override in variable_overrides:
+        parsed = override.split("=")
+        if len(parsed) != 2:
+            raise RuntimeError(
+                "overrides need to be var=value: '%s'"% override)
+
+        name, value = parsed
+        name = name.strip().lower()
+
+        overrides[name] = value
+
+    return overrides
+
+
+def ValidateOptions(options, args):
     # validate that at least one config file was passed and that it exists
+    
     if not args:
-        LOG.fatal("You must specify a config file")
-        sys.exit()
+        raise RuntimeError("You must specify a config file")
 
     elif len(args) > 1:
-        LOG.fatal("Specify only one config file - '%s' "% ", ".join(args))
-        sys.exit()
+        raise RuntimeError(
+            "Specify only one config file - '%s' "% ", ".join(args))
 
-    config_file = args[0]
-    if not os.path.exists(config_file):
-        LOG.fatal("The config file does not exist: '%s'"% config_file)
-        sys.exit()
+    options.config_file = args[0]
+    if not os.path.exists(options.config_file):
+        raise RuntimeError(
+            "The config file does not exist: '%s'"% options.config_file)
+    
+    override_vars = ParseVariableOverrides(options.variables)
+    options.variables = override_vars
+    
+    return options
 
 
-    return config_file, options
+def GetValidatedOptions():
+    options, args = ParseArguments()
+    return ValidateOptions(options, args)
