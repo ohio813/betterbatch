@@ -1,13 +1,18 @@
 
 includes:
-- MapVariables.yaml
+    - MapVariables.yaml
 
 variables:
-#  Test: b
-  dotNetLang: (SYSTEM) tools\GetLang.bat deu
-  logfile: blahblah.log
+    dotNetLang: (SYSTEM) tools\GetLang.bat deu
+    logfile: blahblah.log
 
-prepare_acad_lpu_for_baseupdate:    
+env_checks:    
+- Exists: <COMMON_BUILD_TOOLS_DIR>\BuzzCopy.py 
+- Exists: <CONFIG_DIR>\adddelren_hammer_msi.ini
+- Exists: <PASSOLO_DIR>\pslcmd.exe
+
+
+commands:    
 - Exists: <COMMON_BUILD_TOOLS_DIR>\BuzzCopy.py 
 - Exists: <CONFIG_DIR>\adddelren_hammer_msi.ini
 - Exists: <PASSOLO_DIR>\pslcmd.exe
@@ -15,13 +20,17 @@ prepare_acad_lpu_for_baseupdate:
 # this is like calling a count function with 2 arguments
 #- count 5: <COMMON_BUILD_TOOLS_DIR>
 
-- RUN: dir
+- RUN: dir .
 - RUN ui: dir
 - RUN nocheck: "dir n:"
-- RUN: dir  "n:"
+
+- RUN : 
+    - <PASSOLO_DIR>\pslcmd.exe
+
 
 # download AutoCAD databases
 - RUN: <COMMON_BUILD_TOOLS_DIR>\BuzzCopy.py -d -v <swl_vault_autocad_root>/Databases/<LANG>/<ACAD_BUILD>  <LOCFILES_FOLDER>\ref_dbs\<ACAD_BUILD>  *.lpu
+    
 
 - RUN: copy <CONFIG_DIR>\hammer_msi.ini <LOCFILES_FOLDER>\ref_dbs\<ACAD_BUILD>\<lang>_hammer_msi.ini
 
@@ -38,3 +47,4 @@ prepare_acad_lpu_for_baseupdate:
 - |
     "<PASSOLO_DIR>\pslcmd.exe" <LOCFILES_FOLDER>\ref_dbs\<ACAD_BUILD>\<lang>_Hammer_Msi.lpu  /runmacro=addDelRen.bas
 
+- RUN: dir  "n:"
