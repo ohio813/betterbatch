@@ -1,2 +1,5 @@
-variables:
-- test: Hello World
+test:
+- Hello World
+
+test2:
+- Hello World2

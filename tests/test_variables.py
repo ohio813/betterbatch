@@ -36,6 +36,16 @@ class VariableTests(unittest.TestCase):
         self.assertEquals(
             ReplaceVariableReferences(vars['simple'], vars), 'here')
 
+    def test_replace_mismatched_bracket(self):
+        """"""
+        try:
+            ReplaceVariableReferences("<her<e>", {})
+        except ErrorCollection, e:
+            self.assertEquals(len(e.errors), 2)
+            self.assertEquals(
+                str(e.errors[1]), 
+                "Mismatched angle brackets in '<her<e>'")
+
     def test_replacement(self):
         """"""
         vars, commands = ParseConfigFile(
@@ -64,7 +74,6 @@ class VariableTests(unittest.TestCase):
             ReplaceVariableReferences(vars['system+replace'], vars),
             'This is here that is there')
 
-
     def test_system_variable_error(self):
         """"""
         
@@ -72,6 +81,74 @@ class VariableTests(unittest.TestCase):
             ErrorCollection, 
             ReplaceVariableReferences, 
             "(system) failure", {})
+
+    def test_ReplaceVarRefsInStructure_string(self):
+        """"""
+        variables = dict(
+            var1 = '123',
+            var2 = '<var1>456'
+        )
+        structure = 'replace <var2>'
+        new_struct = ReplaceVarRefsInStructure(structure, variables)
+        self.assertEquals(new_struct, 'replace 123456')
+
+    def test_ReplaceVarRefsInStructure_list(self):
+        """"""
+        variables = dict(
+            var1 = '123',
+            var2 = '<var1>456'
+        )
+        structure = ['replace 123456', '<<<var2><VaR1>>>']
+        new_struct = ReplaceVarRefsInStructure(structure, variables)
+        self.assertEquals(new_struct, ['replace 123456', '<123456123>'])
+
+    def test_ReplaceVarRefsInStructure_list_error(self):
+        """"""
+        variables = dict(
+            var1 = '123',
+            var2 = '<var1>456'
+        )
+        structure = [" <please> replace these <undefined> variables<"]
+        self.assertRaises(
+            ErrorCollection,
+            ReplaceVarRefsInStructure,
+                structure, variables)
+
+    def test_ReplaceVarRefsInStructure_dict(self):
+        """"""
+        
+        variables = dict(
+            var1 = '123',
+            var2 = '<var1>456'
+        )
+        structure = {'<abc>': 'replace <var2>', 'b c d': '<<<var2><var1>>>'}
+        new_struct = ReplaceVarRefsInStructure(structure, variables)
+        self.assertEquals(new_struct, {'<abc>': 'replace 123456', 'b c d': '<123456123>'})
+
+    def test_ReplaceVariableReferences_dict_error(self):
+        """"""
+        variables = dict(
+            var1 = '123',
+            var2 = '<var1>456'
+        )
+        structure = {"test" :" <please> replace these <undefined> variables<"}
+        self.assertRaises(
+            ErrorCollection,
+            ReplaceVarRefsInStructure,
+                structure, variables)
+
+    def test_ReplaceVariableReferences_undefined_errors(self):
+        """"""
+        variables = dict(
+            var1 = '123',
+            var2 = '<var1>456'
+        )
+        structure = "<please> replace these <undefined> variables<"
+        try:
+            ReplaceVarRefsInStructure(structure, variables)
+        except ErrorCollection, e:
+            e.LogErrors()
+        
 
 
 if __name__ == "__main__":
