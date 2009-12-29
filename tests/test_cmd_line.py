@@ -14,7 +14,7 @@ TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
 class CommandLineTests(unittest.TestCase):
     "Unit tests for the loadconfig function"
-    
+
     def test_SettingUpParser(self):
         """"""
         sys.argv = ["prog.py"]
@@ -63,7 +63,6 @@ class CommandLineTests(unittest.TestCase):
             options,
             args)
 
-
     def test_ValidateOptions_yaml_exists(self):
         """"""
         sys.argv = ["prog.py", r"tests\test_files\commands.yaml"]
@@ -73,6 +72,13 @@ class CommandLineTests(unittest.TestCase):
         self.assertEquals(
             options.config_file, r"tests\test_files\commands.yaml")
         
+    def test_GetValidatedOptions(self):
+        """"""
+        sys.argv = ["prog.py", r"tests\test_files\commands.yaml"]
+        options = GetValidatedOptions()
+        
+        self.assertEquals(
+            options.config_file, r"tests\test_files\commands.yaml")
         
 
 
