@@ -59,7 +59,7 @@ class CommandTests(unittest.TestCase):
         action_type, qualifiers, step_info = ParseStepData(step_data)
         self.assertEquals(action_type, 'run')
         self.assertEquals(qualifiers, ['ui'])
-        self.assertEquals(action_type, 'running')
+        self.assertEquals(step_info, 'running')
 
     def test_parsestepdata_string(self):
     
@@ -67,7 +67,7 @@ class CommandTests(unittest.TestCase):
         action_type, qualifiers, step_info = ParseStepData(step_data)
         self.assertEquals(action_type, 'run')
         self.assertEquals(qualifiers, [])
-        self.assertEquals(action_type, 'running')
+        self.assertEquals(step_info, 'running')
 
     def test_parsestepdata_basic_non_dict_error(self):
     
@@ -85,7 +85,8 @@ class CommandTests(unittest.TestCase):
             ParseStepData,
                 step_data)
 
-        step_data = {"run": 'test', "run": "test2"}
+        # dict len > 1
+        step_data = {"run": 'test', "check": "test2"}
         self.assertRaises(
             RuntimeError,
             ParseStepData,

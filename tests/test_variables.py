@@ -14,7 +14,7 @@ TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
 class VariableTests(unittest.TestCase):
     "Unit tests for the loadconfig function"
-    
+
     def test_empty(self):
         """"""
         vars_and_commands = ParseConfigFile(
@@ -32,7 +32,7 @@ class VariableTests(unittest.TestCase):
         """"""
         vars, commands = ParseConfigFile(
             os.path.join(TEST_FILES_PATH, "standard_variables.yaml"))
-        
+
         self.assertEquals(
             ReplaceVariableReferences(vars['simple'], vars), 'here')
 
@@ -43,7 +43,7 @@ class VariableTests(unittest.TestCase):
         except ErrorCollection, e:
             self.assertEquals(len(e.errors), 2)
             self.assertEquals(
-                str(e.errors[1]), 
+                str(e.errors[1]),
                 "Mismatched angle brackets in '<her<e>'")
 
     def test_replacement(self):
@@ -69,17 +69,17 @@ class VariableTests(unittest.TestCase):
         vars, commands = ParseConfigFile(
             os.path.join(TEST_FILES_PATH, "standard_variables.yaml"))
 
-        
+
         self.assertEquals(
             ReplaceVariableReferences(vars['system+replace'], vars),
             'This is here that is there')
 
     def test_system_variable_error(self):
         """"""
-        
+
         self.assertRaises(
-            ErrorCollection, 
-            ReplaceVariableReferences, 
+            ErrorCollection,
+            ReplaceVariableReferences,
             "(system) failure", {})
 
     def test_ReplaceVarRefsInStructure_string(self):
@@ -116,7 +116,7 @@ class VariableTests(unittest.TestCase):
 
     def test_ReplaceVarRefsInStructure_dict(self):
         """"""
-        
+
         variables = dict(
             var1 = '123',
             var2 = '<var1>456'
@@ -148,7 +148,35 @@ class VariableTests(unittest.TestCase):
             ReplaceVarRefsInStructure(structure, variables)
         except ErrorCollection, e:
             e.LogErrors()
-        
+
+    def test_ReplaceVariableReferences_recursive(self):
+        """"""
+        vars, commands = ParseConfigFile(
+            os.path.join(TEST_FILES_PATH, "recursive_variables.yaml"))
+
+        self.assertRaises(
+            ErrorCollection,
+            ReplaceVariableReferences,
+            vars['test'],
+            vars)
+
+        self.assertRaises(
+            ErrorCollection,
+            ReplaceVariableReferences,
+            vars['test2'],
+            vars)
+
+        self.assertRaises(
+            ErrorCollection,
+            ReplaceVariableReferences,
+            vars['test3'],
+            vars)
+
+        self.assertRaises(
+            ErrorCollection,
+            ReplaceVariableReferences,
+            vars['test4'],
+            vars)
 
 
 if __name__ == "__main__":

@@ -42,6 +42,14 @@ class VarReplacementTests(unittest.TestCase):
         replaced = ReplaceVariableReferences("<var>>>", self.vars)
         self.assertEquals(replaced, "value>")
 
+    def test_escaped_both_var(self):
+        replaced = ReplaceVariableReferences("<<<var>>>", self.vars)
+        self.assertEquals(replaced, "<value>")
+
+    def test_escaped_both_non_var(self):
+        replaced = ReplaceVariableReferences("<<var>>", self.vars)
+        self.assertEquals(replaced, "<var>")
+
     def test_None(self):
         replaced = ReplaceVariableReferences(None, {})
         self.assertEquals(replaced, None)

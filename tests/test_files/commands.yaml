@@ -1,5 +1,13 @@
 test:
-- Hello World
+- echo Hello World
 
 test2:
-- Hello World2
+- echo Hello World2
+
+test_broken:
+- {
+    run: echo Hello World2,
+    exists: echo sadf}
+
+test_broken2:
+- run4: echo <Hello> World2
