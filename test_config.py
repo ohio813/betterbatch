@@ -1,38 +1,13 @@
 "Read a config file and execute commands from it"
 
-# todo: work on logging
-
 import re
-import sys
 import yaml
 import os
 import logging
-from pprint import pprint
 import built_in_commands
 import cmd_line
-import shlex
-import ConfigParser
-# two problems:
-# (a)
-# Variables:
-#  var1: <<var2>>
-#  var2:
-# even though <<var2>> is NOT a variable reference - it may get treated as one
-# idea - delay resolving until the very last moment possible
-#
-# (b)
-# Variables:
-#  var1 = <<<var2>
-#  var2 = <test>>
-# after resolution it will look like <test>
-
-# recursive definition var: <var>
 
 # too few public methods   #pylint: disable-msg=R0903
-
-
-SYSTEM_VARIABLE = re.compile("^\s*\(\s*SYSTEM\s*\)\s*(?P<cmd>.*)$", re.I)
-
 
 def CreateLogger():
     "Create and set up the logger - returns the new logger"
@@ -63,11 +38,12 @@ class ErrorCollection(RuntimeError):
         self.errors = errors
 
     def LogErrors(self):
+        "Log all the errors in a user friendly format"
 
         # collect any Undefined Variables so we can log those better
         undef_var_errs = {}
         other_errs = []
-        for i, e in enumerate(self.errors):
+        for e in self.errors:
             if isinstance(e, UndefinedVariableError):
                 var = e.variable.lower()
                 strings = undef_var_errs.setdefault(var, [])
@@ -89,6 +65,8 @@ class ErrorCollection(RuntimeError):
 
 
 class UndefinedVariableError(RuntimeError):
+    "Error raised when a variable is used that has not been defined"
+
     def __init__(self, variable, string):
         RuntimeError.__init__(
             self, "Undefined Variable '%s' '%s'"% (variable, string))
@@ -185,7 +163,8 @@ def ParseVariableBlock(var_block, config_file):
 
         # get the single item dict from each of the array items and update
         # the variables
-        [temp.update(v) for v in var_block]
+        for v in var_block:
+            temp.update(v)
 
         # replace the existing block with the improved data
         var_block = temp
@@ -277,6 +256,8 @@ def CalculateExternalVariable(variable):
     """If variable has (system) marking it as an external variable - calculate
     and return"""
 
+    SYSTEM_VARIABLE = re.compile("^\s*\(\s*SYSTEM\s*\)\s*(?P<cmd>.*)$", re.I)
+
     # calculate any values
     system_variable = SYSTEM_VARIABLE.match(variable)
     if not system_variable:
@@ -285,6 +266,8 @@ def CalculateExternalVariable(variable):
     LOG.debug("Calculating variable: %s"% repr(variable))
 
     # run the external command and grab it's output
+    # this will raise an exception if the return is not 0 so we ignore
+    # the return value here
     ret, out = built_in_commands.SystemCommand(
         system_variable.group('cmd'))
 
@@ -315,9 +298,9 @@ def ReplaceVarRefsInStructure(structure, variables):
         for i, value in enumerate(structure):
             try:
                 new_val = ReplaceVarRefsInStructure(value, variables)
+                structure[i] = new_val
             except ErrorCollection, e:
                 errors.extend(e.errors)
-            structure[i] = new_val
     else:
         # It is a value - we can replace the variable references directly
         new_val = ReplaceVariableReferences(structure, variables)
@@ -381,6 +364,8 @@ def ReplaceVariableReferences(item, variables):
 
             except ErrorCollection, e:
                 errors.extend(e.errors)
+            except RuntimeError, e:
+                errors.append(e)
 
         else:
             errors.append(UndefinedVariableError(var, orig_string))
@@ -410,7 +395,7 @@ def ListCommands(commands):
     "Print out the available commands"
     LOG.info("Availale commands are:   ")
     for cmd in sorted(commands.keys()):
-        LOG.info ("  " + cmd)
+        LOG.info("  " + cmd)
 
 
 def GetStepsForSelectedCommands(commands_info, requested_commands):
@@ -501,7 +486,6 @@ def ParseStepData(step_data):
     return action_type, qualifiers, step_info.strip()
 
 
-
 class Step(object):
     "Represent a single step"
 
@@ -515,22 +499,6 @@ class Step(object):
             raise RuntimeError("Unknown action type: '%s'"% action_type)
 
         self.action = built_in_commands.NAME_ACTION_MAPPING[action_type]
-
-        #command = ''
-        #if action_type == 'run':
-        #    if isinstance(step_info, list):
-        #        command = step_info[0]
-        #    elif isinstance(step_info, basestring):
-        #        command = shlex.split(step_info)[0]
-        #command_filename = os.path.basename(command)
-        #param_filename = os.path.splitext(command_filename)[0] + ".ini"
-        #param_filename = os.path.join("params", param_filename)
-        #if os.path.exists(param_filename):
-
-        #     # open the file
-        #    cp = ConfigParser.ConfigParser()
-        #    params = cp.read(param_filename)
-
 
     def Execute(self):
         "Execute the step"
@@ -550,7 +518,10 @@ class Step(object):
 
         return ret, output
 
+
 def SetupLogFile(variables):
+    "Create the log file if it has been requested"
+
     if 'logfile' in variables:
         log_filename = ReplaceVariableReferences(
             variables['logfile'], variables)
@@ -579,11 +550,17 @@ def Main():
     variables.update(options.variables)
 
     LOG.debug("Options: %s"% options)
-    if options.execute:
+    if options.list:
+        ListCommands(commands)
+
+    elif options.execute:
 
         errors = []
         executable_steps = []
 
+        # Scan and construct all the steps first before trying to execute
+        # any of them. This way - we can report errors before doing any
+        # step execution
         steps = GetStepsForSelectedCommands(commands, options.execute)
         for step in steps:
             try:
@@ -597,18 +574,13 @@ def Main():
                 errors.append(e)
                 continue
 
+        # if there were errors - then raise them
         if errors:
             raise ErrorCollection(errors)
 
+        # now execute each of the steps
         for cmd in executable_steps:
             cmd.Execute()
-
-    elif options.list:
-        ListCommands(commands)
-    #elif options.test:
-    #    Test(variables, commands, args)
-    elif options.validate:
-        sys.exit()
 
 
 if __name__ == '__main__':
@@ -620,7 +592,6 @@ if __name__ == '__main__':
         #cProfile.run('Main()', "profile_stats")
         #p = pstats.Stats('profile_stats')
         #p.sort_stats('cumulative').print_stats(10)
-
 
     except ErrorCollection, err:
         err.LogErrors()
