@@ -252,18 +252,18 @@ def ParseConfigFile(config_file):
     return variables, commands
 
 
-def CalculateExternalVariable(variable):
+def CalculateExternalVariable(variable_value):
     """If variable has (system) marking it as an external variable - calculate
     and return"""
 
     SYSTEM_VARIABLE = re.compile("^\s*\(\s*SYSTEM\s*\)\s*(?P<cmd>.*)$", re.I)
 
     # calculate any values
-    system_variable = SYSTEM_VARIABLE.match(variable)
+    system_variable = SYSTEM_VARIABLE.match(variable_value)
     if not system_variable:
-        return variable
+        return variable_value
 
-    LOG.debug("Calculating variable: %s"% repr(variable))
+    LOG.debug("Calculating variable: %s"% repr(variable_value))
 
     # run the external command and grab it's output
     # this will raise an exception if the return is not 0 so we ignore
@@ -483,7 +483,11 @@ def ParseStepData(step_data):
     # remove the action type from the qualifiers
     del qualifiers[0]
 
-    return action_type, qualifiers, step_info.strip()
+    # remove any newlines or spaces at the ends
+    if isinstance(step_info, basestring):
+        step_info = step_info.strip()
+
+    return action_type, qualifiers, step_info
 
 
 class Step(object):

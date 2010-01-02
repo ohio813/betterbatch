@@ -5,9 +5,9 @@ import sys
 sys.path.append(".")
 sys.path.append("..")
 
-from test_config import ParseYAMLFile
-from test_config import ParseConfigFile
-from test_config import ErrorCollection
+from betterbatch import ParseYAMLFile
+from betterbatch import ParseConfigFile
+from betterbatch import ErrorCollection
 
 TEST_PATH = os.path.dirname(__file__)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")

@@ -5,7 +5,7 @@ import sys
 sys.path.append(".")
 sys.path.append("..")
 
-from test_config import *
+from betterbatch import *
 
 TEST_PATH = os.path.dirname(__file__)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")

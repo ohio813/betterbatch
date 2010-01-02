@@ -9,10 +9,10 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-import test_config
+import betterbatch
 import cmd_line
 import built_in_commands
-modules_to_test = [test_config, cmd_line, built_in_commands]
+modules_to_test = [betterbatch, cmd_line, built_in_commands]
 
 excludes = []
 def run_tests():
@@ -29,6 +29,7 @@ def run_tests():
                 file.endswith('.py')]
 
         test_modules = [mod for mod in test_modules if mod.lower() not in excludes]
+        print test_modules
         for mod in test_modules:
 
             #globals().update(__import__(mod, globals(), locals()).__dict__)
