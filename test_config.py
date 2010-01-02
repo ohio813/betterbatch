@@ -539,6 +539,12 @@ def Main():
     "Parse command line arguments, read config and dispatch the request(s)"
 
     options = cmd_line.GetValidatedOptions()
+    
+    # make sure that all handlers print debug messages if verbose has been 
+    # requested
+    if options.verbose:
+        for handler in LOG.handlers:
+            handler.setLevel(logging.DEBUG)
 
     # ensure that the keys are all treated case insensitively
     variables, commands = ParseConfigFile(options.config_file)

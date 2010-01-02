@@ -17,6 +17,11 @@ def ParseArguments():
     #    help='YAML configuration file')
 
     parser.add_option(
+        "-d", '--define', metavar='var=value', type=str, dest='variables',
+        action = "append", default = [],
+        help='Override or define a variable')
+
+    parser.add_option(
         '-e', '--execute',
         metavar = "cmd1,cmd2,cmd3", help='Run the commands')
 
@@ -33,13 +38,8 @@ def ParseArguments():
         help='List available commands')
 
     parser.add_option(
-        '-t', '--test', action = "store_true",
-        help='Perform some tests')
-
-    parser.add_option(
-        "-v", '--variables', metavar='var=value', type=str,
-        action = "append", default = [],
-        help='Override or define a variable')
+        '-v', '--verbose', action = "store_true",
+        help='Show debug messages also')
 
     # parse the command line
     return parser.parse_args()
