@@ -41,10 +41,6 @@ def ParseArguments():
         action = "append", default = [],
         help='Override or define a variable')
 
-    parser.add_option(
-        '--validate', action = "store_true",
-        help='Validate the config files')
-
     # parse the command line
     return parser.parse_args()
 
