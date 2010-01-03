@@ -32,21 +32,35 @@ Simple 'BetterBatch' file example:
     
 """
 
+from distutils.core import setup
+
 setup(
     name='BetterBatch',
     version = VERSION,
     description = "Simplified script runner",
     long_description = LONG_DESCRIPTION,
-    keywords = 'python batch script automation'
+    keywords = 'python batch script automation',
 
-    author = "Mark Mc Mahon"
-    author_email =  "mark.m.mcmahon@gmail.com"
+    author = "Mark Mc Mahon",
+    author_email =  "mark.m.mcmahon@gmail.com",
+    
+    packages = ["betterbatch", "betterbatch.tests"],
+    scripts = ['betterbatch/scripts/betterbatch.py'],
     requires=['yaml'],
+    
     #download_url=(
     #    'http://www.example.com/pypackage/dist/pkg-%s.tar.gz'% VERSION),
     #url = '',
     license = "LGPL",
-    packages = ["betterbatch", "betterbatch.tests"],
-    scripts = ['scripts/betterbatch.py'],
 
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: '
+            'GNU Library or Lesser General Public License (LGPL)',
+        'Programming Language :: Python',
+        "Topic :: Software Development",
+        "Topic :: Utilities",
+        ],
     )
