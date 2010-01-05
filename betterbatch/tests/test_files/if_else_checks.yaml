@@ -1,0 +1,120 @@
+variables:
+ my_file: <__config_path__>\if_else_checks.yaml
+ 
+working_do:
+- If:
+    - Exists: <my_file>
+    - Do  :
+        - echo working_do
+    - Else:
+        - echo BROKEN
+
+working_else:
+- If:
+    - Exists: <my_file>_
+    - Do  :
+        - echo "exists" <my_file>
+    - Else:
+        - echo working_else
+
+
+empty_do:
+- If:
+    - Exists: <my_file>
+    - Do  :
+        - 
+    - Else:
+        - BROKEN echo not exists <my_file>_
+
+empty_else_1:
+- If:
+    - Exists: <my_file>_
+    - Do  :
+        - echo BROKEN exists" <my_file>
+
+empty_else_2:
+- If:
+    - Exists: <my_file>_
+    - Do  :
+        - echo BROKEN exists" <my_file>
+    - Else:
+        - 
+
+string_do:
+- If:
+    - Exists: <my_file>
+    - Do  :
+        echo string_do
+    - Else:
+        echo BROKEN not exists <my_file>_
+
+string_else:
+- If:
+    - Exists: <my_file>_
+    - Do  :
+        echo "BROKEN exists <my_file>
+    - Else:
+        echo string_else
+
+sub_if_else:
+- If:
+    - Exists: <my_file>
+    - Do  :
+        - if: 
+            - exists: otherfile
+            - do: 
+                echo sub_if_else not exists!
+            - Else:
+                echo sub_if_else
+    - Else:
+        echo BROKEN not exists <my_file>_
+
+broken_not_list:
+- If:
+    Exists: <my_file>_
+    Do  :
+        echo "BROKEN exists <my_file>
+    Else:
+        echo string_else
+
+broken_not_list_2:
+- If: <my_file>_
+
+
+broken_do_name:
+- If:
+    - Exists: <my_file>_
+    - Dosd :
+        echo "BROKEN exists <my_file>
+    - Else:
+        echo string_else
+
+broken_else_name:
+- If:
+    - Exists: <my_file>_
+    - Do  :
+        echo "BROKEN exists <my_file>
+    - Elsesd:
+        echo string_else
+
+
+
+broken_only_one:
+- If:
+    - Exists: <my_file>_
+
+broken_too_many:
+- If:
+    - Exists: <my_file>_
+    - Do  :
+        echo "BROKEN exists <my_file>
+    - Else:
+        echo string_else
+    - run:
+        shouldn't be here!
+
+
+#- for:
+#    LINE in: dir *.lpu
+#    do:
+#        - echo LINE

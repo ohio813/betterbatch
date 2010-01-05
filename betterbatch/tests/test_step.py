@@ -95,5 +95,10 @@ class StepTests(unittest.TestCase):
         Step('run', ['echo'], "echo Hi Tester").Execute()
 
 
+    def test_StepExecute_(self):
+        """"""
+        Step('run', ['echo'], "echo Hi Tester").Execute()
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -92,6 +92,15 @@ class LoadConfigTests(unittest.TestCase):
             ParseConfigFile,
             os.path.join(TEST_FILES_PATH, "overlapping_variables.yaml"))
 
+    def test_broken_variable_block(self):
+        """"""
+
+        self.assertRaises(
+            RuntimeError,
+            ParseConfigFile,
+            os.path.join(TEST_FILES_PATH, "variable_block_broken.yaml"))
+
+
 
 if __name__ == "__main__":
     unittest.main()

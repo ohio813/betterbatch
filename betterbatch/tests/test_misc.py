@@ -82,5 +82,36 @@ class MainTests(unittest.TestCase):
         collection.LogErrors()
 
 
+    def test_SetUpLogFile_exists_cannot_del(self):
+        """"""
+        import tempfile
+        handle, filename = tempfile.mkstemp()
+        os.write(handle ,'sdf')
+        self.assertRaises(
+            OSError,
+            SetupLogFile,
+                {'logfile': filename})
+                
+        os.close(handle)
+        os.remove(filename)
+
+    #def test_SetUpLogFile_exists(self):
+    #    """"""
+    #    import tempfile
+    #    handle, filename = tempfile.mkstemp()
+    #    os.write(handle ,'sdf')
+    #    os.close(handle)
+    #    handle =  None
+    #    f = open(filename, "w")
+    #    f.close()
+    #    import time
+    #    time.sleep(1)
+    #    h = SetupLogFile({'logfile': filename})
+    #    LOG.info("some info")
+    #    h.flush()
+
+    #     os.remove(filename)
+
+
 if __name__ == "__main__":
     unittest.main()
