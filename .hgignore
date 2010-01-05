@@ -1,3 +1,5 @@
 glob:*.pyc
 glob:docs/*
+glob:betterbatch/docs/*
 glob:*.log
+glob:dist/*
