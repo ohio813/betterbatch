@@ -7,7 +7,7 @@ e.g. CountFiles:  <database_dir>\*.lpu 3  # ensure 3 LPU's
 etc
 """
 import operator
-import os.path
+import os
 import glob
 import subprocess
 import tempfile
@@ -38,34 +38,32 @@ def VerifyFileCount(file_pattern, count = None):
     else:
         count = str(count)
 
+    count = count.strip()
     num_files = len(glob.glob(file_pattern))
 
     op = operator.eq
     desc = count
 
-    if isinstance(count, basestring):
-        count = count.strip()
+    if count.startswith(">="):
+        op = operator.ge
+        count = count[2:]
 
-        if count.startswith(">="):
-            op = operator.ge
-            count = count[2:]
+    elif count.startswith("<="):
+        op = operator.le
+        count = count[2:]
 
-        elif count.startswith("<="):
-            op = operator.le
-            count = count[2:]
+    elif count.startswith(">"):
+        op = operator.gt
+        count = count[1:]
 
-        elif count.startswith(">"):
-            op = operator.gt
-            count = count[1:]
+    elif count.startswith("<"):
+        op = operator.lt
+        count = count[1:]
 
-        elif count.startswith("<"):
-            op = operator.lt
-            count = count[1:]
+    elif count.startswith("="):
+        count = count[1:]
 
-        elif count.startswith("="):
-            count = count[1:]
-
-        count = int(count)
+    count = int(count)
 
     if op(num_files, count):
         message = "Check Passed - num files %d is %s %d"
@@ -85,22 +83,14 @@ def FileExists(path, dummy = None):
         raise RuntimeError("Required file not found: '%s'"% path)
 
 
-def Output(message, dummy = None):
-    "Output the message"
-
-    LOG.info(message)
-
-    return RESULT_SUCCESS, ''
-
-
 def SystemCommand(command, qualifiers = None):
     """Execute a system command, and optionally capture the output
-    
+
     Allowed qualifiers are:
-        - ui      output will not be captured - this allows the user to 
+        - ui      output will not be captured - this allows the user to
                   interact with the command (i.e. if it may request the user
                   to hit a key.
-        - nocheck Do not check the return value. Default is to raise an 
+        - nocheck Do not check the return value. Default is to raise an
                   exception if the return value is not 0 (success)
     """
 
@@ -109,7 +99,7 @@ def SystemCommand(command, qualifiers = None):
     if qualifiers is None:
         qualifiers = []
 
-    # if the 
+    # if the
     new_stdout = sys.stdout
     if 'ui' not in qualifiers:
         new_stdout = tempfile.TemporaryFile()
@@ -136,12 +126,8 @@ def SystemCommand(command, qualifiers = None):
 
     return ret_value, output
 
-
 NAME_ACTION_MAPPING = {
-    'run':         SystemCommand,
-    'exists':      FileExists,
-    'count':       VerifyFileCount,
-    'print':       repr,
+    'run': SystemCommand,
+    'exists': FileExists,
+    'count': VerifyFileCount,
 }
-
-
