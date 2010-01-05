@@ -35,6 +35,7 @@ class ErrorCollection(RuntimeError):
     "Class used to track many errors "
 
     def __init__(self, errors):
+        RuntimeError.__init__(self, "%d errors"% len(errors))
         self.errors = errors
 
     def LogErrors(self):
@@ -499,26 +500,46 @@ class Step(object):
         self.qualifiers = qualifiers
         self.params = step_info
 
-        if action_type not in built_in_commands.NAME_ACTION_MAPPING:
+        if action_type == "output":
+            self.action = None
+        elif action_type in built_in_commands.NAME_ACTION_MAPPING:
+            self.action = built_in_commands.NAME_ACTION_MAPPING[action_type]
+        else:
             raise RuntimeError("Unknown action type: '%s'"% action_type)
-
-        self.action = built_in_commands.NAME_ACTION_MAPPING[action_type]
 
     def Execute(self):
         "Execute the step"
 
+        if self.action is None:
+            LOG.info(self.params)
+            return
+
         LOG.debug("Executing step '%s': '%s'"% (
             self.action_type, self.params))
-        ret, output = self.action(self.params, self.qualifiers)
+        try:
+            ret, output = self.action(self.params, self.qualifiers)
+        except KeyboardInterrupt:
+            LOG.error(
+                "Step interrupted - Terminate execution? [Y/n]")
+            ans = raw_input()
+            if ans.lower().startswith("y") or ans == "":
+                raise RuntimeError("Script Cancelled")
+            else:
+                return
 
         if ret:
             LOG.warning("Command returned non zero(%d) return value", ret)
+
+        # Ensure the output is printed if 'echo' was in the qualifiers
+        output_func = LOG.debug
+        if 'echo' in self.qualifiers:
+            output_func = LOG.info
 
         if output:
             indented_output = "\n".join(
                 ["   " + line for line in output.split("\r\n")])
 
-            LOG.debug("Output from command:\n%s"% indented_output)
+            output_func("Output from command:\n%s"% indented_output)
 
         return ret, output
 
@@ -530,7 +551,10 @@ def SetupLogFile(variables):
         log_filename = ReplaceVariableReferences(
             variables['logfile'], variables)
         if os.path.exists(log_filename):
-            os.unlink(log_filename)
+            try:
+                os.unlink(log_filename)
+            except OSError:
+                LOG.warning("Could not remove previous log file")
         h = logging.FileHandler(log_filename)
         # make the output format very simple
         basic_formatter = logging.Formatter("%(levelname)s - %(message)s")
@@ -539,19 +563,31 @@ def SetupLogFile(variables):
         LOG.addHandler(h)
 
 
+def PopulateVariablesFromEnvironment():
+    "Allow variables from the command line to be used also"
+    variables = {}
+    for var, val in os.environ.items():
+        variables[var.lower()] = val
+
+    return variables
+
+
 def Main():
     "Parse command line arguments, read config and dispatch the request(s)"
 
     options = cmd_line.GetValidatedOptions()
-    
-    # make sure that all handlers print debug messages if verbose has been 
+
+    # make sure that all handlers print debug messages if verbose has been
     # requested
     if options.verbose:
         for handler in LOG.handlers:
             handler.setLevel(logging.DEBUG)
 
+    variables = PopulateVariablesFromEnvironment()
     # ensure that the keys are all treated case insensitively
-    variables, commands = ParseConfigFile(options.config_file)
+    config_variables, commands = ParseConfigFile(options.config_file)
+
+    variables.update(config_variables)
 
     SetupLogFile(variables)
 
