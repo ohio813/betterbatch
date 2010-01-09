@@ -97,12 +97,23 @@ def ParseYAMLFile(yaml_file):
     Most of the work of this function is to convert various different errors
     into RuntimeErrors
     """
+    absolute_yaml_dir = os.path.dirname(os.path.abspath(yaml_file))
+
     try:
 
+        # read the YAML contents
         f = open(yaml_file, "rb")
-        # load the config file
-        config_data = yaml.load(f.read())
+        yaml_data = f.read()
         f.close()
+
+        # Replace the 'pseudo' variable <__config_path__> with the actual path
+        yaml_path_re = re.compile("\<\s*__config_path__\s*\>", re.I)
+        yaml_data = yaml_path_re.sub(
+            absolute_yaml_dir.replace("\\", "\\\\"),
+            yaml_data)
+
+        # Parse the yaml data
+        config_data = yaml.load(yaml_data)
         return config_data
 
     except IOError, e:
@@ -169,6 +180,10 @@ def ParseVariableBlock(var_block, config_file):
 
         # replace the existing block with the improved data
         var_block = temp
+
+    elif isinstance(var_block, basestring):
+        raise RuntimeError(
+            "Variables not defined correctly: '%s'"% var_block)
 
     errors = []
     variables = {}
@@ -454,6 +469,9 @@ def GetStepsForSelectedCommands(commands_info, requested_commands):
 def ParseStepData(step_data):
     "Given a single step - parse the data into individual bits"
     # default is RUN action - if no action given RUN will be assumed
+    if isinstance(step_data, type(None)):
+        return 'run', [], ''
+
     if isinstance(step_data, basestring):
         step_data = {'run': step_data}
 
@@ -500,7 +518,7 @@ class Step(object):
         self.qualifiers = qualifiers
         self.params = step_info
 
-        if action_type == "output":
+        if action_type in ("output", 'if'):
             self.action = None
         elif action_type in built_in_commands.NAME_ACTION_MAPPING:
             self.action = built_in_commands.NAME_ACTION_MAPPING[action_type]
@@ -517,7 +535,8 @@ class Step(object):
         LOG.debug("Executing step '%s': '%s'"% (
             self.action_type, self.params))
         try:
-            ret, output = self.action(self.params, self.qualifiers)
+            ret, output = self.action(
+                self.params, self.qualifiers)
         except KeyboardInterrupt:
             LOG.error(
                 "Step interrupted - Terminate execution? [Y/n]")
@@ -544,17 +563,96 @@ class Step(object):
         return ret, output
 
 
+class IfStep(Step):
+    def __init__(self, action_type, qualifiers, step_info):
+        # ensure that step_info is a list and that there are at least 2
+        # items in the list
+
+        if not isinstance(step_info, list):
+            raise RuntimeError("IF step details must be a list")
+
+        if len(step_info) < 2:
+            raise RuntimeError("There must be at least 2 parts in an IF step")
+
+        if len(step_info) > 3:
+            raise RuntimeError(
+                "There cannot be more than 3 parts in an IF step")
+
+        # validate the "do" part
+        if not (
+            isinstance(step_info[1], dict) and
+            len(step_info[1]) == 1 and
+            step_info[1].keys()[0].lower() == "do"):
+
+            raise RuntimeError(
+                "The DO part of the if block is not defined correctly")
+
+        do_block = step_info[1].values()[0]
+
+        else_block = []
+        if len(step_info) > 2:
+            if not (
+                isinstance(step_info[2], dict) and
+                len(step_info[2]) == 1 and
+                step_info[2].keys()[0].lower() == "else"):
+
+                raise RuntimeError(
+                    "The ELSE part of the if block is not defined correctly")
+            else_block = step_info[2].values()[0]
+
+        self.check = Step(*ParseStepData(step_info[0]))
+        self.if_true_steps = BuildExecutableSteps(do_block, {})
+        self.if_false_steps = BuildExecutableSteps(else_block, {})
+
+    def Execute(self):
+        full_output = []
+
+        # check if the test works or fails
+        check_passed = True
+        try:
+            print os.path.abspath(self.check.params)
+            ret, out = self.check.Execute()
+        except Exception, e:
+            check_passed = False
+
+        print check_passed
+
+        if check_passed:
+
+            for step in self.if_true_steps:
+                ret, out = step.Execute()
+                full_output.append(out)
+        else:
+            for step in self.if_false_steps:
+                ret, out = step.Execute()
+                full_output.append(out)
+
+        return 0, "\n".join(full_output)
+
+
 def SetupLogFile(variables):
     "Create the log file if it has been requested"
 
     if 'logfile' in variables:
+        
         log_filename = ReplaceVariableReferences(
             variables['logfile'], variables)
+        
         if os.path.exists(log_filename):
-            try:
-                os.unlink(log_filename)
-            except OSError:
-                LOG.warning("Could not remove previous log file")
+            for h in LOG.handlers:
+                if (
+                    hasattr(h, 'baseFilename') and 
+                    h.baseFilename.lower() == 
+                        os.path.abspath(log_filename).lower()):
+                    
+                    h.flush()
+                    return
+            # file is not an open handler - try removing it
+            #try:
+            os.unlink(log_filename)
+            #except OSError:
+            #    LOG.warning("Could not remove previous log file")
+            
         h = logging.FileHandler(log_filename)
         # make the output format very simple
         basic_formatter = logging.Formatter("%(levelname)s - %(message)s")
@@ -570,6 +668,38 @@ def PopulateVariablesFromEnvironment():
         variables[var.lower()] = val
 
     return variables
+
+
+def BuildExecutableSteps(steps, variables):
+    executable_steps = []
+    errors = []
+
+    if isinstance(steps, basestring):
+        steps = [steps]
+
+    for step in steps:
+        try:
+            action, qualifiers, step_info = ParseStepData(step)
+            step_info = ReplaceVarRefsInStructure(step_info, variables)
+
+            step_class = Step
+            if action == "if":
+                step_class = IfStep
+
+            executable_step = step_class(action, qualifiers, step_info)
+            executable_steps.append(executable_step)
+        except ErrorCollection, e:
+            errors.extend(e.errors)
+            continue
+        except RuntimeError, e:
+            errors.append(e)
+            continue
+
+    # if there were errors - then raise them
+    if errors:
+        raise ErrorCollection(errors)
+
+    return executable_steps
 
 
 def Main():
@@ -601,28 +731,11 @@ def Main():
 
     elif options.execute:
 
-        errors = []
-        executable_steps = []
-
         # Scan and construct all the steps first before trying to execute
         # any of them. This way - we can report errors before doing any
         # step execution
         steps = GetStepsForSelectedCommands(commands, options.execute)
-        for step in steps:
-            try:
-                action, qualifiers, step_info = ParseStepData(step)
-                step_info = ReplaceVarRefsInStructure(step_info, variables)
-                executable_steps.append(Step(action, qualifiers, step_info))
-            except ErrorCollection, e:
-                errors.extend(e.errors)
-                continue
-            except RuntimeError, e:
-                errors.append(e)
-                continue
-
-        # if there were errors - then raise them
-        if errors:
-            raise ErrorCollection(errors)
+        executable_steps = BuildExecutableSteps(steps, variables)
 
         # now execute each of the steps
         for cmd in executable_steps:
@@ -646,3 +759,4 @@ if __name__ == '__main__':
     except Exception, err:
         LOG.critical('Unknown Error: %s'% err)
         LOG.exception(err)
+    logging.shutdown()
