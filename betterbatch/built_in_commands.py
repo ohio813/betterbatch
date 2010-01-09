@@ -148,6 +148,7 @@ def basename(path, dummy = None):
 
 NAME_ACTION_MAPPING = {
     'run': SystemCommand,
+    'execute': SystemCommand,
     'exists': PathExists,
     'exist' : PathExists,
     'notexist' : PathNotExists,
@@ -155,4 +156,5 @@ NAME_ACTION_MAPPING = {
     'count': VerifyFileCount,
     'dirname' : dirname,
     'filename': basename,
+    'basename': basename,
 }
