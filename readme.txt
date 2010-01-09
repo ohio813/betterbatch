@@ -11,12 +11,12 @@ advantages over batch files:
 * able to easily include other files
 * allow setting of variables from the output of commands
 * automatic checking of the return value of executed commands
-* built in commands to allow easy checking of conditions (e.g. that a file exists)
+* built-in commands to allow easy checking of conditions (e.g. that a file exists)
 * easier to understand variable format
 * strongly encourages separation of code and configuration
   
-  * No looping constructs in configuration files
-  * allow easily and safely using code in external files
+  * no looping constructs in configuration files
+  * allow easily and safely using code in external files.
 
 BetterBatch's sweet spot is for things that can be done by a batch command and 
 need to be maintained over time by different people who may not have the same
@@ -87,7 +87,7 @@ The config file is made up of named sections:
 
 
 ====================================
-Inclues Section (Optional).
+Includes Section (Optional)
 ====================================
 Here you specify which configuration files you would like to include. Included 
 files are read in the order they are displayed.Which means that tems defined in 
@@ -102,7 +102,7 @@ example::
      - IncludeFile_2.yaml
  
 In this example IncludeFile_2.yaml can override any variable/command defined in 
-IncludeFile_1.yaml
+IncludeFile_1.yaml.
 
 
 ====================================
@@ -126,11 +126,11 @@ an error will NOT be raised unless something uses the 'using_unknown_var' variab
 
 
 ------------------------------------------------------
-Variable Overriding:
+Variable Overriding
 ------------------------------------------------------
 Variables can be overriden at many points:
 
-1. you can force a particular value by specifying it at the command line
+1. You can force a particular value by specifying it at the command line
 If you do this - this WILL be the value of that variable!
 
 2. If the config file specified at the command line will defines that variable
@@ -147,12 +147,12 @@ __config_path__  Pseudo Variable
 ------------------------------------------------------
 This is replace very early in the cycle of parsing the files
 if it is in an included BetterBatch file - then it will be the directory of 
-that particular 
+that particular. 
 
 
 
 ====================================
-Trouble Shooting:
+Troubleshooting:
 ====================================
 
 ------------------------------------------------------
@@ -162,7 +162,7 @@ Spaces in paths for "RUN" commands
 This can be difficult but there are a number of ways around it.
 
 All of the following will work as they are all valid YAML - it's up to you 
-which you prefer
+which you prefer.
 
 A. Wrap the whole command in single quotes (') and the path that has spaces in 
 double quotes.
