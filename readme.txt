@@ -142,6 +142,14 @@ variable then values in earlier config files will be overridden by later include
 config files.
 
 
+------------------------------------------------------
+__config_path__  Pseudo Variable
+------------------------------------------------------
+This is replace very early in the cycle of parsing the files
+if it is in an included BetterBatch file - then it will be the directory of 
+that particular 
+
+
 
 ====================================
 Trouble Shooting:
