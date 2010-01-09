@@ -47,7 +47,7 @@ def run_tests():
     cov.stop()
     #print cov.analysis()
     print cov.report(modules_to_test)
-    cov.html_report(modules_to_test, directory = ".")
+    cov.html_report(modules_to_test, directory = "Coverage_report")
 
 if __name__ == '__main__':
     run_tests()
