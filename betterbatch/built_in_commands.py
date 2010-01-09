@@ -69,18 +69,31 @@ def VerifyFileCount(file_pattern, count = None):
         message = "Check Passed - num files %d is %s %d"
         return RESULT_SUCCESS, message % (num_files, desc, count)
     else:
-        raise RuntimeError("Check Failed. Counted: %d  expected count: %s"% (
-            num_files, desc))
+        message = "Check Failed. Counted: %d  expected count: %s"% (
+            num_files, desc)
+        raise RuntimeError(message)
 
 
-def FileExists(path, dummy = None):
-    """Check if the file exists returns 0 if the file exists and raises
-    RuntimeError if the file does not exist"""
+def PathNotExists(path, dummy = None):
+    """Check if the file exists returns 0 if the file doesn't exist and raises
+    RuntimeError otherwise"""
+
+    if os.path.exists(path):
+        message = "Path found: '%s'"% path
+        raise RuntimeError(message)
+    else:
+        return RESULT_SUCCESS, 'SUCCESS: Path does not exist'
+
+
+def PathExists(path, dummy = None):
+    """Check if the path exists returns 0 if the path exists and raises
+    RuntimeError otherwise"""
 
     if os.path.exists(path):
         return RESULT_SUCCESS, 'SUCCESS: Path exists'
     else:
-        raise RuntimeError("Required file not found: '%s'"% path)
+        message = "Path not found: '%s'"% path
+        raise RuntimeError(message)
 
 
 def SystemCommand(command, qualifiers = None):
@@ -120,14 +133,18 @@ def SystemCommand(command, qualifiers = None):
 
     if 'nocheck' not in qualifiers and ret_value:
         output = "\n".join(["   " + line for line in output.split("\r\n")])
-        raise RuntimeError(
-            'Non zero return (%d) from command:\n  "%s"\nOUTPUT:\n%s'%(
+        message = ('Non zero return (%d) from command:\n  "%s"\nOUTPUT:\n%s'%(
                 ret_value, command, output))
+        raise RuntimeError(message)
 
     return ret_value, output
 
+
 NAME_ACTION_MAPPING = {
     'run': SystemCommand,
-    'exists': FileExists,
+    'exists': PathExists,
+    'exist' : PathExists,
+    'notexist' : PathNotExists,
+    'notexists': PathNotExists,
     'count': VerifyFileCount,
 }

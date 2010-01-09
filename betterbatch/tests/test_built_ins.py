@@ -14,19 +14,34 @@ TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 class BuiltInCommandsTests(unittest.TestCase):
     "Unit tests for the loadconfig function"
 
-    def test_exists_true(self):
+    def test_PathExists_true(self):
         """"""
 
         self.assertEquals(
-            FileExists(__file__)[0], 0)
+            PathExists(__file__)[0], 0)
 
-    def test_exists_false(self):
+    def test_PathExists_false(self):
         """"""
 
         self.assertRaises(
             RuntimeError,
-            FileExists,
+            PathExists,
             "does not exist.blah")
+
+    def test_PathNotExists_true(self):
+        """"""
+
+        self.assertEquals(
+            PathNotExists("does not exist.blah")[0], 0)
+
+    def test_PathNotExists_false(self):
+        """"""
+
+        self.assertRaises(
+            RuntimeError,
+            PathNotExists,
+            __file__)
+
 
     def test_count_passes(self):
         """"""
