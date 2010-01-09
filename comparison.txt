@@ -1,0 +1,149 @@
+******************************************************
+Comparing BetterBatch to ...
+******************************************************
+BetterBatch is similar to other things already out there so why use it?
+
+------------------------------------------------------
+DOS Batch files
+------------------------------------------------------
+
+Safer (Error checking)
+------------------------------------------------------
+BetterBatch by default checks the return value for every command. If a command
+fails then the script will stop. Batch files make it very easy to ignore that 
+an individual step has failed.
+
+
+Assign the output of a command to a variable
+------------------------------------------------------
+This may sound like a minor improvement but it makes a huge difference. It 
+allows individual bits of functionality to be easily broken up.
+
+If you want to avoid having to specify a variable that can be
+reasonably calculated from another variable you can easily factor this out to
+a simple script. In the following example I show how to set the ISO 639 Language
+code (used in XML) from the language name.
+
+DOS Batch::
+
+    if /i "%lang_name%"== 'ABHAZIAN' set lang_iso_639=AB
+    if /i "%lang_name%"== 'AFAN (OROMO)' set lang_iso_639=OM
+    ...
+    if /i "%lang_name%"== 'ZHUANG' set lang_iso_639=ZA
+    if /i "%lang_name%"== 'ZULU' set lang_iso_639=ZU
+
+
+BetterBatch::
+
+    lang_iso_639 = (system) Get_iso_639_lang.pl <lang_name>
+
+This perl file of course has to have the language table coded into it also
+but not it can be called easily from anywhere else too. And as the funcitonality
+is broken up - it will be easier to test for errors.
+
+
+Easier to add other checks
+------------------------------------------------------
+It is very easy to add checks at any point in the process. Compare the following
+two methods of checking if a file exists...
+
+DOS Batch::
+
+    if not exist somefile goto Some_Error_Condition
+
+BetterBatch::
+ 
+    - exists: somefile
+
+Any other check can be easily added by calling a batch/exe/script that returns 0
+for sucess and a non-zero value for failure.
+
+
+Verifies variables are defined
+------------------------------------------------------
+In Dos batch files if a variable does not exist then no error message will 
+shown, and the variable will be replaced with "" (empty string). If you want to 
+check variables then you have to add code for every variable you want to check.
+
+In BetterBatch all used variable definitions are checked before anything is run.
+
+
+
+Easier to read
+------------------------------------------------------
+BetterBatch files are simpler than DOS Batch files in many ways which makes
+them easier to understand. 
+
+Variable references are also easier to read. In Batch files variable references
+are defined using %% for both start and end tags while in BetterBatch files
+they are defined using < and > for hte start and end tags respetively. If there
+are multiple variables in a line - then it makes it much simpler to see all the
+variable references
+
+DOS Batch::
+
+    set build_folder=%PROJECT_FOLDER%\%BUILD%\%LANG%
+
+BetterBatch::
+ 
+    build_folder:  <PROJECT_FOLDER>\<BUILD>\<LANG>
+
+
+Include other configuration files
+------------------------------------------------------
+In Batch files it can be difficult to create another batch file that defines
+all the variables required. It can be done - but as there is no checking for
+undefined variables - it makes it difficult to track down errors. Commands and
+Variables can be used in other YAML files making it possible to define common
+YAML files that have no project nor machine specific information.
+
+
+Allow long lines to be split
+------------------------------------------------------
+In DOS batch files you cannot split a long line over multiple lines (to aid 
+readability). In BetterBatch there are a number of ways of doing it:
+
+Specify value as a YAML string (starting on the first line - automatically
+continued on the following lines - as long as they are more indented::
+
+    - run: echo this is a very
+        long string that will treated after parsing a single line
+        by BetterBatch - this is a feature of YAML.
+
+By using a YAML string block::
+    - run: >
+        echo this is a very
+        long string that will treated after parsing a single line
+        by BetterBatch - this is a feature of YAML.
+
+------------------------------------------------------
+Python/Perl/LUA or other scripting languages
+------------------------------------------------------
+
+Simpler
+------------------------------------------------------
+The main reason for using BetterBatch rather than a full fledged scripting 
+language is that the YAML configuration files are much simpler.
+
+If a user does not know Python/Perl/Ruby/Lua/etc. it would be a significant 
+effort for them to learn that language to do what they can do easily using 
+BetterBatch.
+
+
+Language Agnositc
+------------------------------------------------------
+You can create tools/checks/etc for BetterBatch in any language you want. As 
+long as it can be executed on the command line - it can be used by BetterBatch.
+
+This means that in a single YAML file you could set variables from PERL files,
+call a check written in Python, and execute a script in a BATCH file
+
+
+Foster re-use and modularization
+------------------------------------------------------
+BetterBatch files act as a glue between different components. BetterBatch does
+not apply force restrictions on these components other than they can be run on 
+the command line and that they return 0 on success. This means that anything 
+written for a BetterBatch process will also work (and can be debugged) outside
+of BetterBatch.
+
