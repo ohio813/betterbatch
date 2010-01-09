@@ -140,6 +140,12 @@ def SystemCommand(command, qualifiers = None):
     return ret_value, output
 
 
+def dirname(path, dummy = None):
+    return 0, os.path.dirname(path)
+
+def basename(path, dummy = None):
+    return 0, os.path.dirname(path)
+
 NAME_ACTION_MAPPING = {
     'run': SystemCommand,
     'exists': PathExists,
@@ -147,4 +153,6 @@ NAME_ACTION_MAPPING = {
     'notexist' : PathNotExists,
     'notexists': PathNotExists,
     'count': VerifyFileCount,
+    'dirname' : dirname,
+    'filename': basename,
 }
