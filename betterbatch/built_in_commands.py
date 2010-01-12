@@ -158,14 +158,13 @@ def ChangeCurrentDirectory(path, dummy = None):
 
 
 def PushDirectory(path, dummy = None):
-    print path
     try:
         PUSH_DIRECTORY_LIST.append(os.getcwd())
         os.chdir(path)
         return 0, ""
     except OSError, e:
         PUSH_DIRECTORY_LIST.pop()
-        return 1 , str(e)
+        raise RuntimeError(str(e))
 
 
 def PopDirectory(path, dummy = None):
@@ -174,9 +173,25 @@ def PopDirectory(path, dummy = None):
         os.chdir(last_dir)
         return 0, "Current directory is now '%s'"% last_dir
     except OSError, e:
-        return 1 , str(e)
+        raise RuntimeError(str(e))
     except IndexError, e:
-        return 1 , "Not previously pushed a directory to pop"
+        raise RuntimeError("No previously pushed directory to pop")
+
+
+class ExternalCommand(object):
+    def __init__(self, full_path):
+        self.full_path = full_path
+    
+    def __call__(self, params, qualifiers):
+        if isinstance(params, list):
+            qualifiers.append(params)
+            params.insert(0, self.full_path)
+        elif isinstance(params, basestring):
+            import pdb; pdb.set_trace()
+            params = " ".join([self.full_path, params] + qualifiers)
+            
+        print "xxxxxxxxxxxxxxxxxxxxx", params
+        return SystemCommand(params)
 
 
 NAME_ACTION_MAPPING = {
@@ -203,6 +218,26 @@ NAME_ACTION_MAPPING = {
     'popd'   : PopDirectory,
 }
 
+def PopulateFromToolsFolder():
+    tools_folder = os.path.join(os.path.dirname(__file__), "tools")
+    
+    for file in os.listdir(tools_folder):
+        name, ext = os.path.splitext(file)
+        name = name.lower()
+        ext = ext.upper()
+        
+        if ext in (
+            os.environ["pathext"].split(";") + [".PY", ".PL", ".PYW"]):
+            
+            if name not in NAME_ACTION_MAPPING:
+                full_path = os.path.join(tools_folder, file)
+                NAME_ACTION_MAPPING[name] = ExternalCommand(full_path)
+            else:
+                raise RuntimeError(
+                    "External command conflicts with built-in command: '%s'"%
+                        name)
+
+
 # the following commands will not require to use the command syntax
 # e.g.  " cd: <dir>"  to work correctly
 DOS_REPLACE = [
@@ -211,3 +246,5 @@ DOS_REPLACE = [
     'pushd',
     'popd',
 ]
+
+PopulateFromToolsFolder()
