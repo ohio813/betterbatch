@@ -16,6 +16,8 @@ import sys
 RESULT_SUCCESS = 0
 RESULT_FAILURE = 1
 
+PUSH_DIRECTORY_LIST = []
+
 
 def VerifyFileCount(file_pattern, count = None):
     """Verify that the file count is as specified
@@ -146,15 +148,66 @@ def dirname(path, dummy = None):
 def basename(path, dummy = None):
     return 0, os.path.basename(path)
 
+def ChangeCurrentDirectory(path, dummy = None):
+    try:
+        os.chdir(path)
+        return 0, ""
+    except OSError, e:
+        return 1 , str(e)
+
+
+
+def PushDirectory(path, dummy = None):
+    print path
+    try:
+        PUSH_DIRECTORY_LIST.append(os.getcwd())
+        os.chdir(path)
+        return 0, ""
+    except OSError, e:
+        PUSH_DIRECTORY_LIST.pop()
+        return 1 , str(e)
+
+
+def PopDirectory(path, dummy = None):
+    try:
+        last_dir = PUSH_DIRECTORY_LIST.pop()
+        os.chdir(last_dir)
+        return 0, "Current directory is now '%s'"% last_dir
+    except OSError, e:
+        return 1 , str(e)
+    except IndexError, e:
+        return 1 , "Not previously pushed a directory to pop"
+
+
 NAME_ACTION_MAPPING = {
-    'run': SystemCommand,
+    'run'    : SystemCommand,
     'execute': SystemCommand,
+
     'exists': PathExists,
     'exist' : PathExists,
     'notexist' : PathNotExists,
     'notexists': PathNotExists,
+
     'count': VerifyFileCount,
+
     'dirname' : dirname,
     'filename': basename,
     'basename': basename,
+
+    'cd'   : ChangeCurrentDirectory,
+    'chdir': ChangeCurrentDirectory,
+
+    'pushdir': PushDirectory,
+    'pushd'  : PushDirectory,
+    'popdir' : PopDirectory,
+    'popd'   : PopDirectory,
 }
+
+# the following commands will not require to use the command syntax
+# e.g.  " cd: <dir>"  to work correctly
+DOS_REPLACE = [
+    'cd',
+    'chdir',
+    'pushd',
+    'popd',
+]

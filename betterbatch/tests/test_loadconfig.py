@@ -6,7 +6,7 @@ sys.path.append(".")
 sys.path.append("..")
 
 from betterbatch import ParseYAMLFile
-from betterbatch import ParseConfigFile
+from betterbatch import ParseScriptFile
 from betterbatch import ErrorCollection
 
 TEST_PATH = os.path.dirname(__file__)
@@ -32,7 +32,7 @@ class LoadConfigTests(unittest.TestCase):
 
     def test_emtpy_file(self):
         """"""
-        vars_and_commands = ParseConfigFile(
+        vars_and_commands = ParseScriptFile(
             os.path.join(TEST_FILES_PATH, "empty.yaml"))
         self.assertEquals(vars_and_commands, ({}, {}))
 
@@ -43,7 +43,7 @@ class LoadConfigTests(unittest.TestCase):
         directory - so if running from another directory - config files were
         not found.
         """
-        vars, commands = ParseConfigFile(
+        vars, commands = ParseScriptFile(
             os.path.join(TEST_FILES_PATH, "test_rel_include.yaml"))
         self.assertEquals(vars['test'], "Hello World")
 
@@ -52,7 +52,7 @@ class LoadConfigTests(unittest.TestCase):
 
         self.assertRaises(
             ErrorCollection,
-            ParseConfigFile,
+            ParseScriptFile,
             os.path.join(TEST_FILES_PATH, "missing.yaml"))
 
     def test_missing_include(self):
@@ -60,13 +60,13 @@ class LoadConfigTests(unittest.TestCase):
 
         self.assertRaises(
             ErrorCollection,
-            ParseConfigFile,
+            ParseScriptFile,
             os.path.join(TEST_FILES_PATH, "missing_include.yaml"))
 
     def test_variables_as_list(self):
         """"""
 
-        vars, commands = ParseConfigFile(
+        vars, commands = ParseScriptFile(
             os.path.join(TEST_FILES_PATH, "variables_as_list.yaml"))
         self.assertEquals(vars['test'], "Hello World")
 
@@ -74,22 +74,22 @@ class LoadConfigTests(unittest.TestCase):
         """"""
 
         try:
-            ParseConfigFile(
+            ParseScriptFile(
                 os.path.join(TEST_FILES_PATH, "number_variables.yaml"))
         except ErrorCollection, e:
             self.assertEquals(len(e.errors), 2)
 
     def test_empty_include_section(self):
         """"""
-        ParseConfigFile(os.path.join(TEST_FILES_PATH, "empty_includes.yaml"))
-        ParseConfigFile(os.path.join(TEST_FILES_PATH, "empty_includes2.yaml"))
+        ParseScriptFile(os.path.join(TEST_FILES_PATH, "empty_includes.yaml"))
+        ParseScriptFile(os.path.join(TEST_FILES_PATH, "empty_includes2.yaml"))
 
     def test_overlapping_variable(self):
         """"""
 
         self.assertRaises(
             RuntimeError,
-            ParseConfigFile,
+            ParseScriptFile,
             os.path.join(TEST_FILES_PATH, "overlapping_variables.yaml"))
 
     def test_broken_variable_block(self):
@@ -97,7 +97,7 @@ class LoadConfigTests(unittest.TestCase):
 
         self.assertRaises(
             RuntimeError,
-            ParseConfigFile,
+            ParseScriptFile,
             os.path.join(TEST_FILES_PATH, "variable_block_broken.yaml"))
 
 

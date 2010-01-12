@@ -1,5 +1,5 @@
 variables:
- my_file: <__config_path__>\basic.yaml
+ my_file: <__script_path__>\basic.yaml
 
 empty_do:
 - If:

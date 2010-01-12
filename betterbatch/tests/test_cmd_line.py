@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(TEST_PATH))
 from cmd_line import *
 
 class CommandLineTests(unittest.TestCase):
-    "Unit tests for the loadconfig function"
+    "Unit tests for the command line processing functionality"
 
     def test_SettingUpParser(self):
         """"""
@@ -69,7 +69,7 @@ class CommandLineTests(unittest.TestCase):
         options = ValidateOptions(options, args)
 
         self.assertEquals(
-            options.config_file,
+            options.script_file,
             os.path.join(TEST_FILES_PATH, "commands.yaml"))
 
     def test_GetValidatedOptions(self):
@@ -78,7 +78,7 @@ class CommandLineTests(unittest.TestCase):
         options = GetValidatedOptions()
 
         self.assertEquals(
-            options.config_file,
+            options.script_file,
             os.path.join(TEST_FILES_PATH, "commands.yaml"))
 
 

@@ -5,7 +5,7 @@ import os
 USAGE = r"""
 Executes a BetterBatch script file.
 
-(betterbatch.py or bbrun.py) [-v] [-h] (config file) [var=value] [var=value]...
+(betterbatch.py or bbrun.py) [-v] [-h] (script file) [var=value] [var=value]...
 
 Examples:
     bbrun.py --verbose my_script.bb test_dir=%temp%\there build=H099
@@ -16,14 +16,14 @@ def ParseArguments():
 
     # create the parser
     parser = optparse.OptionParser(
-        description='Parse and run the config file',
+        description='Parse and run the script file',
         epilog = "Examples:\n\ttest1\n\ttest2",
         version = 0.0)
 
     # set up the basic options
     #parser.add_option(
-    #    'config_file', metavar='config.yaml', type=str,
-    #    help='YAML configuration file')
+    #    'script_file', metavar='script.yaml', type=str,
+    #    help='YAML scripturation file')
 
     #parser.add_option(
     #    "-d", '--define', metavar='var=value', type=str, dest='variables',
@@ -36,7 +36,7 @@ def ParseArguments():
 
     #parser.add_option(
     #    '-i', '--include', action = "append",
-    #    help='Other config files to include variables/commands from')
+    #    help='Other script files to include variables/commands from')
 
     #sp = parser.add_subparsers(
     #    title ="Commands",
@@ -77,17 +77,17 @@ def ParseVariableOverrides(variable_overrides):
 
 
 def ValidateOptions(options, args):
-    # validate that at least one config file was passed and that it exists
+    # validate that at least one script file was passed and that it exists
     
 
     #elif len(args) > 1:
     #    raise RuntimeError(
-    #        "Specify only one config file - '%s' "% ", ".join(args))
+    #        "Specify only one script file - '%s' "% ", ".join(args))
 
-    options.config_file = args[0]
-    if not os.path.exists(options.config_file):
+    options.script_file = args[0]
+    if not os.path.exists(options.script_file):
         raise RuntimeError(
-            "The config file does not exist: '%s'"% options.config_file)
+            "The script file does not exist: '%s'"% options.script_file)
     
     override_vars = ParseVariableOverrides(args[1:])
     options.variables = override_vars

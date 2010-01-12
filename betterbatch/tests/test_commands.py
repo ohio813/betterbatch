@@ -13,18 +13,18 @@ TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
 
 class CommandTests(unittest.TestCase):
-    "Unit tests for the loadconfig function"
+    "Unit tests for the commands"
 
     def test_ListCommands(self):
         """"""
-        vars, commands = ParseConfigFile(
+        vars, commands = ParseScriptFile(
             os.path.join(TEST_FILES_PATH, "commands.yaml"))
 
         ListCommands(commands)
 
     #def test_GetCommands(self):
     #    """"""
-    #    vars, commands = ParseConfigFile(
+    #    vars, commands = ParseScriptFile(
     #        os.path.join(TEST_FILES_PATH, "commands.yaml"))
 
     #    steps = GetStepsForSelectedCommands(commands)#, "test")
@@ -35,7 +35,7 @@ class CommandTests(unittest.TestCase):
 
     #def test_GetCommands_missing(self):
     #    """"""
-    #    vars, commands = ParseConfigFile(
+    #    vars, commands = ParseScriptFile(
     #        os.path.join(TEST_FILES_PATH, "commands.yaml"))
 
     #    self.assertRaises(
@@ -45,7 +45,7 @@ class CommandTests(unittest.TestCase):
 
     #def test_GetCommands_ambiguous(self):
     #    """"""
-    #    vars, commands = ParseConfigFile(
+    #    vars, commands = ParseScriptFile(
     #        os.path.join(TEST_FILES_PATH, "commands.yaml"))
 
     #    self.assertRaises(
@@ -118,13 +118,14 @@ class IfElseTests(unittest.TestCase):
             if 'if_else_broken' in filename:
                 continue
             
-            self.vars, commands = ParseConfigFile(
+            self.vars, commands = ParseScriptFile(
                 os.path.join(TEST_FILES_PATH, filename))
             steps = commands.values()[0]
 
             try:
                 executable_steps = BuildExecutableSteps(steps, self.vars)
             except ErrorCollection, e:
+                print "ERROR WHEN RUNNING", command
                 e.LogErrors()
                 raise
 
@@ -136,7 +137,7 @@ class IfElseTests(unittest.TestCase):
                     self.assertEquals(out.strip(), command)
 
     def test_broken_not_list(self):
-        self.vars, commands = ParseConfigFile(
+        self.vars, commands = ParseScriptFile(
             os.path.join(TEST_FILES_PATH, "if_else_broken_not_list.yaml"))
         steps = commands.values()[0]
 
@@ -146,7 +147,7 @@ class IfElseTests(unittest.TestCase):
                 steps, self.vars)            
         
     def test_broken_not_list2(self):
-        self.vars, commands = ParseConfigFile(
+        self.vars, commands = ParseScriptFile(
             os.path.join(TEST_FILES_PATH,   "if_else_broken_not_list2.yaml"))
         steps = commands.values()[0]
 
@@ -156,7 +157,7 @@ class IfElseTests(unittest.TestCase):
                 steps, self.vars)
 
     def test_broken_too_few_clauses(self):
-        self.vars, commands = ParseConfigFile(
+        self.vars, commands = ParseScriptFile(
             os.path.join(TEST_FILES_PATH, "if_else_broken_only_one.yaml"))
         steps = commands.values()[0]
 
@@ -172,7 +173,7 @@ class IfElseTests(unittest.TestCase):
                 steps, self.vars)
 
     def test_broken_too_many_clauses(self):
-        self.vars, commands = ParseConfigFile(
+        self.vars, commands = ParseScriptFile(
             os.path.join(TEST_FILES_PATH, "if_else_broken_too_many.yaml"))
         steps = commands.values()[0]
 
@@ -183,7 +184,7 @@ class IfElseTests(unittest.TestCase):
                 steps, self.vars)
 
     def test_broken_do_name(self):
-        self.vars, commands = ParseConfigFile(
+        self.vars, commands = ParseScriptFile(
             os.path.join(TEST_FILES_PATH, "if_else_broken_do_name.yaml"))
         steps = commands.values()[0]
 
@@ -193,7 +194,7 @@ class IfElseTests(unittest.TestCase):
                 steps, self.vars)
 
     def test_broken_else_name(self):
-        self.vars, commands = ParseConfigFile(
+        self.vars, commands = ParseScriptFile(
             os.path.join(TEST_FILES_PATH, "if_else_broken_else_name.yaml"))
         steps = commands.values()[0]
 

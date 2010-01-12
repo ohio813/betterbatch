@@ -12,7 +12,7 @@ TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
 
 class BuiltInCommandsTests(unittest.TestCase):
-    "Unit tests for the loadconfig function"
+    "Unit tests for the built in commands"
 
     def test_PathExists_true(self):
         """"""

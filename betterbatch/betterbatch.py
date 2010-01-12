@@ -1,4 +1,4 @@
-"Read a config file and execute commands from it"
+"Read a betterbatch script file and execute commands from it"
 
 import os
 import sys
@@ -24,7 +24,7 @@ def CreateLogger():
     stdout_handler.setFormatter(basic_formatter)
 
     # set up the logger with handler and to output debug messages
-    logger = logging.getLogger("config_expert")
+    logger = logging.getLogger("betterbatch")
     logger.setLevel(logging.DEBUG)
     logger.addHandler(stdout_handler)
     return logger
@@ -84,13 +84,13 @@ class NumericVarNotAllowedError(TypeError):
     Only strings are supported to ensure that values like 01, 0x409, are
     kept as strings - i.e. it will have the same textual representation"""
 
-    def __init__(self, variable, value, config_file):
+    def __init__(self, variable, value, script_file):
         TypeError.__init__(
             self,
             (
                 "Variable '%s' ('%s') is of type %s. Please "
                 "surround it with single quotes e.g. '%s'")% (
-                    variable, config_file, type(value).__name__, str(value)))
+                    variable, script_file, type(value).__name__, str(value)))
 
 
 def ParseYAMLFile(yaml_file):
@@ -108,15 +108,15 @@ def ParseYAMLFile(yaml_file):
         yaml_data = f.read()
         f.close()
 
-        # Replace the 'pseudo' variable <__config_path__> with the actual path
-        yaml_path_re = re.compile("\<\s*__config_path__\s*\>", re.I)
+        # Replace the 'pseudo' variable <__script_path__> with the actual path
+        yaml_path_re = re.compile("\<\s*__script_path__\s*\>", re.I)
         yaml_data = yaml_path_re.sub(
             absolute_yaml_dir.replace("\\", "\\\\"),
             yaml_data)
 
         # Parse the yaml data
-        config_data = yaml.load(yaml_data)
-        return config_data
+        script_data = yaml.load(yaml_data)
+        return script_data
 
     except IOError, e:
         raise RuntimeError(e)
@@ -137,14 +137,14 @@ def LoadIncludes(includes, base_path):
     all_included_vars = {}
     all_included_cmds = {}
     errors = []
-    # load each of the included config files
+    # load each of the included script files
     for inc in includes:
         if not inc:
             continue
         LOG.debug("Parsing include: '%s'"% inc)
         inc = os.path.join(base_path, inc)
         try:
-            inc_vars, inc_cmds = ParseConfigFile(inc)
+            inc_vars, inc_cmds = ParseScriptFile(inc)
 
             # Update the total included variables
             all_included_vars.update(inc_vars)
@@ -158,7 +158,7 @@ def LoadIncludes(includes, base_path):
     return all_included_vars, all_included_cmds
 
 
-def ParseVariableBlock(var_block, config_file):
+def ParseVariableBlock(var_block, script_file):
     "Parse the variable block and return the variables"
 
     # if there are no variables
@@ -192,7 +192,7 @@ def ParseVariableBlock(var_block, config_file):
     for name, value in var_block.items():
         # wrap the variable
         if isinstance(value, (int, float, long)):
-            errors.append(NumericVarNotAllowedError(name, value, config_file))
+            errors.append(NumericVarNotAllowedError(name, value, script_file))
             continue
 
         # check that we don't have two variables the same
@@ -212,57 +212,57 @@ def ParseVariableBlock(var_block, config_file):
     return variables
 
 
-def ParseConfigFile(config_file):
-    """Load the config files -return the variables and commands
+def ParseScriptFile(script_file):
+    """Load the script file and return the variables and commands
 
-    Recursively parse any included config files. Included files are parsed
-    first so that data will be overridden by the including config file.
+    Recursively parse any included script files. Included files are parsed
+    first so that data will be overridden by the including script file.
     """
 
     all_errors = []
-    config_data = {}
+    script_data = {}
     try:
-        config_data = ParseYAMLFile(config_file)
+        script_data = ParseYAMLFile(script_file)
     except RuntimeError, e:
         raise ErrorCollection([e])
 
     # file is empty - just return empty data
-    if not config_data:
+    if not script_data:
         return {}, {}
 
-    # update the config data to have lower case keys
+    # update the script data to have lower case keys
     # only for the root level (e.g. includes/variables/commands)
-    config_data = dict([(k.lower(), v) for k, v in config_data.items()])
+    script_data = dict([(k.lower(), v) for k, v in script_data.items()])
 
-    # Parse the includes files first (so the including config file
+    # Parse the includes files first (so the including script file
     # can override items as necessary)
     variables = {}
     commands = {}
-    includes = config_data.setdefault('includes', {})
+    includes = script_data.setdefault('includes', {})
     # load and parse all the data from the included files
     try:
         variables, commands = LoadIncludes(
-            includes, os.path.dirname(config_file))
+            includes, os.path.dirname(script_file))
     except ErrorCollection, e:
         # don't raise errors yet - just collect the errors. If there are
         # errors - then we will raise all the errors before returning
         all_errors.extend(e.errors)
 
-    config_vars = config_data.setdefault('variables', {})
-    this_file_variables = ParseVariableBlock(config_vars, config_file)
+    script_vars = script_data.setdefault('variables', {})
+    this_file_variables = ParseVariableBlock(script_vars, script_file)
     variables.update(this_file_variables)
 
     # we don't need this anymore
-    del config_data['includes']
+    del script_data['includes']
 
-    # Now delete the variables from the config data - so that all we have
+    # Now delete the variables from the script data - so that all we have
     # are the commands
-    del config_data['variables']
+    del script_data['variables']
 
     commands = {}
 
     # And the commands (everything else is a command)
-    commands.update(config_data)
+    commands.update(script_data)
 
     if all_errors:
         raise ErrorCollection(all_errors)
@@ -704,7 +704,7 @@ def BuildExecutableSteps(steps, variables):
 
 
 def Main():
-    "Parse command line arguments, read config and dispatch the request(s)"
+    "Parse command line arguments, read script and dispatch the request(s)"
 
     options = cmd_line.GetValidatedOptions()
 
@@ -716,9 +716,12 @@ def Main():
 
     variables = PopulateVariablesFromEnvironment()
     # ensure that the keys are all treated case insensitively
-    config_variables, commands = ParseConfigFile(options.config_file)
+    script_variables, commands = ParseScriptFile(options.script_file)
     
-    variables.update(config_variables)
+    variables.update(script_variables)
+
+    # set the default path to where the script file is
+    os.chdir(os.path.dirname(options.script_file))
 
     SetupLogFile(variables)
 
@@ -726,7 +729,7 @@ def Main():
     # update the read variables from the overrides
     variables.update(options.variables)
     #if not len(commands):
-    #    raise RuntimeError("No executable steps in the config file")
+    #    raise RuntimeError("No executable steps in the script file")
     
     LOG.debug("Options: %s"% options)
 
