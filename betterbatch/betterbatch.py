@@ -614,12 +614,9 @@ class IfStep(Step):
         # check if the test works or fails
         check_passed = True
         try:
-            print os.path.abspath(self.check.params)
             ret, out = self.check.Execute()
         except Exception, e:
             check_passed = False
-
-        print check_passed
 
         if check_passed:
 
@@ -731,10 +728,13 @@ def Main():
     #if not len(commands):
     #    raise RuntimeError("No executable steps in the config file")
     
+    LOG.debug("Options: %s"% options)
+
     if len(commands) > 1:
         raise RuntimeError("More than one executable block not supported")
-
-    LOG.debug("Options: %s"% options)
+    elif not(commands):
+        return
+        
     #if options.list:
     #    ListCommands(commands)
 
