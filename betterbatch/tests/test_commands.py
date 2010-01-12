@@ -15,12 +15,12 @@ TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 class CommandTests(unittest.TestCase):
     "Unit tests for the commands"
 
-    def test_ListCommands(self):
-        """"""
-        vars, commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "commands.yaml"))
+    #def test_ListCommands(self):
+    #    """"""
+    #    vars, commands = ParseScriptFile(
+    #        os.path.join(TEST_FILES_PATH, "commands.yaml"))
 
-        ListCommands(commands)
+    #    ListCommands(commands)
 
     #def test_GetCommands(self):
     #    """"""
