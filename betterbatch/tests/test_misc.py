@@ -17,7 +17,8 @@ class MainTests(unittest.TestCase):
 
     def test_Main_none(self):
         """"""
-        Main()
+        sys.argv = ['main.py']
+        self.assertRaises(SystemExit, Main)
 
 #    def test_Main_list(self):
 #        """"""
@@ -44,6 +45,18 @@ class MainTests(unittest.TestCase):
 
         self.assertRaises(
             ErrorCollection,
+            Main)
+
+    def test_Main_execute_fail_more_than_one(self):
+        """"""
+        sys.argv = [
+            'main.py', 
+            os.path.join(
+                TEST_FILES_PATH, "commands_broken_more_than_one.yaml")
+            ]
+
+        self.assertRaises(
+            RuntimeError,
             Main)
 
     def test_Main_LogFile(self):

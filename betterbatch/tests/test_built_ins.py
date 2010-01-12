@@ -74,5 +74,13 @@ class BuiltInCommandsTests(unittest.TestCase):
     def test_SystemCommand_no_ui(self):
         SystemCommand("echo here", [])
 
+    def test_dirname(self):
+        self.assertEquals(dirname(r"c:\tes\temp\here.txt"), (0, r"c:\tes\temp"))
+
+    def test_basename(self):
+        self.assertEquals(basename(r"c:\tes\temp\here.txt"), (0, r"here.txt"))
+
+
+
 if __name__ == "__main__":
     unittest.main()

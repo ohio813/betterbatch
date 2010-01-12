@@ -1,15 +1,14 @@
 import unittest
 import os
 
-import sys
-sys.path.append(".")
-sys.path.append("..")
-
-from cmd_line import *
 
 TEST_PATH = os.path.dirname(__file__)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
+import sys
+sys.path.append(os.path.dirname(TEST_PATH))
+
+from cmd_line import *
 
 class CommandLineTests(unittest.TestCase):
     "Unit tests for the loadconfig function"
@@ -17,7 +16,9 @@ class CommandLineTests(unittest.TestCase):
     def test_SettingUpParser(self):
         """"""
         sys.argv = ["prog.py"]
-        options, args = ParseArguments()
+        self.assertRaises(
+            SystemExit,
+            ParseArguments)
 
     def test_ParsingVariableOverrides_good(self):
         """"""
@@ -34,13 +35,12 @@ class CommandLineTests(unittest.TestCase):
 
     def test_ValidateOptions_missing_yaml(self):
         """"""
-        sys.argv = ["prog.py"]
+        sys.argv = ["prog.py", "blah_blah_not_existing.yaml"]
         options, args = ParseArguments()
         self.assertRaises(
             RuntimeError,
-            ValidateOptions,
-            options,
-            args)
+            ValidateOptions, 
+                options, args)
 
     def test_ValidateOptions_too_many_yaml(self):
         """"""
