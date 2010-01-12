@@ -14,7 +14,7 @@ import cmd_line
 def CreateLogger():
     "Create and set up the logger - returns the new logger"
 
-    # allow the handler to  print everything - we will set the actual level
+    # allow the handler to output everything - we will set the actual level
     # through the logger
     stdout_handler = logging.StreamHandler()
     stdout_handler.setLevel(logging.INFO)
@@ -409,67 +409,6 @@ def ReplaceVariableReferences(item, variables):
     return item
 
 
-def ListCommands(commands):
-    "Print out the available commands"
-    LOG.info("Availale commands are:   ")
-    for cmd in sorted(commands.keys()):
-        LOG.info("  " + cmd)
-#
-#
-#def GetStepsForSelectedCommands(commands_info):
-#    "Execute the commands passed in"
-#
-#    return commands_info.values()
-#
-#    available_commands = commands_info.keys()
-#
-#    # commands are in a comma separated list, so we split them,
-#    # make them case insesitive, and strip off any spaces
-#    requested_commands = [
-#        cmd.strip().lower() for cmd in requested_commands.split(",")]
-#
-#    command_steps = []
-#    errors = []
-#    for cmd_requested in requested_commands:
-#        matched_cmd_names = []
-#        cmd_requested = cmd_requested.lower()
-#
-#        for command in available_commands:
-#            # if it matches exactly then that is the command they want
-#            if cmd_requested.lower() == command:
-#                matched_cmd_names = [command]
-#                break
-#
-#            # if it doesn't match exactly - we need to find all matching
-#            # commands
-#            elif command.lower().startswith(cmd_requested):
-#                matched_cmd_names.append(command)
-#
-#        # the command requested matches more than one command
-#        if len(matched_cmd_names) > 1:
-#            errors.append(
-#                "Requested command '%s'is ambiguous it matches: %s"% (
-#                cmd_requested,
-#                ", ".join([str(cmd) for cmd in matched_cmd_names])))
-#            continue
-#
-#        # it doesn't match any more command
-#        if not matched_cmd_names:
-#            errors.append(
-#                "Requested command '%s' not in available commands: %s"% (
-#                    cmd_requested,
-#                    ", ".join([str(cmd) for cmd in available_commands])))
-#            continue
-#
-#        cmd_name = matched_cmd_names[0]
-#        command_steps.extend(commands_info[cmd_name])
-#
-#    if errors:
-#        raise ErrorCollection(errors)
-#
-#    return command_steps
-
-
 def ParseStepData(step_data):
     "Given a single step - parse the data into individual bits"
     # default is RUN action - if no action given RUN will be assumed
@@ -571,6 +510,8 @@ class Step(object):
 
         return ret, output
 
+    def __repr__(self):
+        return "<Step: %s %s>"% (self.action_type, " ".join(self.qualifiers))
 
 class IfStep(Step):
     def __init__(self, action_type, qualifiers, step_info):
@@ -726,7 +667,8 @@ def Main():
     variables.update(script_variables)
 
     # set the default path to where the script file is
-    os.chdir(os.path.dirname(options.script_file))
+    script_dir = os.path.dirname(os.path.abspath(options.script_file))
+    os.chdir(script_dir)
 
     SetupLogFile(variables)
 
