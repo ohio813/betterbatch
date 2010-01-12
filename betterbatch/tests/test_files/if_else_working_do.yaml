@@ -1,0 +1,10 @@
+variables:
+ my_file: <__config_path__>\basic.yaml
+ 
+working_do:
+- If:
+    - Exists: <my_file>
+    - Do  :
+        - echo working_do
+    - Else:
+        - echo BROKEN

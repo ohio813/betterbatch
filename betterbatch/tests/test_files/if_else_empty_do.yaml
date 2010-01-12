@@ -1,0 +1,10 @@
+variables:
+ my_file: <__config_path__>\basic.yaml
+
+empty_do:
+- If:
+    - Exists: <my_file>
+    - Do  :
+        - 
+    - Else:
+        - echo BROKEN echo not exists <my_file>_

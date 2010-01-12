@@ -1,0 +1,6 @@
+variables:
+ my_file: <__config_path__>\if_else_checks.yaml
+
+broken_not_list_2:
+- If: <my_file>_
+

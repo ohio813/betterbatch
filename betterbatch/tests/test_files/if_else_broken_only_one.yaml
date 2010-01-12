@@ -1,0 +1,6 @@
+variables:
+ my_file: <__config_path__>\if_else_checks.yaml
+
+broken_only_one:
+- If:
+    - Exists: <my_file>_
