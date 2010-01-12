@@ -1,5 +1,6 @@
 import unittest
 import os
+import glob
 
 import sys
 sys.path.append(".")
@@ -21,36 +22,36 @@ class CommandTests(unittest.TestCase):
 
         ListCommands(commands)
 
-    def test_GetCommands(self):
-        """"""
-        vars, commands = ParseConfigFile(
-            os.path.join(TEST_FILES_PATH, "commands.yaml"))
+    #def test_GetCommands(self):
+    #    """"""
+    #    vars, commands = ParseConfigFile(
+    #        os.path.join(TEST_FILES_PATH, "commands.yaml"))
 
-        steps = GetStepsForSelectedCommands(commands, "test")
-        self.assertEquals(len(steps), 1)
+    #    steps = GetStepsForSelectedCommands(commands)#, "test")
+    #    self.assertEquals(len(steps), 1)
 
-        steps = GetStepsForSelectedCommands(commands, "test,test2")
-        self.assertEquals(len(steps), 2)
+    #    steps = GetStepsForSelectedCommands(commands)#, "test,test2")
+    #    self.assertEquals(len(steps), 2)
 
-    def test_GetCommands_missing(self):
-        """"""
-        vars, commands = ParseConfigFile(
-            os.path.join(TEST_FILES_PATH, "commands.yaml"))
+    #def test_GetCommands_missing(self):
+    #    """"""
+    #    vars, commands = ParseConfigFile(
+    #        os.path.join(TEST_FILES_PATH, "commands.yaml"))
 
-        self.assertRaises(
-            ErrorCollection,
-            GetStepsForSelectedCommands,
-                commands, "test123")
+    #    self.assertRaises(
+    #        ErrorCollection,
+    #        GetStepsForSelectedCommands,
+    #            commands, "test123")
 
-    def test_GetCommands_ambiguous(self):
-        """"""
-        vars, commands = ParseConfigFile(
-            os.path.join(TEST_FILES_PATH, "commands.yaml"))
+    #def test_GetCommands_ambiguous(self):
+    #    """"""
+    #    vars, commands = ParseConfigFile(
+    #        os.path.join(TEST_FILES_PATH, "commands.yaml"))
 
-        self.assertRaises(
-            ErrorCollection,
-            GetStepsForSelectedCommands,
-                commands, "tes")
+    #    self.assertRaises(
+    #        ErrorCollection,
+    #        GetStepsForSelectedCommands,
+    #            commands, "tes")
 
     def test_parsestepdata_basic(self):
 
@@ -106,15 +107,21 @@ class CommandTests(unittest.TestCase):
 
 
 class IfElseTests(unittest.TestCase):
-    def setUp(self):
-        self.vars, self.commands = ParseConfigFile(
-            os.path.join(TEST_FILES_PATH, "if_else_checks.yaml"))
-
     def test_working_do(self):
-        for command in self.commands.keys():
-            if command.startswith('broken'):
+        for filename in glob.glob(os.path.join(TEST_FILES_PATH, "if_else_*")):
+            
+            command = os.path.basename(filename)
+            command = command[:-len(".yaml")]
+            command = command[len("if_else_"):]
+            
+            # skip tests which are meant to fail
+            if 'if_else_broken' in filename:
                 continue
-            steps = GetStepsForSelectedCommands(self.commands, command)
+            
+            self.vars, commands = ParseConfigFile(
+                os.path.join(TEST_FILES_PATH, filename))
+            steps = commands.values()[0]
+
             try:
                 executable_steps = BuildExecutableSteps(steps, self.vars)
             except ErrorCollection, e:
@@ -123,13 +130,15 @@ class IfElseTests(unittest.TestCase):
 
             for step in executable_steps:
                 ret, out = step.Execute()
-                if command.startswith("empty"):
+                if "if_else_empty" in filename:
                     self.assertEquals(out.strip(), "")
                 else:
                     self.assertEquals(out.strip(), command)
 
     def test_broken_not_list(self):
-        steps = GetStepsForSelectedCommands(self.commands, "broken_not_list")
+        self.vars, commands = ParseConfigFile(
+            os.path.join(TEST_FILES_PATH, "if_else_broken_not_list.yaml"))
+        steps = commands.values()[0]
 
         self.assertRaises(
             ErrorCollection,
@@ -137,16 +146,21 @@ class IfElseTests(unittest.TestCase):
                 steps, self.vars)            
         
     def test_broken_not_list2(self):
-        steps = GetStepsForSelectedCommands(self.commands, "broken_not_list_2")
+        self.vars, commands = ParseConfigFile(
+            os.path.join(TEST_FILES_PATH,   "if_else_broken_not_list2.yaml"))
+        steps = commands.values()[0]
+
         self.assertRaises(
             ErrorCollection,
             BuildExecutableSteps,
                 steps, self.vars)
 
     def test_broken_too_few_clauses(self):
+        self.vars, commands = ParseConfigFile(
+            os.path.join(TEST_FILES_PATH, "if_else_broken_only_one.yaml"))
+        steps = commands.values()[0]
+
         print "TOO FEW"
-        steps = GetStepsForSelectedCommands(self.commands, "broken_only_one")
-        print steps
         try:
             BuildExecutableSteps(steps, self.vars)
         except ErrorCollection, e:
@@ -158,23 +172,31 @@ class IfElseTests(unittest.TestCase):
                 steps, self.vars)
 
     def test_broken_too_many_clauses(self):
+        self.vars, commands = ParseConfigFile(
+            os.path.join(TEST_FILES_PATH, "if_else_broken_too_many.yaml"))
+        steps = commands.values()[0]
+
         print "TOO MANY"
-        steps = GetStepsForSelectedCommands(self.commands, "broken_too_many")
-        print steps
         self.assertRaises(
             ErrorCollection,
             BuildExecutableSteps,
                 steps, self.vars)
 
     def test_broken_do_name(self):
-        steps = GetStepsForSelectedCommands(self.commands, "broken_do_name")
+        self.vars, commands = ParseConfigFile(
+            os.path.join(TEST_FILES_PATH, "if_else_broken_do_name.yaml"))
+        steps = commands.values()[0]
+
         self.assertRaises(
             ErrorCollection,
             BuildExecutableSteps,
                 steps, self.vars)
 
     def test_broken_else_name(self):
-        steps = GetStepsForSelectedCommands(self.commands, "broken_else_name")
+        self.vars, commands = ParseConfigFile(
+            os.path.join(TEST_FILES_PATH, "if_else_broken_else_name.yaml"))
+        steps = commands.values()[0]
+
         self.assertRaises(
             ErrorCollection,
             BuildExecutableSteps,

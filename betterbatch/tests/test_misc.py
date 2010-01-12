@@ -19,27 +19,28 @@ class MainTests(unittest.TestCase):
         """"""
         Main()
 
-    def test_Main_list(self):
-        """"""
-
-        sys.argv = ['main.py', "--list", COMMANDS_YAML]
-        Main()
+#    def test_Main_list(self):
+#        """"""
+#        sys.argv = ['main.py', "--list", COMMANDS_YAML]
+#        Main()
 
     def test_Main_execute(self):
         """"""
-        sys.argv = ['main.py', COMMANDS_YAML, "--execute", "test"]
+        sys.argv = ['main.py', COMMANDS_YAML]
         Main()
 
     def test_Main_execute_fail(self):
         """"""
-        sys.argv = ['main.py', COMMANDS_YAML, "--execute", "test_broken"]
+        sys.argv = [
+            'main.py', os.path.join(TEST_FILES_PATH, "commands_broken.yaml")]
         self.assertRaises(
             ErrorCollection,
             Main)
 
     def test_Main_execute_fail2(self):
         """"""
-        sys.argv = ['main.py', COMMANDS_YAML, "--execute", "test_broken2"]
+        sys.argv = [
+            'main.py', os.path.join(TEST_FILES_PATH, "commands_broken2.yaml")]
 
         self.assertRaises(
             ErrorCollection,

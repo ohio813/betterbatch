@@ -1,9 +1,11 @@
 "Read a config file and execute commands from it"
 
-import re
-import yaml
 import os
+import sys
+import re
 import logging
+import yaml
+
 import built_in_commands
 import cmd_line
 
@@ -412,58 +414,60 @@ def ListCommands(commands):
     LOG.info("Availale commands are:   ")
     for cmd in sorted(commands.keys()):
         LOG.info("  " + cmd)
-
-
-def GetStepsForSelectedCommands(commands_info, requested_commands):
-    "Execute the commands passed in"
-
-    available_commands = commands_info.keys()
-
-    # commands are in a comma separated list, so we split them,
-    # make them case insesitive, and strip off any spaces
-    requested_commands = [
-        cmd.strip().lower() for cmd in requested_commands.split(",")]
-
-    command_steps = []
-    errors = []
-    for cmd_requested in requested_commands:
-        matched_cmd_names = []
-        cmd_requested = cmd_requested.lower()
-
-        for command in available_commands:
-            # if it matches exactly then that is the command they want
-            if cmd_requested.lower() == command:
-                matched_cmd_names = [command]
-                break
-
-            # if it doesn't match exactly - we need to find all matching
-            # commands
-            elif command.lower().startswith(cmd_requested):
-                matched_cmd_names.append(command)
-
-        # the command requested matches more than one command
-        if len(matched_cmd_names) > 1:
-            errors.append(
-                "Requested command '%s'is ambiguous it matches: %s"% (
-                cmd_requested,
-                ", ".join([str(cmd) for cmd in matched_cmd_names])))
-            continue
-
-        # it doesn't match any more command
-        if not matched_cmd_names:
-            errors.append(
-                "Requested command '%s' not in available commands: %s"% (
-                    cmd_requested,
-                    ", ".join([str(cmd) for cmd in available_commands])))
-            continue
-
-        cmd_name = matched_cmd_names[0]
-        command_steps.extend(commands_info[cmd_name])
-
-    if errors:
-        raise ErrorCollection(errors)
-
-    return command_steps
+#
+#
+#def GetStepsForSelectedCommands(commands_info):
+#    "Execute the commands passed in"
+#
+#    return commands_info.values()
+#
+#    available_commands = commands_info.keys()
+#
+#    # commands are in a comma separated list, so we split them,
+#    # make them case insesitive, and strip off any spaces
+#    requested_commands = [
+#        cmd.strip().lower() for cmd in requested_commands.split(",")]
+#
+#    command_steps = []
+#    errors = []
+#    for cmd_requested in requested_commands:
+#        matched_cmd_names = []
+#        cmd_requested = cmd_requested.lower()
+#
+#        for command in available_commands:
+#            # if it matches exactly then that is the command they want
+#            if cmd_requested.lower() == command:
+#                matched_cmd_names = [command]
+#                break
+#
+#            # if it doesn't match exactly - we need to find all matching
+#            # commands
+#            elif command.lower().startswith(cmd_requested):
+#                matched_cmd_names.append(command)
+#
+#        # the command requested matches more than one command
+#        if len(matched_cmd_names) > 1:
+#            errors.append(
+#                "Requested command '%s'is ambiguous it matches: %s"% (
+#                cmd_requested,
+#                ", ".join([str(cmd) for cmd in matched_cmd_names])))
+#            continue
+#
+#        # it doesn't match any more command
+#        if not matched_cmd_names:
+#            errors.append(
+#                "Requested command '%s' not in available commands: %s"% (
+#                    cmd_requested,
+#                    ", ".join([str(cmd) for cmd in available_commands])))
+#            continue
+#
+#        cmd_name = matched_cmd_names[0]
+#        command_steps.extend(commands_info[cmd_name])
+#
+#    if errors:
+#        raise ErrorCollection(errors)
+#
+#    return command_steps
 
 
 def ParseStepData(step_data):
@@ -716,7 +720,7 @@ def Main():
     variables = PopulateVariablesFromEnvironment()
     # ensure that the keys are all treated case insensitively
     config_variables, commands = ParseConfigFile(options.config_file)
-
+    
     variables.update(config_variables)
 
     SetupLogFile(variables)
@@ -724,22 +728,27 @@ def Main():
     # get the variable overrides passed at the command line and
     # update the read variables from the overrides
     variables.update(options.variables)
+    #if not len(commands):
+    #    raise RuntimeError("No executable steps in the config file")
+    
+    if len(commands) > 1:
+        raise RuntimeError("More than one executable block not supported")
 
     LOG.debug("Options: %s"% options)
-    if options.list:
-        ListCommands(commands)
+    #if options.list:
+    #    ListCommands(commands)
 
-    elif options.execute:
+    #elif options.execute:
 
-        # Scan and construct all the steps first before trying to execute
-        # any of them. This way - we can report errors before doing any
-        # step execution
-        steps = GetStepsForSelectedCommands(commands, options.execute)
-        executable_steps = BuildExecutableSteps(steps, variables)
+    # Scan and construct all the steps first before trying to execute
+    # any of them. This way - we can report errors before doing any
+    # step execution
+    steps = commands.values()[0]
+    executable_steps = BuildExecutableSteps(steps, variables)
 
-        # now execute each of the steps
-        for cmd in executable_steps:
-            cmd.Execute()
+    # now execute each of the steps
+    for cmd in executable_steps:
+        cmd.Execute()
 
 
 if __name__ == '__main__':
@@ -751,7 +760,7 @@ if __name__ == '__main__':
         #cProfile.run('Main()', "profile_stats")
         #p = pstats.Stats('profile_stats')
         #p.sort_stats('cumulative').print_stats(10)
-
+        sys.exit(0)
     except ErrorCollection, err:
         err.LogErrors()
     except RuntimeError, err:
@@ -759,4 +768,7 @@ if __name__ == '__main__':
     except Exception, err:
         LOG.critical('Unknown Error: %s'% err)
         LOG.exception(err)
-    logging.shutdown()
+    finally:
+        logging.shutdown()
+    
+    sys.exit(1)
