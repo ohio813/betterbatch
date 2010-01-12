@@ -144,7 +144,7 @@ def dirname(path, dummy = None):
     return 0, os.path.dirname(path)
 
 def basename(path, dummy = None):
-    return 0, os.path.dirname(path)
+    return 0, os.path.basename(path)
 
 NAME_ACTION_MAPPING = {
     'run': SystemCommand,
