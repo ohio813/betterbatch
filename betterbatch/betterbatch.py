@@ -477,7 +477,12 @@ def ParseStepData(step_data):
         return 'run', [], ''
 
     if isinstance(step_data, basestring):
-        step_data = {'run': step_data}
+        cmd = 'run'
+        step_data_parts = step_data.lower().strip().split(" ")
+        if step_data_parts[0] in built_in_commands.DOS_REPLACE:
+            cmd = step_data_parts[0]
+            step_data = " ".join(step_data_parts[1:])
+        step_data = {cmd: step_data}
 
     # ensure it is a dictionary with a single value
     if isinstance(step_data, dict):
