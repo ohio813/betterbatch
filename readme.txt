@@ -46,8 +46,13 @@ Now run it by running the following at the DOS prompt ::
 Instalation
 ====================================
 
-BetterBatch does not have to be installed, just download, unzip and run 
-bbrun.py.
+BetterBatch does not have to be installed as a Python Package, just download, 
+unzip and run bbrun.py.
+
+Note - it does have a requirement on PyYAML (http://pyyaml.org/)
+If you have Setuptools you can use the followin command::
+
+    easy_install -U pyyaml
 
 It can also be installed as a Python module (if you want to import and use
 betterbatch functionality in python scripts). Use easy_install.py or your 
@@ -143,11 +148,19 @@ config files.
 
 
 ------------------------------------------------------
-__config_path__  Pseudo Variable
+Special Variables
 ------------------------------------------------------
-This is replace very early in the cycle of parsing the files
-if it is in an included BetterBatch file - then it will be the directory of 
-that particular. 
+__config_path__ 
+    This is replace very early in the cycle of parsing the files
+    if it is in an included BetterBatch file - then it will be the directory of 
+    that particular. 
+
+logfile
+    The path where messages and captured output will be written. 
+    **Note** if you there are multiple logfile variables (i.e. in included files)
+    then it is the last one defined (i.e. the one that includes the other files
+    or the last included file if no logfile defined in the current file)
+    
 
 
 
