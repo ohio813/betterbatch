@@ -68,6 +68,13 @@ check variables then you have to add code for every variable you want to check.
 In BetterBatch all used variable definitions are checked before anything is run.
 
 
+Output is logged
+------------------------------------------------------
+Once you specify the logfile variable then all output is logged there, so it
+will be easier to track down where something went wrong (but as most errors
+will stop the script anyway - it is unlikely that you will have too many
+unforseen errors
+
 
 Easier to read
 ------------------------------------------------------
@@ -115,6 +122,9 @@ By using a YAML string block::
         echo this is a very
         long string that will treated after parsing a single line
         by BetterBatch - this is a feature of YAML.
+
+
+
 
 ------------------------------------------------------
 Python/Perl/LUA or other scripting languages
