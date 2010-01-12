@@ -2,6 +2,15 @@ import optparse
 import sys
 import os
 
+USAGE = r"""
+Executes a BetterBatch script file.
+
+(betterbatch.py or bbrun.py) [-v] [-h] (config file) [var=value] [var=value]...
+
+Examples:
+    bbrun.py --verbose my_script.bb test_dir=%temp%\there build=H099
+"""
+
 def ParseArguments():
     "Build up the command line parser and parse the arguments"
 
@@ -42,7 +51,12 @@ def ParseArguments():
         help='Show debug messages also')
 
     # parse the command line
-    return parser.parse_args()
+    options, args =  parser.parse_args()
+    if not args:
+        print USAGE
+        sys.exit()
+    return options, args
+    
 
 
 def ParseVariableOverrides(variable_overrides):
@@ -65,8 +79,6 @@ def ParseVariableOverrides(variable_overrides):
 def ValidateOptions(options, args):
     # validate that at least one config file was passed and that it exists
     
-    if not args:
-        raise RuntimeError("You must specify a config file")
 
     #elif len(args) > 1:
     #    raise RuntimeError(
