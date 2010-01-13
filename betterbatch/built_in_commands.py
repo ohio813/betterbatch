@@ -153,7 +153,7 @@ def ChangeCurrentDirectory(path, dummy = None):
         os.chdir(path)
         return 0, ""
     except OSError, e:
-        return 1 , str(e)
+        raise RuntimeError(str(e))
 
 
 
@@ -167,7 +167,7 @@ def PushDirectory(path, dummy = None):
         raise RuntimeError(str(e))
 
 
-def PopDirectory(path, dummy = None):
+def PopDirectory(path = '', dummy = None):
     try:
         last_dir = PUSH_DIRECTORY_LIST.pop()
         os.chdir(last_dir)
@@ -182,15 +182,20 @@ class ExternalCommand(object):
     def __init__(self, full_path):
         self.full_path = full_path
     
-    def __call__(self, params, qualifiers):
+    def __call__(self, params, qualifiers = None):
+        if qualifiers is None:
+            qualifiers = []
+            
         if isinstance(params, list):
-            qualifiers.append(params)
+            params.append(qualifiers)
             params.insert(0, self.full_path)
         elif isinstance(params, basestring):
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             params = " ".join([self.full_path, params] + qualifiers)
+        else:
+            raise RuntimeError(
+                "ExternalCommand.__call__ only accepts strings or lists")
             
-        print "xxxxxxxxxxxxxxxxxxxxx", params
         return SystemCommand(params)
 
 
@@ -218,8 +223,7 @@ NAME_ACTION_MAPPING = {
     'popd'   : PopDirectory,
 }
 
-def PopulateFromToolsFolder():
-    tools_folder = os.path.join(os.path.dirname(__file__), "tools")
+def PopulateFromToolsFolder(tools_folder):
     
     for file in os.listdir(tools_folder):
         name, ext = os.path.splitext(file)
@@ -247,4 +251,4 @@ DOS_REPLACE = [
     'popd',
 ]
 
-PopulateFromToolsFolder()
+PopulateFromToolsFolder(os.path.join(os.path.dirname(__file__), "tools"))

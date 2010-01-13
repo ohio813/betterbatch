@@ -1,11 +1,13 @@
 import unittest
 import os
-
 import sys
-sys.path.append(".")
-sys.path.append("..")
+
+# ensure that the package root is on the path
+package_root = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(package_root)
 
 from built_in_commands import *
+import built_in_commands
 
 TEST_PATH = os.path.dirname(__file__)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
@@ -80,6 +82,127 @@ class BuiltInCommandsTests(unittest.TestCase):
     def test_basename(self):
         self.assertEquals(basename(r"c:\tes\temp\here.txt"), (0, r"here.txt"))
 
+    def test_ChangeCurrentDirectory_pass(self):
+        cur_dir = os.path.abspath(os.getcwd())
+        
+        ret, out = ChangeCurrentDirectory("\\")
+        
+        self.assertEquals((ret, out), (0, ""))
+        self.assertEquals(os.getcwd(), os.path.abspath("\\"))
+        
+        # change it back
+        ChangeCurrentDirectory(cur_dir)
+
+    def test_ChangeCurrentDirectory_fail(self):
+        cur_dir = os.path.abspath(os.getcwd())
+        
+        self.assertRaises(
+            RuntimeError,
+            ChangeCurrentDirectory,
+                "\\non_existing_directory_somewhere")
+        
+        self.assertEquals(os.getcwd(), cur_dir)
+
+    def test_PushDirectory_pass(self):
+        cur_dir = os.path.abspath(os.getcwd())
+        
+        ret, out = PushDirectory("\\")
+        
+        self.assertEquals((ret, out), (0, ""))
+        self.assertEquals(os.getcwd(), os.path.abspath("\\"))
+        
+        # change it back
+        PopDirectory()
+        
+    def test_PushDirectory_fail(self):
+        cur_dir = os.path.abspath(os.getcwd())
+        
+        self.assertRaises(
+            RuntimeError,
+            PushDirectory,
+                "\\non_existing_directory_somewhere")
+        
+        self.assertEquals(os.getcwd(), cur_dir)
+
+    def test_PopDirectory_pass(self):
+        cur_dir = os.path.abspath(os.getcwd())
+        PushDirectory("\\")
+        self.assertEquals(os.getcwd(), os.path.abspath("\\"))
+        ret, out = PopDirectory()
+        self.assertEquals(ret, 0)
+        self.assertEquals(os.getcwd(), cur_dir)
+
+    def test_PopDirectory_fail(self):
+        self.assertRaises(
+            RuntimeError,
+            PopDirectory)
+        
+        PushDirectory("\\")
+        PushDirectory("\\")
+        PopDirectory()
+        PopDirectory()
+
+        self.assertRaises(
+            RuntimeError,
+            PopDirectory)
+        
+    def test_PopDirectory_fail2(self):
+        
+        # simulate that a directory stored (in a PushDirectory call) has
+        # been removed since
+        
+        built_in_commands.PUSH_DIRECTORY_LIST.append("not_here_at_all")
+        
+        self.assertRaises(
+            RuntimeError,
+            PopDirectory)
+
+
+    def test_ExternalCommand_pass(self):
+        tool_path = os.path.join(package_root, "tools", "compare.py")
+        ec = ExternalCommand(tool_path)
+        
+        expected_ret = (0, '')
+        self.assertEquals(ec("a = A nocase"), expected_ret)
+        self.assertEquals(ec("a = A", ["nocase"]), expected_ret)
+        self.assertEquals(ec(["a", "=", "A", "nocase"]), expected_ret)
+        self.assertEquals(ec(["a", "=", "A"], ["nocase"]), expected_ret)
+            
+    def test_ExternalCommand_fail(self):
+        tool_path = os.path.join(package_root, "tools", "compare_not_here.py")
+        ec = ExternalCommand(tool_path)
+        
+        self.assertRaises(
+            RuntimeError,
+            ec,
+                "a = A nocase")
+
+    def test_ExternalCommand_fail2(self):
+        tool_path = os.path.join(package_root, "tools", "compare.py")
+        ec = ExternalCommand(tool_path)
+        
+        self.assertRaises(
+            RuntimeError,
+            ec,
+                None)
+
+
+
+
+    def test_PopulateFromToolsFolder_pass(self):
+        tools_dir = os.path.join(package_root, "tools")
+        PopulateFromToolsFolder(package_root)
+
+    def test_PopulateFromToolsFolder_fail(self):
+        tools_dir = os.path.join(package_root, "tools")
+
+        built_in_commands.NAME_ACTION_MAPPING['compare'] = lambda x=1, y=1: (0,"")
+        self.assertRaises(
+            RuntimeError,
+            PopulateFromToolsFolder,
+                tools_dir)
+        
+        del(built_in_commands.NAME_ACTION_MAPPING['compare'])
 
 
 if __name__ == "__main__":
