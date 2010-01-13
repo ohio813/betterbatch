@@ -4,7 +4,8 @@ import coverage
 import unittest
 
 # ensure that the package root is on the path
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+package_root = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(package_root)
 
 # needs to be called before importing the modules
 cov = coverage.coverage(branch = True)
@@ -47,7 +48,9 @@ def run_tests():
     cov.stop()
     #print cov.analysis()
     print cov.report(modules_to_test)
-    cov.html_report(modules_to_test, directory = "Coverage_report")
+    cov.html_report(
+        modules_to_test, 
+        directory = os.path.join(package_root, "..", "Coverage_report"))
 
 if __name__ == '__main__':
     run_tests()
