@@ -217,7 +217,6 @@ def ParseScriptFile(script_file, variables = None):
     first so that data will be overridden by the including script file.
     """
 
-
     all_errors = []
     script_data = {}
     if variables is None:
@@ -425,7 +424,7 @@ def ParseStepData(step_data):
         raise RuntimeError(
             'Step must be in format "- ACTION: COMMAND_INFO" \'%s\''%
                 step_data)
-        
+
     #ensure only a single value
     if len(step_data) != 1:
         raise RuntimeError(
@@ -436,15 +435,15 @@ def ParseStepData(step_data):
     action_type, step_info = step_data.items()[0]
 
     action_type = action_type.lower()
-    
+
     if action_type == "run":
         if isinstance(step_info, basestring):
             step_info_parts = step_info.split(" ")
         else:
             step_info_parts = step_info
-        
+
         step_info_first = step_info_parts[0].lower().strip()
-        
+
         if step_info_first in built_in_commands.DOS_REPLACE:
             action_type = step_info_first
             step_info_new = step_info_parts[1:]
