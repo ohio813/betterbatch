@@ -118,12 +118,13 @@ class IfElseTests(unittest.TestCase):
             if 'if_else_broken' in filename:
                 continue
             
-            self.vars, commands = ParseScriptFile(
-                os.path.join(TEST_FILES_PATH, filename))
+            vars = {}
+            commands = ParseScriptFile(
+                os.path.join(TEST_FILES_PATH, filename), vars)
             steps = commands.values()[0]
 
             try:
-                executable_steps = BuildExecutableSteps(steps, self.vars)
+                executable_steps = BuildExecutableSteps(steps, vars)
             except ErrorCollection, e:
                 print "ERROR WHEN RUNNING", command
                 e.LogErrors()
@@ -137,71 +138,82 @@ class IfElseTests(unittest.TestCase):
                     self.assertEquals(out.strip(), command)
 
     def test_broken_not_list(self):
-        self.vars, commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "if_else_broken_not_list.yaml"))
+        vars = {}
+        commands = ParseScriptFile(
+            os.path.join(TEST_FILES_PATH, "if_else_broken_not_list.yaml"), 
+            vars)
         steps = commands.values()[0]
 
         self.assertRaises(
             ErrorCollection,
             BuildExecutableSteps,
-                steps, self.vars)            
+                steps, vars)            
         
     def test_broken_not_list2(self):
-        self.vars, commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH,   "if_else_broken_not_list2.yaml"))
+        vars = {}
+        commands = ParseScriptFile(
+            os.path.join(TEST_FILES_PATH,   "if_else_broken_not_list2.yaml"), 
+            vars)
         steps = commands.values()[0]
 
         self.assertRaises(
             ErrorCollection,
             BuildExecutableSteps,
-                steps, self.vars)
+                steps, vars)
 
     def test_broken_too_few_clauses(self):
-        self.vars, commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "if_else_broken_only_one.yaml"))
+        vars = {}
+        commands = ParseScriptFile(
+            os.path.join(TEST_FILES_PATH, "if_else_broken_only_one.yaml"),
+            vars)
         steps = commands.values()[0]
 
         print "TOO FEW"
         try:
-            BuildExecutableSteps(steps, self.vars)
+            BuildExecutableSteps(steps, vars)
         except ErrorCollection, e:
             print "\n\n"
             e.LogErrors()
         self.assertRaises(
             ErrorCollection,
             BuildExecutableSteps,
-                steps, self.vars)
+                steps, vars)
 
     def test_broken_too_many_clauses(self):
-        self.vars, commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "if_else_broken_too_many.yaml"))
+        vars = {}
+        commands = ParseScriptFile(
+            os.path.join(TEST_FILES_PATH, "if_else_broken_too_many.yaml"),
+            vars)
         steps = commands.values()[0]
 
         print "TOO MANY"
         self.assertRaises(
             ErrorCollection,
             BuildExecutableSteps,
-                steps, self.vars)
+                steps, vars)
 
     def test_broken_do_name(self):
-        self.vars, commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "if_else_broken_do_name.yaml"))
+        vars = {}
+        commands = ParseScriptFile(
+            os.path.join(TEST_FILES_PATH, "if_else_broken_do_name.yaml"), vars)
         steps = commands.values()[0]
 
         self.assertRaises(
             ErrorCollection,
             BuildExecutableSteps,
-                steps, self.vars)
+                steps, vars)
 
     def test_broken_else_name(self):
-        self.vars, commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "if_else_broken_else_name.yaml"))
+        vars = {}
+        commands = ParseScriptFile(
+            os.path.join(TEST_FILES_PATH, "if_else_broken_else_name.yaml"),
+            vars)
         steps = commands.values()[0]
 
         self.assertRaises(
             ErrorCollection,
             BuildExecutableSteps,
-                steps, self.vars)
+                steps, vars)
 
 
 if __name__ == "__main__":

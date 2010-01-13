@@ -34,7 +34,7 @@ class LoadConfigTests(unittest.TestCase):
         """"""
         vars_and_commands = ParseScriptFile(
             os.path.join(TEST_FILES_PATH, "empty.yaml"))
-        self.assertEquals(vars_and_commands, ({}, {}))
+        self.assertEquals(vars_and_commands, {})
 
     def test_can_load_relative_include(self):
         """Should be able to load an include relative to the current config
@@ -43,8 +43,9 @@ class LoadConfigTests(unittest.TestCase):
         directory - so if running from another directory - config files were
         not found.
         """
-        vars, commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "test_rel_include.yaml"))
+        vars = {}
+        commands = ParseScriptFile(
+            os.path.join(TEST_FILES_PATH, "test_rel_include.yaml"), vars)
         self.assertEquals(vars['test'], "Hello World")
 
     def test_missing_file(self):
@@ -66,8 +67,9 @@ class LoadConfigTests(unittest.TestCase):
     def test_variables_as_list(self):
         """"""
 
-        vars, commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "variables_as_list.yaml"))
+        vars = {}
+        commands = ParseScriptFile(
+            os.path.join(TEST_FILES_PATH, "variables_as_list.yaml"), vars)
         self.assertEquals(vars['test'], "Hello World")
 
     def test_numeric_variable(self):

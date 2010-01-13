@@ -17,9 +17,9 @@ class VariableTests(unittest.TestCase):
 
     def test_empty(self):
         """"""
-        vars_and_commands = ParseScriptFile(
+        commands = ParseScriptFile(
             os.path.join(TEST_FILES_PATH, "empty_variables.yaml"))
-        self.assertEquals(vars_and_commands, ({}, {}))
+        self.assertEquals(commands, {})
 
     def test_broken(self):
         """"""
@@ -30,8 +30,9 @@ class VariableTests(unittest.TestCase):
 
     def test_simple(self):
         """"""
-        vars, commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "standard_variables.yaml"))
+        vars = {}
+        commands = ParseScriptFile(
+            os.path.join(TEST_FILES_PATH, "standard_variables.yaml"), vars)
 
         self.assertEquals(
             ReplaceVariableReferences(vars['simple'], vars), 'here')
@@ -48,8 +49,9 @@ class VariableTests(unittest.TestCase):
 
     def test_replacement(self):
         """"""
-        vars, commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "standard_variables.yaml"))
+        vars = {}
+        commands = ParseScriptFile(
+            os.path.join(TEST_FILES_PATH, "standard_variables.yaml"), vars)
 
         self.assertEquals(
             ReplaceVariableReferences(vars['replace'], vars),
@@ -57,8 +59,9 @@ class VariableTests(unittest.TestCase):
 
     def test_system(self):
         """"""
-        vars, commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "standard_variables.yaml"))
+        vars = {}
+        commands = ParseScriptFile(
+            os.path.join(TEST_FILES_PATH, "standard_variables.yaml"), vars)
 
         self.assertEquals(
             ReplaceVariableReferences(vars['system'], vars),
@@ -66,8 +69,9 @@ class VariableTests(unittest.TestCase):
 
     def test_replace_and_system(self):
         """"""
-        vars, commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "standard_variables.yaml"))
+        vars = {}
+        commands = ParseScriptFile(
+            os.path.join(TEST_FILES_PATH, "standard_variables.yaml"), vars)
 
 
         self.assertEquals(
@@ -151,8 +155,9 @@ class VariableTests(unittest.TestCase):
 
     def test_ReplaceVariableReferences_recursive(self):
         """"""
-        vars, commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "recursive_variables.yaml"))
+        vars = {}
+        commands = ParseScriptFile(
+            os.path.join(TEST_FILES_PATH, "recursive_variables.yaml"), vars)
 
         self.assertRaises(
             ErrorCollection,

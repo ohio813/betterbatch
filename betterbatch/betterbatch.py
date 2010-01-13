@@ -128,13 +128,12 @@ def ParseYAMLFile(yaml_file):
         raise RuntimeError("%s - %s"% (yaml_file, e))
 
 
-def LoadIncludes(includes, base_path):
+def LoadIncludes(includes, base_path, variables):
     "Load each of the include files"
 
     if not includes:
-        return {}, {}
+        return {}
 
-    all_included_vars = {}
     all_included_cmds = {}
     errors = []
     # load each of the included script files
@@ -144,10 +143,9 @@ def LoadIncludes(includes, base_path):
         LOG.debug("Parsing include: '%s'"% inc)
         inc = os.path.join(base_path, inc)
         try:
-            inc_vars, inc_cmds = ParseScriptFile(inc)
+            inc_cmds = ParseScriptFile(inc, variables)
 
-            # Update the total included variables
-            all_included_vars.update(inc_vars)
+            # Update the included steps
             all_included_cmds.update(inc_cmds)
         except ErrorCollection, e:
             errors.extend(e.errors)
@@ -155,7 +153,7 @@ def LoadIncludes(includes, base_path):
     if errors:
         raise ErrorCollection(errors)
 
-    return all_included_vars, all_included_cmds
+    return all_included_cmds
 
 
 def ParseVariableBlock(var_block, script_file):
@@ -212,15 +210,19 @@ def ParseVariableBlock(var_block, script_file):
     return variables
 
 
-def ParseScriptFile(script_file):
+def ParseScriptFile(script_file, variables = None):
     """Load the script file and return the variables and commands
 
     Recursively parse any included script files. Included files are parsed
     first so that data will be overridden by the including script file.
     """
 
+
     all_errors = []
     script_data = {}
+    if variables is None:
+        variables = {}
+
     try:
         script_data = ParseYAMLFile(script_file)
     except RuntimeError, e:
@@ -228,7 +230,7 @@ def ParseScriptFile(script_file):
 
     # file is empty - just return empty data
     if not script_data:
-        return {}, {}
+        return {}
 
     # update the script data to have lower case keys
     # only for the root level (e.g. includes/variables/commands)
@@ -236,13 +238,13 @@ def ParseScriptFile(script_file):
 
     # Parse the includes files first (so the including script file
     # can override items as necessary)
-    variables = {}
     commands = {}
     includes = script_data.setdefault('includes', {})
+    includes = ReplaceVarRefsInStructure(includes, variables)
     # load and parse all the data from the included files
     try:
-        variables, commands = LoadIncludes(
-            includes, os.path.dirname(script_file))
+        commands = LoadIncludes(
+            includes, os.path.dirname(script_file), variables)
     except ErrorCollection, e:
         # don't raise errors yet - just collect the errors. If there are
         # errors - then we will raise all the errors before returning
@@ -267,7 +269,7 @@ def ParseScriptFile(script_file):
     if all_errors:
         raise ErrorCollection(all_errors)
 
-    return variables, commands
+    return commands
 
 
 def CalculateExternalVariable(variable_value):
@@ -513,10 +515,14 @@ class Step(object):
     def __repr__(self):
         return "<Step: %s %s>"% (self.action_type, " ".join(self.qualifiers))
 
+
 class IfStep(Step):
+    "Represent an if: block"
+
     def __init__(self, action_type, qualifiers, step_info):
         # ensure that step_info is a list and that there are at least 2
         # items in the list
+        Step.__init__(self, action_type, qualifiers, step_info)
 
         if not isinstance(step_info, list):
             raise RuntimeError("IF step details must be a list")
@@ -555,6 +561,10 @@ class IfStep(Step):
         self.if_false_steps = BuildExecutableSteps(else_block, {})
 
     def Execute(self):
+        """Run the 'if' step
+
+        Check the condition, then execute the appropriate steps
+        """
         full_output = []
 
         # check if the test works or fails
@@ -581,17 +591,17 @@ def SetupLogFile(variables):
     "Create the log file if it has been requested"
 
     if 'logfile' in variables:
-        
+
         log_filename = ReplaceVariableReferences(
             variables['logfile'], variables)
-        
+
         if os.path.exists(log_filename):
             for h in LOG.handlers:
                 if (
-                    hasattr(h, 'baseFilename') and 
-                    h.baseFilename.lower() == 
+                    hasattr(h, 'baseFilename') and
+                    h.baseFilename.lower() ==
                         os.path.abspath(log_filename).lower()):
-                    
+
                     h.flush()
                     return
             # file is not an open handler - try removing it
@@ -599,7 +609,7 @@ def SetupLogFile(variables):
             os.unlink(log_filename)
             #except OSError:
             #    LOG.warning("Could not remove previous log file")
-            
+
         h = logging.FileHandler(log_filename)
         # make the output format very simple
         basic_formatter = logging.Formatter("%(levelname)s - %(message)s")
@@ -618,6 +628,7 @@ def PopulateVariablesFromEnvironment():
 
 
 def BuildExecutableSteps(steps, variables):
+    "Parse the step data into a list of steps ready to execute"
     executable_steps = []
     errors = []
 
@@ -662,9 +673,8 @@ def Main():
 
     variables = PopulateVariablesFromEnvironment()
     # ensure that the keys are all treated case insensitively
-    script_variables, commands = ParseScriptFile(options.script_file)
-    
-    variables.update(script_variables)
+    commands = ParseScriptFile(
+        options.script_file, variables)
 
     # set the default path to where the script file is
     script_dir = os.path.dirname(os.path.abspath(options.script_file))
@@ -675,20 +685,13 @@ def Main():
     # get the variable overrides passed at the command line and
     # update the read variables from the overrides
     variables.update(options.variables)
-    #if not len(commands):
-    #    raise RuntimeError("No executable steps in the script file")
-    
+
     LOG.debug("Options: %s"% options)
 
     if len(commands) > 1:
         raise RuntimeError("More than one executable block not supported")
     elif not(commands):
         return
-        
-    #if options.list:
-    #    ListCommands(commands)
-
-    #elif options.execute:
 
     # Scan and construct all the steps first before trying to execute
     # any of them. This way - we can report errors before doing any
@@ -720,5 +723,5 @@ if __name__ == '__main__':
         LOG.exception(err)
     finally:
         logging.shutdown()
-    
+
     sys.exit(1)
