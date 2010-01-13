@@ -105,6 +105,13 @@ class StepTests(unittest.TestCase):
         """"""
         Step('run', ['echo'], "echo Hi Tester").Execute()
 
+    def test_Step_repr(self):
+        """"""
+        rep = repr(Step('run', ['echo'], "echo Hi Tester"))
+        
+        self.assertEquals(rep, "<Step: %s %s>"% ('run', 'echo'))
+
+
 
 if __name__ == "__main__":
     unittest.main()
