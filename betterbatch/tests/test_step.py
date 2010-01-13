@@ -70,17 +70,23 @@ class StepTests(unittest.TestCase):
 
     def test_Step_interupted_continue(self):
         """"""
-        print "please type N + ENTER"
+        old_stdin = sys.stdin
+        sys.stdin = open(os.path.join(TEST_FILES_PATH, "no.txt"), "r")
         Step('debug', [], "raise KeyboardInterrupt()").Execute()
+        sys.stdin.close()
+        sys.stdin = old_stdin
 
     def test_Step_interupted_stop(self):
         """"""
-        print "please type Y + ENTER"
+        old_stdin = sys.stdin
+        sys.stdin = open(os.path.join(TEST_FILES_PATH, "yes.txt"), "r")
         s = Step('debug', [], "raise KeyboardInterrupt")
+        
         self.assertRaises(RuntimeError, s.Execute)
-
-        print "please type ENTER"
         self.assertRaises(RuntimeError, s.Execute)
+        
+        sys.stdin.close()
+        sys.stdin = old_stdin
 
     def test_StepExecute_ret(self):
         """"""
