@@ -104,6 +104,20 @@ class CommandTests(unittest.TestCase):
         data = ParseStepData(step_data)
         self.assertEquals(data, ('run', [], ''))
 
+    def test_parsestepdata_DOS_replacement_cmd(self):
+
+        step_data = "cd test"
+        data = ParseStepData(step_data)
+        self.assertEquals(data, ('cd', [], 'test'))
+
+        step_data = {"run": "cd test"}
+        data = ParseStepData(step_data)
+        self.assertEquals(data, ('cd', [], 'test'))
+
+        step_data = {"run": ["cd", "test"]}
+        data = ParseStepData(step_data)
+        self.assertEquals(data, ('cd', [], ['test']))
+
 
 
 class IfElseTests(unittest.TestCase):

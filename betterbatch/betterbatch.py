@@ -418,28 +418,41 @@ def ParseStepData(step_data):
         return 'run', [], ''
 
     if isinstance(step_data, basestring):
-        cmd = 'run'
-        step_data_parts = step_data.lower().strip().split(" ")
-        if step_data_parts[0] in built_in_commands.DOS_REPLACE:
-            cmd = step_data_parts[0]
-            step_data = " ".join(step_data_parts[1:])
-        step_data = {cmd: step_data}
+        step_data = {'run': step_data}
 
     # ensure it is a dictionary with a single value
-    if isinstance(step_data, dict):
-        #ensure only a single value
-        if len(step_data) != 1:
-            raise RuntimeError(
-                'Step must be in format "- ACTION: COMMAND_INFO" \'%s\''%
-                    step_data)
-
-        # get the action type, and parameters
-        action_type, step_info = step_data.items()[0]
-        action_type = action_type.lower()
-    else:
+    if not isinstance(step_data, dict):
         raise RuntimeError(
             'Step must be in format "- ACTION: COMMAND_INFO" \'%s\''%
                 step_data)
+        
+    #ensure only a single value
+    if len(step_data) != 1:
+        raise RuntimeError(
+            'Step must be in format "- ACTION: COMMAND_INFO" \'%s\''%
+                step_data)
+
+    # get the action type, and parameters
+    action_type, step_info = step_data.items()[0]
+
+    action_type = action_type.lower()
+    
+    if action_type == "run":
+        if isinstance(step_info, basestring):
+            step_info_parts = step_info.split(" ")
+        else:
+            step_info_parts = step_info
+        
+        step_info_first = step_info_parts[0].lower().strip()
+        
+        if step_info_first in built_in_commands.DOS_REPLACE:
+            action_type = step_info_first
+            step_info_new = step_info_parts[1:]
+
+            if isinstance(step_info, basestring):
+                step_info = " ".join(step_info_new)
+            else:
+                step_info = step_info_new
 
     # split up the action_type - as it may have qualifiers:
     qualifiers = action_type.strip().split()
