@@ -4,4 +4,4 @@ empty_else_1:
 - If:
     - Exists: <my_file>_
     - Do  :
-        - echo BROKEN exists" <my_file>
+        - echo BROKEN exists <my_file>

@@ -5,6 +5,6 @@ string_else:
 - If:
     - Exists: <my_file>_
     - Do  :
-        echo "BROKEN exists <my_file>
+        echo BROKEN exists <my_file>
     - Else:
         echo string_else
