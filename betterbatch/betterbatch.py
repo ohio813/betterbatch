@@ -4,6 +4,9 @@ import os
 import sys
 import re
 import logging
+import shlex
+import ConfigParser
+
 import yaml
 
 import built_in_commands
@@ -31,6 +34,8 @@ def CreateLogger():
 LOG = CreateLogger()
 cmd_line.LOG = LOG
 built_in_commands.LOG = LOG
+
+PARAM_FILE = os.path.join(os.path.dirname(__file__), "param_counts.ini")
 
 
 class ErrorCollection(RuntimeError):
@@ -478,7 +483,15 @@ class Step(object):
 
         self.action_type = action_type
         self.qualifiers = qualifiers
-        self.params = step_info
+        
+        if isinstance(step_info, list):
+            self.params = step_info
+        
+        elif isinstance(step_info, basestring):
+            self.params = step_info
+
+        elif action_type != "if":
+            raise RuntimeError("Mapping type used for non if step")
 
         if action_type in ("output", 'if'):
             self.action = None
@@ -523,6 +536,45 @@ class Step(object):
             output_func("Output from command:\n%s"% indented_output)
 
         return ret, output
+
+    @property
+    def command(self):
+        if self.action_type == 'run':
+            cmd_name = self.params
+            if not cmd_name:
+                cmd_name = ""
+            elif isinstance(cmd_name, list):
+                cmd_name = cmd_name[0]
+            else:
+                cmd_name = shlex.split(cmd_name)[0]
+                
+            # if there is a path - strip it off
+            cmd_name = os.path.basename(cmd_name)
+        
+        else:
+            cmd_name = self.action_type
+
+        return cmd_name
+
+    @property
+    def argcount(self):
+        if isinstance(self.params, list):
+            count = len(self.params)
+        else:
+            try:
+                count = len(shlex.split(self.params))
+            except ValueError:
+                LOG.info(
+                    "The command '%s' is not a valid shell command"% 
+                        self.params)
+                count = len(self.params.split())
+        
+        # if it is a 'run' action then the params contains the command
+        # to run - so don't count that as an argument
+        if self.action_type == 'run':
+            count -= 1
+        
+        return count
 
     def __repr__(self):
         return "<Step: %s %s>"% (self.action_type, " ".join(self.qualifiers))
@@ -572,6 +624,7 @@ class IfStep(Step):
         self.if_true_steps = BuildExecutableSteps(do_block, {})
         self.if_false_steps = BuildExecutableSteps(else_block, {})
 
+
     def Execute(self):
         """Run the 'if' step
 
@@ -582,8 +635,9 @@ class IfStep(Step):
         # check if the test works or fails
         check_passed = True
         try:
+            #import pdb; pdb.set_trace()
             ret, out = self.check.Execute()
-        except Exception, e:
+        except RuntimeError, e:
             check_passed = False
 
         if check_passed:
@@ -639,6 +693,35 @@ def PopulateVariablesFromEnvironment():
     return variables
 
 
+def ValidateArgumentCounts(steps, count_db):
+    # get the name of the command
+    errors = []
+    for step in steps:
+        command = step.command.lower()
+
+        # See if it is in the DB
+        if command in count_db:
+            
+            # If it is then get the count of it's parameters
+            arg_count = step.argcount
+
+            lower, upper = count_db[command]
+            
+            # check that is it appropriate
+            if not lower <= arg_count <= upper:
+                errors.append(RuntimeError((
+                    "Invalid number of parameters '%d'. "
+                    "Expected %d to %s. Command:\n\t%s:%s")% (
+                        arg_count,
+                        lower,
+                        count_db[command][1],
+                        step.action_type, 
+                        step.params)))
+
+    if errors:
+        raise ErrorCollection(errors)
+    
+
 def BuildExecutableSteps(steps, variables):
     "Parse the step data into a list of steps ready to execute"
     executable_steps = []
@@ -658,6 +741,7 @@ def BuildExecutableSteps(steps, variables):
 
             executable_step = step_class(action, qualifiers, step_info)
             executable_steps.append(executable_step)
+
         except ErrorCollection, e:
             errors.extend(e.errors)
             continue
@@ -671,6 +755,52 @@ def BuildExecutableSteps(steps, variables):
 
     return executable_steps
 
+
+def ReadParamRestrictions(param_file):
+    ""
+    params = ConfigParser.RawConfigParser() 
+    
+
+    try:
+        if (
+            not params.read(param_file) or 
+            not params.has_section('param_counts')):
+                LOG.info(
+                    "Param file does not exist or does "
+                    "not contain [param_counts]")
+                return {}
+                
+    except ConfigParser.ParsingError, e:
+        LOG.warning(str(e))
+        return {}
+    
+    counts_db = {}
+    for (file, counts) in params.items('param_counts'):
+        file = file.lower().strip()
+        if "-" in counts:
+            upper_lower = [p.strip() for p in counts.split("-")]
+        else:
+            upper_lower = counts.strip(), counts.strip()
+
+        parsed_counts = []
+        for val in upper_lower:
+            if val == "*":
+                val = sys.maxint
+            else:
+                try:
+                    val = int(val)
+                except ValueError:
+                    LOG.info(
+                        "Param counts for '%s' are not valid: '%s'"%(
+                            file, counts))
+                    continue
+            parsed_counts.append(val)
+        
+        if len(parsed_counts) == 2:
+            counts_db[file] = parsed_counts
+    
+    return counts_db
+    
 
 def Main():
     "Parse command line arguments, read script and dispatch the request(s)"
@@ -710,6 +840,10 @@ def Main():
     # step execution
     steps = commands.values()[0]
     executable_steps = BuildExecutableSteps(steps, variables)
+    
+    arg_counts_db = ReadParamRestrictions(PARAM_FILE)
+    ValidateArgumentCounts(executable_steps, arg_counts_db)
+
 
     # now execute each of the steps
     for cmd in executable_steps:

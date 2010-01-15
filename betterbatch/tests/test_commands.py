@@ -182,7 +182,6 @@ class IfElseTests(unittest.TestCase):
             vars)
         steps = commands.values()[0]
 
-        print "TOO FEW"
         try:
             BuildExecutableSteps(steps, vars)
         except ErrorCollection, e:
@@ -200,7 +199,6 @@ class IfElseTests(unittest.TestCase):
             vars)
         steps = commands.values()[0]
 
-        print "TOO MANY"
         self.assertRaises(
             ErrorCollection,
             BuildExecutableSteps,
@@ -228,6 +226,65 @@ class IfElseTests(unittest.TestCase):
             ErrorCollection,
             BuildExecutableSteps,
                 steps, vars)
+
+
+class test_ValidateArgumentCounts(unittest.TestCase):
+    def setUp(self):
+        self.count_db = {
+        'robocopy': [5, '*'],
+        'robocopy.exe': [5, '*'],
+        'cd': [1, 1]}
+
+
+    def test_ValidateArgs_pass_1(self):
+        step = Step(*ParseStepData("robocopy /z  over here sdfs sdfdsf"))
+        ValidateArgumentCounts([step], self.count_db)
+
+        step = Step(*ParseStepData("robocopy /z  over here sdfs sdfdsf sdf sdf"))
+        ValidateArgumentCounts([step], self.count_db)
+
+    def test_ValidateArgs_pass_2(self):
+        step = Step(*ParseStepData("cd here"))
+        ValidateArgumentCounts([step], self.count_db)
+       
+    def test_ValidateArgs_pass_3(self):
+        step = Step(*ParseStepData('cd "here there are spaces"'))
+        ValidateArgumentCounts([step], self.count_db)
+
+    def test_ValidateArgs_fail_1(self):
+        step = Step(*ParseStepData("robocopy /z  here sdf sdf"))
+        self.assertRaises(
+            RuntimeError,
+            ValidateArgumentCounts,
+                [step], self.count_db)
+
+    def test_ValidateArgs_fail_2(self):
+        step = Step(*ParseStepData("cd"))
+        self.assertRaises(
+            RuntimeError,
+            ValidateArgumentCounts,
+                [step], self.count_db)
+
+    def test_ValidateArgs_fail_3(self):
+        step = Step(*ParseStepData("cd here there"))
+        self.assertRaises(
+            RuntimeError,
+            ValidateArgumentCounts,
+                [step], self.count_db)
+
+    def test_ValidateArgs_unknown_command(self):
+        step = Step(*ParseStepData("blah here there"))
+        ValidateArgumentCounts([step], self.count_db)
+
+
+
+    def test_ReadParamRestrictions_parser_error(self):
+        test_file = os.path.join(TEST_FILES_PATH, 'test_params.ini')
+        self.assertEquals(ReadParamRestrictions(test_file), {})
+
+    def test_ReadParamRestrictions_missing_file(self):
+        self.assertEquals(ReadParamRestrictions('test_params_na.ini'), {})
+
 
 
 if __name__ == "__main__":

@@ -100,7 +100,6 @@ class StepTests(unittest.TestCase):
         """"""
         Step('run', ['echo'], "echo Hi Tester").Execute()
 
-
     def test_StepExecute_(self):
         """"""
         Step('run', ['echo'], "echo Hi Tester").Execute()
@@ -110,6 +109,23 @@ class StepTests(unittest.TestCase):
         rep = repr(Step('run', ['echo'], "echo Hi Tester"))
         
         self.assertEquals(rep, "<Step: %s %s>"% ('run', 'echo'))
+
+    def test_Step_command_with_list(self):
+        """"""
+        step = Step('run', ['echo'], ["echo", "Hi", "Tester"])
+        
+        self.assertEquals(step.command, 'echo')
+
+    def test_Step_argcount_with_list(self):
+        """"""
+        step = Step('run', ['echo'], ["echo", "Hi", "Tester"])
+        
+        self.assertEquals(step.argcount, 2)
+
+    def test_Step_argcount_with_invalid_shlex_str(self):
+        """"""
+        step = Step('run', ['echo'], 'echo Hi " Tester')
+        self.assertEquals(step.argcount, 3)
 
 
 
