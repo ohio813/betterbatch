@@ -1,0 +1,304 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>BetterBatch Readme &mdash; BetterBatch v0.5 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.5',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="BetterBatch v0.5 documentation" href="index.html" />
+    <link rel="next" title="Comparing BetterBatch to ..." href="comparison.html" />
+    <link rel="prev" title="Contents" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="comparison.html" title="Comparing BetterBatch to ..."
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Contents"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">BetterBatch v0.5 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="betterbatch-readme">
+<h1>BetterBatch Readme<a class="headerlink" href="#betterbatch-readme" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="what-is-betterbatch">
+<h2>What is BetterBatch<a class="headerlink" href="#what-is-betterbatch" title="Permalink to this headline">¶</a></h2>
+<p>BetterBatch is meant as a simple replacement for batch files. It has the following
+advantages over batch files:</p>
+<ul class="simple">
+<li>easily include commands/variables from other files</li>
+<li>set variables from the output of system commands</li>
+<li>automatically check the return value of executed commands</li>
+<li>built-in commands to allow easy checking of conditions (e.g. that a file exists)</li>
+<li>easier to understand variable format</li>
+<li>strongly encourages separation of code and configuration<ul>
+<li>no looping constructs in configuration files</li>
+<li>allow easily and safely using code in external files.</li>
+</ul>
+</li>
+</ul>
+<p>BetterBatch&#8217;s sweet spot is for things that can be done by a batch command and
+need to be maintained over time by different people who may not have the same
+knowledge of scripts nor want the extra complexity of scripts that are harder
+to maintain.</p>
+<p>The following example shows how to check if a file exists and copy from a
+location specified on the command line.</p>
+<p>First of all enter the following text into a new text file named &#8220;copyfile.bb&#8221;</p>
+<div class="highlight-python"><pre>variables:
+    file_to_copy: &lt;arg1&gt;
+    file_to_check: &lt;tmp&gt;\testing_betterbatch.txt
+
+Steps:
+- if:
+    - notexists: &lt;file_to_check&gt;
+    - do: copy &lt;file_to_copy&gt; &lt;file_to_check&gt;</pre>
+</div>
+<p>Now run it by running the following at the DOS prompt</p>
+<div class="highlight-python"><pre>bbrun.py copyfile.bb \autoexec.bat</pre>
+</div>
+</div>
+<div class="section" id="instalation">
+<h2>Instalation<a class="headerlink" href="#instalation" title="Permalink to this headline">¶</a></h2>
+<p>BetterBatch does not have to be installed as a Python Package, just download,
+unzip and run bbrun.py.</p>
+<p>Note - it does have a requirement on PyYAML (<a class="reference external" href="http://pyyaml.org/">http://pyyaml.org/</a>)
+If you have Setuptools you can use the followin command:</p>
+<div class="highlight-python"><pre>easy_install -U pyyaml</pre>
+</div>
+<p>It can also be installed as a Python module (if you want to import and use
+betterbatch functionality in python scripts). Use easy_install.py or your
+favourite python package installation method.</p>
+</div>
+<div class="section" id="quick-start-example-replacing-tomcat-s-catalina-bat">
+<h2>Quick Start Example - replacing Tomcat&#8217;s Catalina.bat<a class="headerlink" href="#quick-start-example-replacing-tomcat-s-catalina-bat" title="Permalink to this headline">¶</a></h2>
+<p>I did a search on my hard drive for some batch file to convert that would give
+a good example of where betterbatch could be used instead of DOS Batch files.</p>
+<p>I found one example in Tomcat&#8217;s catalina.bat. I don&#8217;t replicate the comments
+in this quick start example.</p>
+<p>Create a new text file &#8220;catalina.yaml&#8221;</p>
+<div class="highlight-python"><pre>variables:
+
+Steps:
+- exist: &lt;CATALINA_HOME&gt;\bin\catalina.bat
+- if:
+    - exist: &lt;CATALINA_HOME&gt;\bin\catalina.bat
+    - do:
+        &lt;CATALINA_HOME&gt;\bin\catalina.bat
+    - else:</pre>
+</div>
+</div>
+<div class="section" id="config-files">
+<h2>Config Files<a class="headerlink" href="#config-files" title="Permalink to this headline">¶</a></h2>
+<p>The config file is made up of named sections:
+- &#8220;Includes&#8221; section
+- &#8220;Variables&#8221; section
+- Section for each command group</p>
+</div>
+<div class="section" id="includes-section-optional">
+<h2>Includes Section (Optional)<a class="headerlink" href="#includes-section-optional" title="Permalink to this headline">¶</a></h2>
+<p>Here you specify which configuration files you would like to include. Included
+files are read in the order they are displayed.Which means that tems defined in
+an earlier include can be overridden in subsequent include files and the current
+config file (the file which specifies the includes) can override information in
+included files.</p>
+<p>example:</p>
+<div class="highlight-python"><pre>Includes:
+ - IncludeFile_1.yaml
+ - IncludeFile_2.yaml</pre>
+</div>
+<p>In this example IncludeFile_2.yaml can override any variable/command defined in
+IncludeFile_1.yaml.</p>
+</div>
+<div class="section" id="variables-section-optional">
+<h2>Variables Section (Optional)<a class="headerlink" href="#variables-section-optional" title="Permalink to this headline">¶</a></h2>
+<p>Here you can specify variables that can be referenced later by putting angle
+brackets around the variable name e.g.</p>
+<div class="highlight-python"><pre>Variables:
+ test_var:  test
+ test_2_var = &lt;test_var&gt;_more_text</pre>
+</div>
+<p>The resulting value of test_2_var will be &#8220;test_more_text&#8221;.</p>
+<p>If a variable is defined referencing a variable that is not defined e.g.</p>
+<div class="highlight-python"><pre>Variables:
+   using_unknown_var:  This &lt;noun&gt; is remarkable</pre>
+</div>
+<p>an error will NOT be raised unless something uses the &#8216;using_unknown_var&#8217; variable.</p>
+<div class="section" id="variable-overriding">
+<h3>Variable Overriding<a class="headerlink" href="#variable-overriding" title="Permalink to this headline">¶</a></h3>
+<p>Variables can be overriden at many points:</p>
+<p>1. You can force a particular value by specifying it at the command line
+If you do this - this WILL be the value of that variable!</p>
+<p>2. If the config file specified at the command line will defines that variable
+and it is not overridden at the command line it&#8217;s value will be used.</p>
+<p>3. Variables will be taken from the included files if not overriden on the command
+line or in the main config file. If more than one included config file has the
+variable then values in earlier config files will be overridden by later included
+config files.</p>
+</div>
+<div class="section" id="special-variables">
+<h3>Special Variables<a class="headerlink" href="#special-variables" title="Permalink to this headline">¶</a></h3>
+<dl class="docutils">
+<dt>__config_path__</dt>
+<dd>This is replace very early in the cycle of parsing the files
+if it is in an included BetterBatch file - then it will be the directory of
+that particular.</dd>
+<dt>logfile</dt>
+<dd>The path where messages and captured output will be written.
+<strong>Note</strong> if you there are multiple logfile variables (i.e. in included files)
+then it is the last one defined (i.e. the one that includes the other files
+or the last included file if no logfile defined in the current file)</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="troubleshooting">
+<h2>Troubleshooting:<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="spaces-in-paths-for-run-commands">
+<h3>Spaces in paths for &#8220;RUN&#8221; commands<a class="headerlink" href="#spaces-in-paths-for-run-commands" title="Permalink to this headline">¶</a></h3>
+<p>This can be difficult but there are a number of ways around it.</p>
+<p>All of the following will work as they are all valid YAML - it&#8217;s up to you
+which you prefer.</p>
+<p>A. Wrap the whole command in single quotes (&#8216;) and the path that has spaces in
+double quotes.
+e.g.</p>
+<div class="highlight-python"><pre>- Run: '"c:\program files\SDL Passolo 2009\pslcmd.exe" project.lpu /generate'</pre>
+</div>
+<p>B. use one of the block string processors (&#8216;|&#8217; or &#8216;&gt;&#8217;), put the command line on
+the next line and finally surround the path with spaces in double quotes
+e.g.</p>
+<div class="highlight-python"><pre>- Run: |  # &gt; would have worked just as well
+   "c:\program files\SDL Passolo 2009\pslcmd.exe" project.lpu /generate</pre>
+</div>
+<p>C Split it up into separate arguments by creating a list
+e.g.</p>
+<div class="highlight-python"><pre>- Run:
+   - c:\program files\SDL Passolo 2009\pslcmd.exe
+   - project.lpu
+   - /generate</pre>
+</div>
+</div>
+<div class="section" id="integer-and-decimal-variables">
+<h3>Integer and decimal variables<a class="headerlink" href="#integer-and-decimal-variables" title="Permalink to this headline">¶</a></h3>
+<p>These are not accepted as variable values because the representation of the
+value may not be the same as the value, which could be confusing. For the most
+part they are also not necessary as most shells treat arguments as strings.</p>
+<p>For example if you have the following variable
+specification
+Variables:</p>
+<div class="highlight-python"><pre>MyVar: 0001</pre>
+</div>
+<p>After parsing MyVar will be the integer value 1, when in fact you probably wanted
+a string value &#8216;0001&#8217;. To resolve this wrap the value in single or double quotes.</p>
+<p>Similarly for decimals, leading and trailing 0&#8217;s will be stripped off, and more
+complications due to how computers represent decimal values may also arise</p>
+<div class="highlight-python"><pre>MyVar: 0.1</pre>
+</div>
+<p>When you print MyVar you may well see &#8220;0.10000000000000001&#8221; -  almost certainly
+not what you want!</p>
+<p>For these reasons decimal or integer variables are not allowed.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">BetterBatch Readme</a><ul>
+<li><a class="reference external" href="#what-is-betterbatch">What is BetterBatch</a></li>
+<li><a class="reference external" href="#instalation">Instalation</a></li>
+<li><a class="reference external" href="#quick-start-example-replacing-tomcat-s-catalina-bat">Quick Start Example - replacing Tomcat&#8217;s Catalina.bat</a></li>
+<li><a class="reference external" href="#config-files">Config Files</a></li>
+<li><a class="reference external" href="#includes-section-optional">Includes Section (Optional)</a></li>
+<li><a class="reference external" href="#variables-section-optional">Variables Section (Optional)</a><ul>
+<li><a class="reference external" href="#variable-overriding">Variable Overriding</a></li>
+<li><a class="reference external" href="#special-variables">Special Variables</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#troubleshooting">Troubleshooting:</a><ul>
+<li><a class="reference external" href="#spaces-in-paths-for-run-commands">Spaces in paths for &#8220;RUN&#8221; commands</a></li>
+<li><a class="reference external" href="#integer-and-decimal-variables">Integer and decimal variables</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="index.html"
+                                  title="previous chapter">Contents</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="comparison.html"
+                                  title="next chapter">Comparing BetterBatch to ...</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/readme.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="comparison.html" title="Comparing BetterBatch to ..."
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Contents"
+             >previous</a> |</li>
+        <li><a href="index.html">BetterBatch v0.5 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Mark Mc Mahon.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

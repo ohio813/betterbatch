@@ -1,6 +1,4 @@
 glob:*.pyc
-glob:docs/*
-glob:betterbatch/docs/*
 glob:*.log
 glob:dist/*
 glob:betterbatch/profile_stats
