@@ -8,9 +8,9 @@ What is BetterBatch
 BetterBatch is meant as a simple replacement for batch files. It has the following 
 advantages over batch files:
 
-* able to easily include other files
-* allow setting of variables from the output of commands
-* automatic checking of the return value of executed commands
+* easily include commands/variables from other files
+* set variables from the output of system commands
+* automatically check the return value of executed commands
 * built-in commands to allow easy checking of conditions (e.g. that a file exists)
 * easier to understand variable format
 * strongly encourages separation of code and configuration
