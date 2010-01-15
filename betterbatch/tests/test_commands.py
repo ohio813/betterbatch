@@ -276,8 +276,6 @@ class test_ValidateArgumentCounts(unittest.TestCase):
         step = Step(*ParseStepData("blah here there"))
         ValidateArgumentCounts([step], self.count_db)
 
-
-
     def test_ReadParamRestrictions_parser_error(self):
         test_file = os.path.join(TEST_FILES_PATH, 'test_params.ini')
         self.assertEquals(ReadParamRestrictions(test_file), {})
