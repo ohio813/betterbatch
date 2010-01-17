@@ -280,11 +280,31 @@ def CalculateExternalVariable(variable_value):
     """If variable has (system) marking it as an external variable - calculate
     and return"""
 
-    SYSTEM_VARIABLE = re.compile("^\s*\(\s*SYSTEM\s*\)\s*(?P<cmd>.*)$", re.I)
+    EXTERNAL_VARIABLE = re.compile(
+        """
+            ^\s*
+            \(
+                \s*
+                (?P<tool_name>[^ )]+)
+                \s*
+            \)
+            \s*
+            (?P<cmd_and_args>.*)
+            $""", re.VERBOSE|re.DOTALL)
 
-    # calculate any values
-    system_variable = SYSTEM_VARIABLE.match(variable_value)
+    # See if it matches the external variable pattern
+    system_variable = EXTERNAL_VARIABLE.match(variable_value)
+
+    # if it doesn't match return the value unchanged
     if not system_variable:
+        return variable_value
+
+    # ensure that the tool exists
+    tool = system_variable.group('tool_name')
+    if tool.lower() not in built_in_commands.NAME_ACTION_MAPPING:
+        LOG.warning((
+            "variable '%s' looks like an external call - i.e. '(TOOL) cmd' - "
+            "but '%s' does not match any tools")% (tool, variable_value))
         return variable_value
 
     LOG.debug("Calculating variable: %s"% repr(variable_value))
@@ -292,8 +312,11 @@ def CalculateExternalVariable(variable_value):
     # run the external command and grab it's output
     # this will raise an exception if the return is not 0 so we ignore
     # the return value here
-    ret, out = built_in_commands.SystemCommand(
-        system_variable.group('cmd'))
+    action = built_in_commands.NAME_ACTION_MAPPING[tool.lower()]
+    ret, out = action(system_variable.group('cmd_and_args'))
+
+    if ret:
+        raise RuntimeError("%d - %s"% (ret, out))
 
     # remove any extra spaces that may have been present
     return out.strip()
@@ -399,7 +422,6 @@ def ReplaceVariableReferences(item, variables):
     if ">" in no_brackets or "<" in no_brackets:
         errors.append("Mismatched angle brackets in '%s'"% (orig_string))
 
-
     item = item.replace("{LT}", "<")
     item = item.replace("{GT}", ">")
 
@@ -441,23 +463,6 @@ def ParseStepData(step_data):
 
     action_type = action_type.lower()
 
-    if action_type == "run":
-        if isinstance(step_info, basestring):
-            step_info_parts = step_info.split(" ")
-        else:
-            step_info_parts = step_info
-
-        step_info_first = step_info_parts[0].lower().strip()
-
-        if step_info_first in built_in_commands.DOS_REPLACE:
-            action_type = step_info_first
-            step_info_new = step_info_parts[1:]
-
-            if isinstance(step_info, basestring):
-                step_info = " ".join(step_info_new)
-            else:
-                step_info = step_info_new
-
     # split up the action_type - as it may have qualifiers:
     qualifiers = action_type.strip().split()
 
@@ -483,29 +488,59 @@ class Step(object):
 
         self.action_type = action_type
         self.qualifiers = qualifiers
-        
+
         if isinstance(step_info, list):
             self.params = step_info
-        
+
         elif isinstance(step_info, basestring):
             self.params = step_info
 
         elif action_type != "if":
             raise RuntimeError("Mapping type used for non if step")
 
-        if action_type in ("output", 'if'):
+        # check if the command is one of the commands that change the 
+        # environment in some way and have to be overridden
+        if (action_type == "run" and
+            self.command.lower() in built_in_commands.DOS_REPLACE):
+
+            self.action_type = self.command.lower()
+
+            # Now remove the option from the commands
+            if isinstance(self.params, list):
+                # Because it's a list we need to remove the command from the
+                # first argument (and if it is then empty - remove the first
+                # item of the list
+                first_param = self.params[0].strip()[len(self.command) + 1:]
+                if first_param:
+                    self.params[0] = first_param
+                else:
+                    del self.params[0]
+            if isinstance(self.params, basestring):
+                # strings are easier - just remove the command and it's 
+                # trailing space
+                self.params = self.params.strip()[len(self.command) + 1:]
+
+        # Assign the correct action to be run
+        if action_type in ('if', 'output'):
+            # 'if' or 'output' actions don't really have actions
             self.action = None
-        elif action_type in built_in_commands.NAME_ACTION_MAPPING:
-            self.action = built_in_commands.NAME_ACTION_MAPPING[action_type]
+        elif self.action_type in built_in_commands.NAME_ACTION_MAPPING:
+            # It's a known action
+            self.action = built_in_commands.NAME_ACTION_MAPPING[self.action_type]
         else:
             raise RuntimeError("Unknown action type: '%s'"% action_type)
 
     def Execute(self):
         "Execute the step"
 
-        if self.action is None:
+        if self.action_type == "output":
             LOG.info(self.params)
-            return
+            return 0, self.params
+
+        if self.command.lower() == 'echo':
+            message = self.arg_string.strip()[5:]
+            LOG.info(message)
+            return 0, message
 
         LOG.debug("Executing step '%s': '%s'"% (
             self.action_type, self.params))
@@ -521,8 +556,16 @@ class Step(object):
             else:
                 return
 
-        if ret:
-            LOG.warning("Command returned non zero(%d) return value", ret)
+        output = "\n".join(["   " + line for line in output.split("\r\n")])
+        message = (
+            'Non zero return (%d) from command:\n  "%s: %s"\nOUTPUT:\n%s'%(
+                ret, self.action_type, self.params, output))
+
+        #if ret:
+        #    if 'nocheck' not in self.qualifiers and ret:
+        #        raise RuntimeError(message)
+        #    else:
+        #        LOG.debug(message)
 
         # Ensure the output is printed if 'echo' was in the qualifiers
         output_func = LOG.debug
@@ -537,20 +580,43 @@ class Step(object):
 
         return ret, output
 
+
+    @property
+    def command_parts(self):
+        if isinstance(self.params, list):
+            parts = self.params
+        else:
+            try:
+                parts = shlex.split(self.params)
+            except ValueError:
+                LOG.info(
+                    "The command '%s' is not a valid shell command"%
+                        self.params)
+                # it is not a valid shell command - so just use a normal split
+                parts = self.params.split()
+        return parts
+
+    @property
+    def arg_string(self):
+        if isinstance(self.params, list):
+            arg_str = " ".join(self.params)
+        else:
+            arg_str = self.params.strip()
+        return arg_str
+
     @property
     def command(self):
         if self.action_type == 'run':
-            cmd_name = self.params
-            if not cmd_name:
+            parts = self.command_parts
+
+            if not parts:
                 cmd_name = ""
-            elif isinstance(cmd_name, list):
-                cmd_name = cmd_name[0]
             else:
-                cmd_name = shlex.split(cmd_name)[0]
-                
+                cmd_name = parts[0]
+
             # if there is a path - strip it off
             cmd_name = os.path.basename(cmd_name)
-        
+
         else:
             cmd_name = self.action_type
 
@@ -558,22 +624,14 @@ class Step(object):
 
     @property
     def argcount(self):
-        if isinstance(self.params, list):
-            count = len(self.params)
-        else:
-            try:
-                count = len(shlex.split(self.params))
-            except ValueError:
-                LOG.info(
-                    "The command '%s' is not a valid shell command"% 
-                        self.params)
-                count = len(self.params.split())
-        
+        # get the parts of the command as a list
+        count = len(self.command_parts)
+
         # if it is a 'run' action then the params contains the command
         # to run - so don't count that as an argument
         if self.action_type == 'run':
             count -= 1
-        
+
         return count
 
     def __repr__(self):
@@ -635,10 +693,13 @@ class IfStep(Step):
         # check if the test works or fails
         check_passed = True
         try:
-            #import pdb; pdb.set_trace()
             ret, out = self.check.Execute()
+            if ret:
+                LOG.debug("'IF' condition evaluated to FALSE: '%s'"% out)
+                check_passed = False
         except RuntimeError, e:
             check_passed = False
+            LOG.warning("If Check raised an exception: %s"% str(e))
 
         if check_passed:
 
@@ -701,26 +762,28 @@ def ValidateArgumentCounts(steps, count_db):
 
         # See if it is in the DB
         if command in count_db:
-            
+
             # If it is then get the count of it's parameters
             arg_count = step.argcount
 
             lower, upper = count_db[command]
-            
+
             # check that is it appropriate
             if not lower <= arg_count <= upper:
+                print arg_count, step, step.params
+                    
                 errors.append(RuntimeError((
                     "Invalid number of parameters '%d'. "
-                    "Expected %d to %s. Command:\n\t%s:%s")% (
+                    "Expected %d to %s. Command:\n\t%s: %s")% (
                         arg_count,
                         lower,
                         count_db[command][1],
-                        step.action_type, 
+                        step.action_type,
                         step.params)))
 
     if errors:
         raise ErrorCollection(errors)
-    
+
 
 def BuildExecutableSteps(steps, variables):
     "Parse the step data into a list of steps ready to execute"
@@ -758,25 +821,25 @@ def BuildExecutableSteps(steps, variables):
 
 def ReadParamRestrictions(param_file):
     ""
-    params = ConfigParser.RawConfigParser() 
-    
+    params = ConfigParser.RawConfigParser()
+
 
     try:
         if (
-            not params.read(param_file) or 
+            not params.read(param_file) or
             not params.has_section('param_counts')):
                 LOG.info(
                     "Param file does not exist or does "
                     "not contain [param_counts]")
                 return {}
-                
+
     except ConfigParser.ParsingError, e:
         LOG.warning(str(e))
         return {}
-    
+
     counts_db = {}
-    for (file, counts) in params.items('param_counts'):
-        file = file.lower().strip()
+    for (executable, counts) in params.items('param_counts'):
+        executable = executable.lower().strip()
         if "-" in counts:
             upper_lower = [p.strip() for p in counts.split("-")]
         else:
@@ -792,15 +855,15 @@ def ReadParamRestrictions(param_file):
                 except ValueError:
                     LOG.info(
                         "Param counts for '%s' are not valid: '%s'"%(
-                            file, counts))
+                            executable, counts))
                     continue
             parsed_counts.append(val)
-        
+
         if len(parsed_counts) == 2:
-            counts_db[file] = parsed_counts
-    
+            counts_db[executable] = parsed_counts
+
     return counts_db
-    
+
 
 def Main():
     "Parse command line arguments, read script and dispatch the request(s)"
@@ -840,14 +903,16 @@ def Main():
     # step execution
     steps = commands.values()[0]
     executable_steps = BuildExecutableSteps(steps, variables)
-    
-    arg_counts_db = ReadParamRestrictions(PARAM_FILE)
-    ValidateArgumentCounts(executable_steps, arg_counts_db)
 
+    arg_counts_db = ReadParamRestrictions(PARAM_FILE)
+    #ValidateArgumentCounts(executable_steps, arg_counts_db)
 
     # now execute each of the steps
     for cmd in executable_steps:
-        cmd.Execute()
+        ret, out = cmd.Execute()
+        if ret:
+            raise RuntimeError("STOPPING %s %s"%( ret, out))
+
 
 
 if __name__ == '__main__':

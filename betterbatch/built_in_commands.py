@@ -18,6 +18,17 @@ RESULT_FAILURE = 1
 
 PUSH_DIRECTORY_LIST = []
 
+# the following commands are defined in the shell - so they won't work
+# unless executed in the shell
+# they raise an error when executed 
+COMMANDS_REQUIRING_SHELL = [
+    'assoc', 'break', 'call', 'cd', 'chcp', 'chdir', 'cls', 'color', 'copy', 
+    'date', 'del', 'dir', 'diskcomp', 'diskcopy', 'echo', 'endlocal', 'erase', 
+    'exit', 'for', 'format', 'ftype', 'goto', 'graftabl', 'if', 'md', 'mkdir',
+    'mode', 'more', 'move', 'path', 'pause', 'popd', 'prompt', 'pushd', 'rd',
+    'rem', 'ren', 'rename', 'rmdir', 'set', 'setlocal', 'shift', 'start', 
+    'time', 'title', 'tree', 'type','ver', 'verify', 'vol']
+
 
 def VerifyFileCount(file_pattern, count = None):
     """Verify that the file count is as specified
@@ -73,7 +84,7 @@ def VerifyFileCount(file_pattern, count = None):
     else:
         message = "Check Failed. Counted: %d  expected count: %s"% (
             num_files, desc)
-        raise RuntimeError(message)
+        return RESULT_FAILURE, message 
 
 
 def PathNotExists(path, dummy = None):
@@ -114,30 +125,44 @@ def SystemCommand(command, qualifiers = None):
     if qualifiers is None:
         qualifiers = []
 
+    shell = True
+    
+    #for shell_cmd in COMMANDS_REQUIRING_SHELL:
+    #    if command.lower().startswith(shell_cmd):
+    #        shell = True
+    #        break
+
     # if the
     new_stdout = sys.stdout
     if 'ui' not in qualifiers:
         new_stdout = tempfile.TemporaryFile()
 
-    ret_value = subprocess.call(
-        command,
-        shell = True,
-        stdout = new_stdout,
-        stderr = new_stdout)
+    if isinstance(command, basestring):
+        comamnd = command.strip()
+        command_len = len(command)
+    else:
+        command_len = len(" ".join(command))
+    
+    subprocess_safe_command_limit = 2000
+    if command_len > subprocess_safe_command_limit:
+        raise RuntimeError(
+            "The command is %d characters long. "
+            "It cannot be longer than %d characters"% (
+                command_len, subprocess_safe_command_limit))
+                
+    try:
+        ret_value = subprocess.call(
+            command[:100],
+            shell = shell,
+            stdout = new_stdout,
+            stderr = new_stdout)
+    except OSError, e:
+        return e.errno, str(e)
 
     output = ''
     if 'ui' not in qualifiers:
         new_stdout.seek(0)
         output = new_stdout.read()
-
-        #new_stderr.seek(0)
-        #errors = new_stderr.read()
-
-    if 'nocheck' not in qualifiers and ret_value:
-        output = "\n".join(["   " + line for line in output.split("\r\n")])
-        message = ('Non zero return (%d) from command:\n  "%s"\nOUTPUT:\n%s'%(
-                ret_value, command, output))
-        raise RuntimeError(message)
 
     return ret_value, output
 
@@ -145,16 +170,19 @@ def SystemCommand(command, qualifiers = None):
 def dirname(path, dummy = None):
     return 0, os.path.dirname(path)
 
+
 def basename(path, dummy = None):
     return 0, os.path.basename(path)
 
+
 def ChangeCurrentDirectory(path, dummy = None):
     try:
+        if isinstance(path, list):
+            path = path[0]
         os.chdir(path)
         return 0, ""
     except OSError, e:
-        raise RuntimeError(str(e))
-
+        return e.errno, str(e)
 
 
 def PushDirectory(path, dummy = None):
@@ -164,7 +192,7 @@ def PushDirectory(path, dummy = None):
         return 0, ""
     except OSError, e:
         PUSH_DIRECTORY_LIST.pop()
-        raise RuntimeError(str(e))
+        return e.errno, str(e)
 
 
 def PopDirectory(path = '', dummy = None):
@@ -173,13 +201,16 @@ def PopDirectory(path = '', dummy = None):
         os.chdir(last_dir)
         return 0, "Current directory is now '%s'"% last_dir
     except OSError, e:
-        raise RuntimeError(str(e))
+        return e.errno, str(e)
     except IndexError, e:
         raise RuntimeError("No previously pushed directory to pop")
 
 
 class ExternalCommand(object):
     def __init__(self, full_path):
+        if not os.path.exists(full_path):
+            raise RuntimeError(
+                "External command does not exist: '%s'"% full_path)
         self.full_path = full_path
     
     def __call__(self, params, qualifiers = None):
@@ -187,21 +218,26 @@ class ExternalCommand(object):
             qualifiers = []
             
         if isinstance(params, list):
-            params.append(qualifiers)
+            params.extend(qualifiers)
             params.insert(0, self.full_path)
         elif isinstance(params, basestring):
-            #import pdb; pdb.set_trace()
             params = " ".join([self.full_path, params] + qualifiers)
         else:
             raise RuntimeError(
                 "ExternalCommand.__call__ only accepts strings or lists")
-            
         return SystemCommand(params)
+
+
+def EscapeNewlines(input, qualifiers = ''):
+        text = input.replace("\r", "\\\\r")
+        text = text.replace("\n", "\\\\n")
+        return 0, text
 
 
 NAME_ACTION_MAPPING = {
     'run'    : SystemCommand,
     'execute': SystemCommand,
+    'system' : SystemCommand,
 
     'exists': PathExists,
     'exist' : PathExists,
@@ -221,7 +257,11 @@ NAME_ACTION_MAPPING = {
     'pushd'  : PushDirectory,
     'popdir' : PopDirectory,
     'popd'   : PopDirectory,
+
+    'escape_newlines': EscapeNewlines,
+    'escapenewlines' : EscapeNewlines,
 }
+
 
 def PopulateFromToolsFolder(tools_folder):
     

@@ -58,11 +58,10 @@ class BuiltInCommandsTests(unittest.TestCase):
 
     def test_count_fail(self):
         """"""
-        self.assertRaises(
-            RuntimeError,
-            VerifyFileCount,
-            "cmd_line.py",
-            12)
+        
+        ret, out = VerifyFileCount("cmd_line.py", 12)
+        self.assertNotEquals(ret, 0)
+        
 
     def test_missing_count(self):
         self.assertRaises(
@@ -83,6 +82,7 @@ class BuiltInCommandsTests(unittest.TestCase):
         self.assertEquals(basename(r"c:\tes\temp\here.txt"), (0, r"here.txt"))
 
     def test_ChangeCurrentDirectory_pass(self):
+        """"""
         cur_dir = os.path.abspath(os.getcwd())
         
         ret, out = ChangeCurrentDirectory("\\")
@@ -94,13 +94,12 @@ class BuiltInCommandsTests(unittest.TestCase):
         ChangeCurrentDirectory(cur_dir)
 
     def test_ChangeCurrentDirectory_fail(self):
+        """Test the "cd" command that will fail"""
         cur_dir = os.path.abspath(os.getcwd())
         
-        self.assertRaises(
-            RuntimeError,
-            ChangeCurrentDirectory,
-                "\\non_existing_directory_somewhere")
-        
+        ret, out = ChangeCurrentDirectory("\\non_existing_directory_somewhere")
+        self.assertNotEquals(ret, 0)
+
         self.assertEquals(os.getcwd(), cur_dir)
 
     def test_PushDirectory_pass(self):
@@ -115,13 +114,12 @@ class BuiltInCommandsTests(unittest.TestCase):
         PopDirectory()
         
     def test_PushDirectory_fail(self):
+        """Try to push a directory that doesn't exist"""
         cur_dir = os.path.abspath(os.getcwd())
         
-        self.assertRaises(
-            RuntimeError,
-            PushDirectory,
-                "\\non_existing_directory_somewhere")
-        
+        ret, out = PushDirectory("\\non_existing_directory_somewhere")
+
+        self.assertNotEquals((ret, out), (0, ""))
         self.assertEquals(os.getcwd(), cur_dir)
 
     def test_PopDirectory_pass(self):
@@ -147,16 +145,15 @@ class BuiltInCommandsTests(unittest.TestCase):
             PopDirectory)
         
     def test_PopDirectory_fail2(self):
-        
         # simulate that a directory stored (in a PushDirectory call) has
         # been removed since
         
         built_in_commands.PUSH_DIRECTORY_LIST.append("not_here_at_all")
         
-        self.assertRaises(
-            RuntimeError,
-            PopDirectory)
-
+        ret, out = PopDirectory()
+        
+        self.assertNotEquals(ret, 0)
+        
 
     def test_ExternalCommand_pass(self):
         tool_path = os.path.join(package_root, "tools", "compare.py")
@@ -168,16 +165,17 @@ class BuiltInCommandsTests(unittest.TestCase):
         self.assertEquals(ec(["a", "=", "A", "nocase"]), expected_ret)
         self.assertEquals(ec(["a", "=", "A"], ["nocase"]), expected_ret)
             
-    def test_ExternalCommand_fail(self):
-        tool_path = os.path.join(package_root, "tools", "compare_not_here.py")
-        ec = ExternalCommand(tool_path)
+    def test_ExternalCommand_missing_cmd(self):
+        """Test external path with tool that doesn't exitst"""
         
+        tool_path = os.path.join(package_root, "tools", "compare_not_here.py")
         self.assertRaises(
             RuntimeError,
-            ec,
-                "a = A nocase")
+            ExternalCommand,
+                tool_path)
 
     def test_ExternalCommand_fail2(self):
+        "   "
         tool_path = os.path.join(package_root, "tools", "compare.py")
         ec = ExternalCommand(tool_path)
         
@@ -185,9 +183,6 @@ class BuiltInCommandsTests(unittest.TestCase):
             RuntimeError,
             ec,
                 None)
-
-
-
 
     def test_PopulateFromToolsFolder_pass(self):
         tools_dir = os.path.join(package_root, "tools")

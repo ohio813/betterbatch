@@ -20,6 +20,21 @@ def DebugAction(to_exec, dummy = None):
 built_in_commands.NAME_ACTION_MAPPING['debug'] = DebugAction
 
 
+    #def test_parsestepdata_DOS_replacement_cmd(self):
+
+    #    step_data = "cd test"
+    #    data = ParseStepData(step_data)
+    #    self.assertEquals(data, ('cd', [], 'test'))
+
+    #    step_data = {"run": "cd test"}
+    #    data = ParseStepData(step_data)
+    #    self.assertEquals(data, ('cd', [], 'test'))
+
+    #    step_data = {"run": ["cd", "test"]}
+    #    data = ParseStepData(step_data)
+    #    self.assertEquals(data, ('cd', [], ['test']))
+
+
 class StepTests(unittest.TestCase):
     "Unit tests for the loadconfig function"
 
@@ -45,6 +60,47 @@ class StepTests(unittest.TestCase):
             RuntimeError,
             ParseStepData,
                 {'run': "echo this step", "a": 123})
+
+    def test_Step_DosCommand(self):
+        """"""
+        s = Step('run', [], 'cd "some directory"')
+        
+        self.assertEquals(
+            s.params, '"some directory"')
+
+        self.assertEquals(s.argcount, 1)
+        self.assertEquals(s.command, "cd")
+
+        self.assertEquals(
+            s.action, built_in_commands.NAME_ACTION_MAPPING['cd'])
+
+    def test_Step_DosCommand_not_run(self):
+        """"""
+        s = Step('cd', [], '"some directory"')
+        
+        self.assertEquals(
+            s.params, '"some directory"')
+            
+        self.assertEquals(s.argcount, 1)
+
+    def test_Step_DosCommand(self):
+        """"""
+        s = Step('run', [], ['cd', 'some directory'])
+        
+        self.assertEquals(
+            s.params, ['some directory'])
+
+        self.assertEquals(s.argcount, 1)
+        self.assertEquals(s.command, "cd")
+
+        self.assertEquals(
+            s.action, built_in_commands.NAME_ACTION_MAPPING['cd'])
+
+
+    #def test_StepWithDict_params(self):
+    #    """"""
+    #    s = ParseStepData({'run': {'test': "echo this step"}})
+
 
     def test_StepWithQualifiers(self):
         """"""
@@ -89,7 +145,7 @@ class StepTests(unittest.TestCase):
         sys.stdin = old_stdin
 
     def test_StepExecute_ret(self):
-        """"""
+        """Test that 'nocheck' doesn't raise on error"""
         Step('run', ['nocheck'], "dirsad").Execute()
 
     def test_StepExecute_with_echo(self):

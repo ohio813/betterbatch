@@ -104,21 +104,6 @@ class CommandTests(unittest.TestCase):
         data = ParseStepData(step_data)
         self.assertEquals(data, ('run', [], ''))
 
-    def test_parsestepdata_DOS_replacement_cmd(self):
-
-        step_data = "cd test"
-        data = ParseStepData(step_data)
-        self.assertEquals(data, ('cd', [], 'test'))
-
-        step_data = {"run": "cd test"}
-        data = ParseStepData(step_data)
-        self.assertEquals(data, ('cd', [], 'test'))
-
-        step_data = {"run": ["cd", "test"]}
-        data = ParseStepData(step_data)
-        self.assertEquals(data, ('cd', [], ['test']))
-
-
 
 class IfElseTests(unittest.TestCase):
     def test_working_do(self):
@@ -235,7 +220,6 @@ class test_ValidateArgumentCounts(unittest.TestCase):
         'robocopy.exe': [5, '*'],
         'cd': [1, 1]}
 
-
     def test_ValidateArgs_pass_1(self):
         step = Step(*ParseStepData("robocopy /z  over here sdfs sdfdsf"))
         ValidateArgumentCounts([step], self.count_db)
@@ -282,7 +266,6 @@ class test_ValidateArgumentCounts(unittest.TestCase):
 
     def test_ReadParamRestrictions_missing_file(self):
         self.assertEquals(ReadParamRestrictions('test_params_na.ini'), {})
-
 
 
 if __name__ == "__main__":
