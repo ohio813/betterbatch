@@ -5,7 +5,6 @@ import sys
 sys.path.append(".")
 sys.path.append("..")
 
-from betterbatch import ParseYAMLFile
 from betterbatch import ParseScriptFile
 from betterbatch import ErrorCollection
 
@@ -15,20 +14,6 @@ TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
 class LoadConfigTests(unittest.TestCase):
     "Unit tests for the loadconfig function"
-
-    def test_ParseYaml_parsererror(self):
-        """"""
-        self.assertRaises(
-            RuntimeError,
-            ParseYAMLFile,
-            os.path.join(TEST_FILES_PATH, "parser_error.yaml"))
-
-    def test_ParseYaml_scannererror(self):
-        """"""
-        self.assertRaises(
-            RuntimeError,
-            ParseYAMLFile,
-            os.path.join(TEST_FILES_PATH, "scanner_error.yaml"))
 
     def test_emtpy_file(self):
         """"""

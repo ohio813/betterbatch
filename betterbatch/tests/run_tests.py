@@ -14,7 +14,9 @@ cov.start()
 import betterbatch
 import cmd_line
 import built_in_commands
-modules_to_test = [betterbatch, cmd_line, built_in_commands]
+import parsescript
+
+modules_to_test = [betterbatch, cmd_line, built_in_commands, parsescript]
 
 
 def run_tests():
