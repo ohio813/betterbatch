@@ -4,14 +4,34 @@ import os
 import logging
 import shlex
 import sys
+import ConfigParser
 
 import yaml
 
-import betterbatch
 import built_in_commands
 import cmd_line
 
-LOG = logging.getLogger("betterbatch")
+
+PARAM_FILE = os.path.join(os.path.dirname(__file__), "param_counts.ini")
+
+def CreateLogger():
+    "Create and set up the logger - returns the new logger"
+
+    # allow the handler to output everything - we will set the actual level
+    # through the logger
+    stdout_handler = logging.StreamHandler()
+    stdout_handler.setLevel(logging.INFO)
+
+    # make the output format very simple
+    basic_formatter = logging.Formatter("%(levelname)s - %(message)s")
+    stdout_handler.setFormatter(basic_formatter)
+
+    # set up the logger with handler and to output debug messages
+    logger = logging.getLogger("betterbatch")
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(stdout_handler)
+    return logger
+LOG = CreateLogger()
 
 
 class UndefinedVariableError(RuntimeError):
@@ -24,6 +44,42 @@ class UndefinedVariableError(RuntimeError):
         self.variable = variable
         self.string = string
 
+
+class ErrorCollection(RuntimeError):
+    "Class used to track many errors "
+
+    def __init__(self, errors):
+        RuntimeError.__init__(self, "%d errors"% len(errors))
+        self.errors = errors
+
+    def LogErrors(self):
+        "Log all the errors in a user friendly format"
+
+        # collect any Undefined Variables so we can log those better
+        undef_var_errs = {}
+        other_errs = []
+        for e in self.errors:
+            if isinstance(e, UndefinedVariableError):
+                var = e.variable.lower()
+                strings = undef_var_errs.setdefault(var, [])
+                if e.string not in strings:
+                    strings.append(e.string)
+            elif str(e) not in other_errs:
+                other_errs.append(e)
+
+        for e in other_errs:
+            LOG.fatal(e)
+
+        if undef_var_errs:
+            LOG.fatal("======== UNDEFINED VARIABLES ========")
+        for var, strings in sorted(undef_var_errs.items()):
+            LOG.fatal("'%s'"% var)
+
+            for string in strings:
+                LOG.fatal("    %s"% string)
+
+    def __repr__(self):
+        return "<ERRCOL %s>"% self.errors
 
 class EndExecution(Exception):
     "Raised when an End statement called"
@@ -84,7 +140,7 @@ def SplitStatementAndData(step):
     This only cares for simple statements e.g. cd, if, echo, set
     and not actual commands c:\tools\robocopy.exe etc
     """
-    parts = step.lower().split(None, 1)
+    parts = step.split(None, 1)
     for i, p in enumerate(parts):
         parts[i] = p.strip()
 
@@ -103,17 +159,6 @@ def FindVariableReferences(text):
     >>> FindVariableReferences("<var1> < var1> <  var2 >")
     >>> {'var1': ['<var1>', < var1>], 'var2': ['<  var2 >']}
     """
-
-    # We need some way to allow > and < so the user doubles them when
-    # they are not supposed to be around a variable reference.
-    # Replacing them like this - makes finding the acutal variable
-    # references much easier
-    text = text.replace("<<", "{LT}")
-
-    # We replace greater than >> a bit differently - because if there are
-    # an odd number of greater than signs in a row we want to split from
-    # the end not from the start
-    text = "{GT}".join(text.rsplit(">>"))
 
     variable_reference_re = re.compile("\<([^\>\<]+)\>")
 
@@ -179,7 +224,7 @@ def ReplaceVariableReferences(text, variables, loop = None):
             for ref_to_replace in refs_to_replace:
                 text = text.replace(ref_to_replace, var_value)
 
-        except betterbatch.ErrorCollection, e:
+        except ErrorCollection, e:
             for err in e.errors:
                 if isinstance(err, UndefinedVariableError):
                     new_string = "%s -> %s"% (original_text, err.string)
@@ -191,7 +236,7 @@ def ReplaceVariableReferences(text, variables, loop = None):
         loop.pop()
 
     if errors:
-        raise betterbatch.ErrorCollection(errors)
+        raise ErrorCollection(errors)
 
     text = text.replace("{{_LT_}}", "<")
     text = text.replace("{{_GT_}}", ">")
@@ -202,7 +247,7 @@ def ReplaceVariableReferences(text, variables, loop = None):
 def ReplaceVariablesInSteps(steps, defined_variables, update = False):
     "Replace variables in all the steps"
     # don't modify the variables passed in
-    
+
     if not update:
         defined_variables = defined_variables.copy()
 
@@ -213,16 +258,16 @@ def ReplaceVariablesInSteps(steps, defined_variables, update = False):
                 defined_variables[step.name] = step
 
             step.replace_vars(defined_variables, update = update)
-        except betterbatch.ErrorCollection, e:
+        except ErrorCollection, e:
             errors.extend(e.errors)
-    
+
     if errors:
-        raise betterbatch.ErrorCollection(errors)
+        raise ErrorCollection(errors)
 
 
 def ReplaceExecutableSections(text, variables, execute = True):
-    """If variable has (system) marking it as an external variable - calculate
-    and return"""
+    """If variable has {{{cmd}}} - execute 'cmd' and update value with output
+    """
 
     EXECUTABLE_SECTION = re.compile(
         """
@@ -243,19 +288,17 @@ def ReplaceExecutableSections(text, variables, execute = True):
         step = ParseStep(section.group('command_line'))
 
         if execute:
+            step.replace_vars(variables, update=True)
             step.execute(variables)
-            if step.ret:
-                raise RuntimeError(
-                    "Error value returned return "
-                    "(%d) command:%s Output\n\t%s"% (
-                        step.ret, step.raw_step, step.output))
+
             text = (
                 text[:section.start()] +
                 step.output.strip() +
                 text[section.end():])
         else:
             # if we are not actually executing - don't actually replace the
-            # variables referneces
+            # variables references. We still try and replace vars to ensure
+            # that they are defined
             step.replace_vars(variables, update=False)
 
     return text
@@ -295,6 +338,7 @@ def ParseStep(step):
 
     # get the statement type
     statement_type, step_data = SplitStatementAndData(step)
+    statement_type = statement_type.lower()
 
     parsed_step = None
     # get the correct handler, if the handler is not a known one
@@ -317,7 +361,7 @@ def ParseComplexStep(step):
     statements_by_type = {}
     for key in step.keys():
         clean_key, key_data = SplitStatementAndData(key)
-        statements_by_type[clean_key] = (key, key_data, step[key])
+        statements_by_type[clean_key.lower()] = (key, key_data, step[key])
 
     # if it iss an IF statement
     if 'if' in statements_by_type:
@@ -339,8 +383,15 @@ def ParseComplexStep(step):
 
         if if_steps is None:
             if_steps = []
-        for i, step in enumerate(if_steps):
-            if_steps[i] = ParseStep(step)
+        if isinstance(if_steps, basestring):
+            if_steps = [if_steps]
+
+        parsed_if_steps = []
+        for step in if_steps:
+            if step is None:
+                continue
+            parsed_if_steps.append(ParseStep(step))
+        if_steps = parsed_if_steps
 
         # get the steps to run if the condition is false
         else_statement, else_data, else_steps = statements_by_type.get(
@@ -348,8 +399,18 @@ def ParseComplexStep(step):
 
         if else_steps is None:
             else_steps = []
-        for i, step in enumerate(else_steps):
-            else_steps[i] = ParseStep(step)
+        if isinstance(else_steps, basestring):
+            else_steps = [else_steps]
+
+        parsed_else_steps = []
+        for step in else_steps:
+            if step is None:
+                continue
+            parsed_else_steps.append(ParseStep(step))
+        else_steps = parsed_else_steps
+
+        if not if_steps + else_steps:
+            raise RuntimeError("IF statement has no statements to run '%s'"% condition.raw_step)
 
         return IfStep(step, condition, if_steps, else_steps)
 
@@ -390,19 +451,24 @@ class VariableDefinition(Step):
         """Replace variables referenced in the step with the variable values
 
         If update is False - then this will only test that the variables
-        can be replaced
+        can be replaced. Note that we do NOT call ReplaceVariableReferences
+        for VariableDefinition instances - ReplaceVariableReferences will do
+        that when we actually need it. The reason for this is that a variable
+        may reference a variable that is defined/changed later.
         """
+
         #if update:
         #    self.value = ReplaceVariableReferences(self.value, variables)
 
-        # don't actually replace vars unless update == true?
+        # Replace executable sections - If execute is False - then the
+        # command will not be actually run
         new_val = ReplaceExecutableSections(
             self.value, variables, execute = update)
 
         if update:
             self.value = new_val
 
-    def execute(self, variables):
+    def execute(self, variables, raise_on_error = True):
         """Set the variable
 
         Note - we don't replace all sub variables at this point
@@ -417,49 +483,6 @@ class VariableDefinition(Step):
 
     def __repr__(self):
         return "'%s'"% self.value
-
-
-class IfStep(Step):
-    "An IF block"
-
-    def __init__(self, raw_step, condition, if_steps, else_steps):
-        Step.__init__(self, raw_step)
-        self.condition = condition
-        self.if_steps = if_steps
-        self.else_steps = else_steps
-
-    def replace_vars(self, variables, update = False):
-        """Replace variables referenced in the step with the variable values
-
-        If update is False - then this will only test that the variables
-        can be replaced
-        """
-
-        self.condition.replace_vars(variables, update = update)
-        ReplaceVariablesInSteps(self.if_steps, variables, update = update)
-        ReplaceVariablesInSteps(self.else_steps, variables, update = update)
-
-    def execute(self, variables):
-        "Run this step"
-        self.replace_vars(variables, update=True)
-
-        LOG.debug("Testing Condition:")
-        # check if the condition is true
-        try:
-            self.condition.execute(variables)
-            check_true = True
-            LOG.debug("Condition evaluated to true %s"% self.condition.output)
-        except RuntimeError, e:
-            LOG.debug("Condition evaluated to false: %s"% e)
-            check_true = False
-
-        # if it is - then execute true steps
-        if check_true:
-            for step in self.if_steps:
-                step.execute(variables)
-        else:
-            for step in self.else_steps:
-                step.execute(variables)
 
 
 class CommandStep(Step):
@@ -498,13 +521,17 @@ class CommandStep(Step):
         if isinstance(params, list):
             params = " ".join(params)
 
-        if len(params) > 200:
-            command_message = params[:197] + "..."
-        else:
-            command_message = params
+        def shorten_string(string, length = 100):
+            if len(string) > length:
+                string = string[:length-3] + "..."
+            return string
+
+        command_message = params
 
         if command_message != self.raw_step:
-            command_message = "'%s' -> '%s'"% (self.raw_step, command_message)
+            command_message = "'%s' -> '%s'"% (
+                shorten_string(self.raw_step),
+                shorten_string(command_message))
         else:
             command_message = "'%s'"% (command_message)
 
@@ -513,11 +540,11 @@ class CommandStep(Step):
 
         return command_message
 
-    def execute(self, variables):
+    def execute(self, variables, raise_on_error = True):
         "Run this step"
         self.replace_vars(variables, update = True)
 
-        qualifiers, self.step_data = self._parse_qualifiers()
+        self.qualifiers, self.step_data = self._parse_qualifiers()
 
         # Check if the command in the mapping
         parts = SplitStatementAndData(self.step_data)
@@ -529,15 +556,15 @@ class CommandStep(Step):
         else:
             func = built_in_commands.SystemCommand
             params = self.step_data
-        
+
         if cmd == "echo":
-            qualifiers.append('echo')
+            self.qualifiers.append('echo')
 
         cmd_log_string = self.command_as_string_for_log(params)
         try:
             LOG.debug("Executing command %s"% cmd_log_string)
             # call the function and get the output and the return value
-            self.ret, self.output = func(params, qualifiers)
+            self.ret, self.output = func(params, self.qualifiers)
         except KeyboardInterrupt:
             while 1:
                 LOG.error(
@@ -554,19 +581,66 @@ class CommandStep(Step):
         else:
             indented_output = '\n'
 
-        if self.ret and 'nocheck' not in qualifiers:
+        if self.ret and raise_on_error and not 'nocheck' in self.qualifiers:
             message = (
                 'Non zero return (%d) CMD: %s \n %s'%(
                     self.ret, cmd_log_string, indented_output))
 
             raise RuntimeError(message)
 
-        if 'echo' in qualifiers and indented_output != '\n':
+        if 'echo' in self.qualifiers and indented_output != '\n':
             LOG.info(indented_output)
 
         elif indented_output != "\n":
             LOG.debug("Output from command:\n%s"% indented_output)
 
+
+class IfStep(Step):
+    "An IF block"
+
+    def __init__(self, raw_step, condition, if_steps, else_steps):
+        Step.__init__(self, raw_step)
+        self.condition = condition
+        self.if_steps = if_steps
+        self.else_steps = else_steps
+
+    def replace_vars(self, variables, update = False):
+        """Replace variables referenced in the step with the variable values
+
+        If update is False - then this will only test that the variables
+        can be replaced
+        """
+
+        self.condition.replace_vars(variables, update = update)
+        ReplaceVariablesInSteps(self.if_steps, variables, update = update)
+        ReplaceVariablesInSteps(self.else_steps, variables, update = update)
+
+    def execute(self, variables, raise_on_error = True):
+        "Run this step"
+        self.replace_vars(variables, update=True)
+
+        LOG.debug("Testing Condition:")
+        # check if the condition is true
+        #try:
+        self.condition.execute(variables, raise_on_error = False)
+        if self.condition.ret  == 0:
+            check_true = True
+            LOG.debug("Condition evaluated to true: %s"% self.condition.output)
+        #except RuntimeError, e:
+        else:
+            LOG.debug("Condition evaluated to false: %s"% self.condition.output)
+            check_true = False
+
+        # if it is - then execute true steps
+        if check_true:
+            for step in self.if_steps:
+                step.execute(variables)
+        else:
+            for step in self.else_steps:
+                step.execute(variables)
+
+    def __repr__(self):
+        return "<IF %s...>"% self.condition.raw_step
 
 class ExecutionEndStep(Step):
     "Request end execution of the script"
@@ -575,8 +649,8 @@ class ExecutionEndStep(Step):
         Step.__init__(self, raw_step)
         self.ret = 0
         self.message = ''
-        
-        
+
+
         parts = ret_message.split(',', 1)
         try:
             self.ret = int(parts[0])
@@ -587,8 +661,6 @@ class ExecutionEndStep(Step):
 
         if len(parts) == 2:
             self.message = parts[1]
-        
-        
 
     def replace_vars(self, variables, update = False):
         """Replace variables referenced in the step with the variable values
@@ -600,7 +672,7 @@ class ExecutionEndStep(Step):
         if update:
             self.message = message
 
-    def execute(self, variables):
+    def execute(self, variables, raise_on_error = True):
         "Run this step"
         self.replace_vars(variables, update = True)
         raise EndExecution(self.ret, self.message)
@@ -627,10 +699,12 @@ class IncludeStep(Step):
 
         # ensure that it can be included
 
-    def execute(self, variables):
+    def execute(self, variables, raise_on_error = True):
         "Run this step"
         self.replace_vars(variables, update = True)
-        
+        self.filename = os.path.join(
+            variables['__script_dir__'].value, self.filename)
+
         # todo: should the __script_dir__ be updated to the include
         # directory? if yes- then don't forget to set it back afterwards
         # in a safe try finally!
@@ -656,7 +730,7 @@ class LogFileStep(Step):
         if update:
             self.filename = new_val
 
-    def execute(self, variables):
+    def execute(self, variables, raise_on_error = True):
         "Run this step"
         self.replace_vars(variables, update = True)
         SetupLogFile(self.filename)
@@ -674,6 +748,15 @@ STATEMENT_HANDLERS = {
 }
 def LoadAndCheckFile(filepath, variables):
     steps = ParseYAMLFile(filepath)
+
+    if not steps:
+        return []
+
+    if not isinstance(steps, list):
+        raise RuntimeError(
+            "Configuration file not correctly defined (remember to start each "
+            "statement with '-')")
+
     parsed_steps = []
     errors = []
     for step in steps:
@@ -687,17 +770,17 @@ def LoadAndCheckFile(filepath, variables):
                 include_step.execute(variables)
                 parsed_steps.extend(include_step.steps)
 
-        except betterbatch.ErrorCollection, e:
+        except ErrorCollection, e:
             errors.extend(e.errors)
         # todo: add a check for number of parameters
-            
+
     try:
         ReplaceVariablesInSteps(parsed_steps, variables, update = False)
-    except betterbatch.ErrorCollection, e:
+    except ErrorCollection, e:
         errors.extend(e.errors)
 
     if errors:
-        raise betterbatch.ErrorCollection(errors)
+        raise ErrorCollection(errors)
     return parsed_steps
 
 
@@ -706,14 +789,113 @@ def ExecuteSteps(steps, variables):
         step.execute(variables)
 
 
-def PopulateVariablesFromEnvironment():
+
+
+def PopulateVariables(script_file):
     "Allow variables from the command line to be used also"
     variables = {}
     for var, val in os.environ.items():
         var = var.lower()
         variables[var] = ParseStep(
             "set %s=%s"%(var, val))
+
+    variables.update({
+        '__script_dir__':
+            ParseStep('set __script_dir__ = %s'%
+                os.path.abspath(os.path.dirname(script_file))),
+        '__working_dir__':
+            ParseStep('set __working_dir__ = %s'%
+                os.path.abspath(os.getcwd()))})
+
     return variables
+
+
+def ValidateArgumentCounts(steps, count_db):
+    # get the name of the command
+    errors = []
+
+    #try:
+    #    parts = shlex.split(self.params)
+    #except ValueError:
+    #    LOG.info(
+    #        "The command '%s' is not a valid shell command"%
+    #            self.params)
+    #    # it is not a valid shell command - so just use a normal split
+    #    parts = self.params.split()
+
+
+    for step in steps:
+        command = step.command.lower()
+
+        # See if it is in the DB
+        if command in count_db:
+
+            # If it is then get the count of it's parameters
+            arg_count = step.argcount
+
+            lower, upper = count_db[command]
+
+            # check that is it appropriate
+            if not lower <= arg_count <= upper:
+                print arg_count, step, step.params
+
+                errors.append(RuntimeError((
+                    "Invalid number of parameters '%d'. "
+                    "Expected %d to %s. Command:\n\t%s: %s")% (
+                        arg_count,
+                        lower,
+                        count_db[command][1],
+                        step.action_type,
+                        step.params)))
+
+    if errors:
+        raise ErrorCollection(errors)
+
+
+def ReadParamRestrictions(param_file):
+    ""
+    params = ConfigParser.RawConfigParser()
+
+
+    try:
+        if (
+            not params.read(param_file) or
+            not params.has_section('param_counts')):
+                LOG.info(
+                    "Param file does not exist or does "
+                    "not contain [param_counts]")
+                return {}
+
+    except ConfigParser.ParsingError, e:
+        LOG.warning(str(e))
+        return {}
+
+    counts_db = {}
+    for (executable, counts) in params.items('param_counts'):
+        executable = executable.lower().strip()
+        if "-" in counts:
+            upper_lower = [p.strip() for p in counts.split("-")]
+        else:
+            upper_lower = counts.strip(), counts.strip()
+
+        parsed_counts = []
+        for val in upper_lower:
+            if val == "*":
+                val = sys.maxint
+            else:
+                try:
+                    val = int(val)
+                except ValueError:
+                    LOG.info(
+                        "Param counts for '%s' are not valid: '%s'"%(
+                            executable, counts))
+                    continue
+            parsed_counts.append(val)
+
+        if len(parsed_counts) == 2:
+            counts_db[executable] = parsed_counts
+
+    return counts_db
 
 
 def Main():
@@ -726,30 +908,26 @@ def Main():
     if options.verbose:
         for handler in LOG.handlers:
             handler.setLevel(logging.DEBUG)
-    
+
     LOG.debug("Run Options:"% options)
 
-    variables = PopulateVariablesFromEnvironment()
+    variables = PopulateVariables(options.script_file)
 
-    variables.update({
-        '__script_dir__':
-            ParseStep('set __script_dir__ = %s'%
-                os.path.abspath(os.path.dirname(options.script_file))),
-        '__working_dir__':
-            ParseStep('set __working_dir__ = %s'%
-                os.path.abspath(os.getcwd()))})
 
     LOG.debug("Environment:"% variables)
 
     try:
         steps = LoadAndCheckFile(options.script_file, variables)
-    except betterbatch.ErrorCollection, e:
+    except ErrorCollection, e:
         e.LogErrors()
         sys.exit()
 
+    arg_counts_db = ReadParamRestrictions(PARAM_FILE)
+    #ValidateArgumentCounts(executable_steps, arg_counts_db)
+
     try:
         ExecuteSteps(steps, variables)
-    except betterbatch.ErrorCollection, e:
+    except ErrorCollection, e:
         e.LogErrors()
         sys.exit(1)
     except EndExecution, e:
@@ -764,7 +942,7 @@ def Main():
         sys.exit(99)
     finally:
         logging.shutdown()
-    
+
     sys.exit(0)
 
 

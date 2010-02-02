@@ -1,13 +1,13 @@
 import unittest
 import os
 import logging
+import glob
 
 import sys
 # ensure that the package root is on the path
 package_root = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(package_root)
 
-#import betterbatch
 import parsescript
 from parsescript import *
 
@@ -22,7 +22,7 @@ class ParseYAMLFileTests(unittest.TestCase):
         full_path = os.path.join(TEST_FILES_PATH, 'basic.bb')
         details = ParseYAMLFile(full_path)
         self.assertEquals(details, [
-            "set Hello=World",
+            "set Hello=.",
             "cd <hello>"])
 
     def test_doesnt_exist(self):
@@ -92,6 +92,12 @@ class ParseVariableDefinitionTests(unittest.TestCase):
             ParseVariableDefinition,
                 ' ')
 
+    def test_no_equals(self):
+        self.assertRaises(
+            RuntimeError,
+            ParseVariableDefinition,
+                'blah')
+
 
 
 class FindVariableReferencesTests(unittest.TestCase):
@@ -119,11 +125,6 @@ class FindVariableReferencesTests(unittest.TestCase):
         self.assertEquals(
             FindVariableReferences("cd <   this ><   this ><dir>"),
             {"this": ["<   this >", "<   this >"], "dir": ["<dir>"]})
-
-    def test_escaped_var_ref(self):
-        self.assertEquals(
-            FindVariableReferences("cd <<dir>>"),
-            {})
 
 
 class DummyVar(object):
@@ -165,14 +166,14 @@ class ReplaceVariableReferencesTests(unittest.TestCase):
     def test_missing_var(self):
         """"""
         self.assertRaises(
-            betterbatch.ErrorCollection,
+            ErrorCollection,
             ReplaceVariableReferences,
                 "<not_here>", {'here': DummyVar('there')})
 
     def test_recursive_var_err(self):
         """"""
         self.assertRaises(
-            betterbatch.ErrorCollection,
+            ErrorCollection,
             ReplaceVariableReferences,
                 "<here>", {
                     'here': DummyVar('<there>'),
@@ -189,7 +190,7 @@ class ReplaceVariableReferencesTests(unittest.TestCase):
     def test_2nd_level_undefined(self):
         """"""
         self.assertRaises(
-            betterbatch.ErrorCollection,
+            ErrorCollection,
             ReplaceVariableReferences,
                 "<here>", {
                     'here': DummyVar('<not_there>'),
@@ -237,7 +238,7 @@ class SplitStatementAndDataTests(unittest.TestCase):
     def test_with_spaces(self):
         """"""
         statement, data = SplitStatementAndData("   SeT   = var  = here  ")
-        self.assertEquals(statement, "set")
+        self.assertEquals(statement, "SeT")
         self.assertEquals(data, "= var  = here")
 
 
@@ -302,29 +303,69 @@ class ReplaceExecutableSectionsTests(unittest.TestCase):
             ReplaceExecutableSections("echo This value", {}),
             "echo This value")
 
-    def test_simple_exe(self):
+    def test_no_section_with_var(self):
+        """"""
+        self.assertEquals(
+            ReplaceExecutableSections(
+                "here <value>",
+                {'value': DummyVar('car')}, execute=True),
+            "here <value>")
+
+    def test_simple_exec(self):
         """"""
         self.assertEquals(
             ReplaceExecutableSections(" -  {{{echo This value}}}  - ", {}),
             " -  This value  - ")
 
-    def test_simple_wiht_var(self):
+    def test_simple_no_exec(self):
+        """"""
+        self.assertEquals(
+            ReplaceExecutableSections(
+                " -  {{{echo This value}}}  - ", {}, execute = False),
+            " -  {{{echo This value}}}  - ")
+
+    def test_simple_with_var_execute(self):
         """"""
         self.assertEquals(
             ReplaceExecutableSections(
                 "here {{{echo This <value>}}} <value>",
-                {'value': DummyVar('car')}),
+                {'value': DummyVar('car')}, ),
             "here This car <value>")
+
+    def test_simple_with_var_no_execute(self):
+        """"""
+        self.assertEquals(
+            ReplaceExecutableSections(
+                "here {{{echo This <value>}}} <value>",
+                {'value': DummyVar('car')}, execute=False),
+            "here {{{echo This <value>}}} <value>")
 
     def test_not_a_command(self):
         """"""
-        text = "{{{not_a_command}}} echo This <var>}}}"
+        text = "{{{cd here}}} echo This <var>"
         variables = {'var': DummyVar('car')}
         self.assertRaises(
             RuntimeError,
             ReplaceExecutableSections,
-                text, variables, execute=True)
+                text, variables, )
 
+    def test_with_embedded_braces(self):
+        """"""
+        text = "{{{cd {{{ echo hi echo This <var>}}}"
+        variables = {'var': DummyVar('car')}
+        self.assertRaises(
+            RuntimeError,
+            ReplaceExecutableSections,
+                text, variables, )
+
+    def test_command_fails(self):
+        """"""
+        text = "{{{ _bad_command_or_filename_ }}}"
+        variables = {'var': DummyVar('car')}
+        self.assertRaises(
+            RuntimeError,
+            ReplaceExecutableSections,
+                text, variables, )
 
 
 class ParseStepTests(unittest.TestCase):
@@ -339,7 +380,7 @@ class ParseStepTests(unittest.TestCase):
 
     def test_dict_step(self):
         """"""
-        step = ParseStep({r"if exists c:\temp": None, 'else': None})
+        step = ParseStep({r"if exists c:\temp": 'here', 'else': 'there'})
         self.assertEquals(step.condition.raw_step,  "exists c:\\temp")
 
     def test_command_step(self):
@@ -386,6 +427,11 @@ class ParseComplexStepTests(unittest.TestCase):
         self.assertEquals(step.if_steps[0].raw_step, 'cd 1')
         self.assertEquals(step.else_steps[0].raw_step, 'cd 2')
 
+    def test_if_step_string_actions(self):
+        """"""
+        step = ParseComplexStep({r"if exists c:\temp": "cd 1", 'else': "cd 2"})
+
+
     def test_broken_if_step_wrong_key(self):
         """"""
         step = {r"if exists c:\temp": ["cd 1"], 'there': ["cd 2"]}
@@ -397,10 +443,10 @@ class ParseComplexStepTests(unittest.TestCase):
     def test_if_step_none_value(self):
         """"""
         step = {r"if 1": None,}
-        step = ParseComplexStep(step)
-        self.assertEquals(step.condition.raw_step,  "1")
-        self.assertEquals(step.if_steps, [])
-        self.assertEquals(step.else_steps, [])
+        self.assertRaises(
+            RuntimeError,
+            ParseComplexStep,
+                step)
 
     def test_for_step(self):
         """"""
@@ -427,9 +473,13 @@ class StepTests(unittest.TestCase):
         s = Step("here")
         self.assertEquals(s.raw_step, "here")
 
-    def test_basic_step_str_(self):
+    def test_basic_step_str(self):
         s = Step("here")
         self.assertEquals(s.__str__(), "here")
+    
+    def test_basic_step_repr(self):
+        s = Step("here")
+        self.assertEquals(s.__repr__(), "<Step here>")
 
 
 class VariableDefinitionTests(unittest.TestCase):
@@ -467,9 +517,181 @@ class VariableDefinitionTests(unittest.TestCase):
             "here={{{<not_there>}}}")
             
         self.assertRaises(
-            betterbatch.ErrorCollection,
+            ErrorCollection,
             s.execute,
                 {})
+
+    def test_basic_step_repr(self):
+        s = VariableDefinition("blah blah", "_yikes_=_close_")
+        self.assertEquals(s.__repr__(), "'_close_'")
+
+
+class EndExecutionTests(unittest.TestCase):
+    ""
+    def test_construct(self):
+        """"""
+        e = EndExecution(123, "hi")
+        self.assertEquals(e.ret, 123) 
+        self.assertEquals(e.msg, "hi") 
+
+
+def DebugAction(to_exec, dummy = None):
+    exec to_exec
+    return 0, "no message"
+built_in_commands.NAME_ACTION_MAPPING['debug'] = DebugAction
+
+
+class CommandStepTests(unittest.TestCase):
+    ""
+    def test_command_as_string_for_log_list(self):
+        """"""
+        c = CommandStep("")
+        self.assertEquals(
+            c.command_as_string_for_log(['1', '2', '3']),
+            "'' -> '1 2 3'")
+
+    def test_command_as_string_for_log_long_string_diff(self):
+        """"""
+        c = CommandStep("")
+        self.assertEquals(
+            c.command_as_string_for_log("s" * 300),
+            "'' -> '%s'"% ("s"*97 + "..."))
+
+    def _test_command_as_string_for_log_long_string_equal(self):
+        """"""
+        c = CommandStep("s" * 300)
+        self.assertEquals(
+            c.command_as_string_for_log("s" * 300),
+            "s"*197 + "...")
+
+    def test_Step_interupted_continue(self):
+        """"""
+        old_stdin = sys.stdin
+        sys.stdin = open(os.path.join(TEST_FILES_PATH, "no.txt"), "r")
+
+        CommandStep('debug raise KeyboardInterrupt()').execute({})
+        sys.stdin.close()
+        sys.stdin = old_stdin
+
+    def test_Step_interupted_stop(self):
+        """"""
+        old_stdin = sys.stdin
+        sys.stdin = open(os.path.join(TEST_FILES_PATH, "yes.txt"), "r")
+        s = CommandStep('debug raise KeyboardInterrupt')
+        
+        self.assertRaises(RuntimeError, s.execute, {})
+        
+        sys.stdin.close()
+        sys.stdin = old_stdin
+
+    def test_Step_no_output(self):
+        """"""
+        
+        s = CommandStep('cd \\')
+        
+        s.execute({})
+        self.assertEquals(s.output, "")
+        
+    def test_Step_no_error_and_output(self):
+        """"""
+        
+        s = CommandStep('dir')
+        
+        s.execute({})
+        self.assertEquals(s.ret, 0)
+
+
+class IfStepTests(unittest.TestCase):
+
+    def test_working_do(self):
+        for filename in glob.glob(os.path.join(TEST_FILES_PATH, "if_else_*")):
+            
+            # skip tests which are meant to fail
+            if 'if_else_broken' in filename:
+                continue
+            
+            script_filepath = os.path.join(TEST_FILES_PATH, filename)
+            vars = PopulateVariables(script_filepath)
+            
+            steps = LoadAndCheckFile(script_filepath, vars)
+
+            try:
+                ExecuteSteps(steps, vars)
+
+                #if "if_else_empty" in filename:
+                #    self.assertEquals(steps[1].output.strip(), "")
+                #else:
+                #    self.assertEquals(steps[1].output.strip(), filename)
+
+            except ErrorCollection, e:
+                print "ERROR WHEN RUNNING", filename
+                e.LogErrors()
+                raise
+
+
+    def test_broken_not_list(self):
+        script_filepath = os.path.join(TEST_FILES_PATH,   "if_else_broken_not_list.yaml")
+        vars = PopulateVariables(script_filepath)
+        self.assertRaises(
+            RuntimeError,
+            LoadAndCheckFile,
+                script_filepath, vars)
+        
+    def test_broken_not_list2(self):
+        script_filepath = os.path.join(TEST_FILES_PATH,   "if_else_broken_not_list2.yaml")
+        vars = PopulateVariables(script_filepath)
+        try:
+            steps = LoadAndCheckFile(
+                script_filepath, 
+                vars)
+        except ErrorCollection, e:
+            e.LogErrors()
+            print e.errors
+            import pdb; pdb.set_trace()
+        
+#
+#    def test_broken_too_few_clauses(self):
+#        vars = {}
+#        try:
+#            LoadAndCheckFile(
+#                os.path.join(TEST_FILES_PATH, "if_else_broken_only_one.yaml"),
+#                vars)
+#        except ErrorCollection, e:
+#            print "\n\n"
+#            e.LogErrors()
+#        self.assertRaises(
+#            ErrorCollection,
+#            ExecuteSteps,
+#                steps, vars)
+#
+    def test_broken_too_many_clauses(self):
+        vars = {}
+        self.assertRaises(
+            RuntimeError,
+            LoadAndCheckFile,
+                os.path.join(TEST_FILES_PATH, "if_else_broken_too_many.yaml"),
+                vars)
+
+    def test_broken_do_name(self):
+        script_filepath = os.path.join(TEST_FILES_PATH,   "if_else_broken_do_name.yaml")
+        vars = PopulateVariables(script_filepath)
+        steps = LoadAndCheckFile(
+            script_filepath, vars)
+
+        ExecuteSteps(steps, vars)
+
+    def test_broken_else_name(self):
+        script_filepath = os.path.join(TEST_FILES_PATH, "if_else_broken_else_name.yaml")
+        vars = PopulateVariables(script_filepath)
+        self.assertRaises(
+            RuntimeError,
+            LoadAndCheckFile,
+                script_filepath, vars)
+
+    def test_minimal_if(self):
+        pass
+
+
 
 if __name__ == "__main__":
     suite = unittest.defaultTestLoader.loadTestsFromName("test_parsescript")

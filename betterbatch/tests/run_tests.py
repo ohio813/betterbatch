@@ -11,12 +11,12 @@ sys.path.append(package_root)
 cov = coverage.coverage(branch = True)
 cov.start()
 
-import betterbatch
+#import betterbatch
 import cmd_line
 import built_in_commands
 import parsescript
 
-modules_to_test = [betterbatch, cmd_line, built_in_commands, parsescript]
+modules_to_test = [cmd_line, built_in_commands, parsescript]
 
 
 def run_tests():

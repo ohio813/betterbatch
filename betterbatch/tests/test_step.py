@@ -5,19 +5,13 @@ import sys
 sys.path.append(".")
 sys.path.append("..")
 
-from betterbatch import *
-from betterbatch import built_in_commands
+from parsescript import *
+from parsescript import built_in_commands
 
 TEST_PATH = os.path.dirname(__file__)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
 
-def DebugAction(to_exec, dummy = None):
-    exec to_exec
-    return 0, "no message"
-
-
-built_in_commands.NAME_ACTION_MAPPING['debug'] = DebugAction
 
 
     #def test_parsestepdata_DOS_replacement_cmd(self):
@@ -123,26 +117,6 @@ class StepTests(unittest.TestCase):
     def test_Step_output(self):
         """"""
         Step('output', [], "my message").Execute()
-
-    def test_Step_interupted_continue(self):
-        """"""
-        old_stdin = sys.stdin
-        sys.stdin = open(os.path.join(TEST_FILES_PATH, "no.txt"), "r")
-        Step('debug', [], "raise KeyboardInterrupt()").Execute()
-        sys.stdin.close()
-        sys.stdin = old_stdin
-
-    def test_Step_interupted_stop(self):
-        """"""
-        old_stdin = sys.stdin
-        sys.stdin = open(os.path.join(TEST_FILES_PATH, "yes.txt"), "r")
-        s = Step('debug', [], "raise KeyboardInterrupt")
-        
-        self.assertRaises(RuntimeError, s.Execute)
-        self.assertRaises(RuntimeError, s.Execute)
-        
-        sys.stdin.close()
-        sys.stdin = old_stdin
 
     def test_StepExecute_ret(self):
         """Test that 'nocheck' doesn't raise on error"""

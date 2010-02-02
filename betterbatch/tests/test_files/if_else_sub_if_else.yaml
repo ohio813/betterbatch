@@ -1,16 +1,10 @@
-variables:
- my_file: <__script_path__>\basic.yaml
+- set my_file=<__script_dir__>\basic.yaml
 
-sub_if_else:
-- If:
-    - Exists: <my_file>
-    - Do  :
-        - if: 
-            - exists: otherfile
-            - do: 
-                echo sub_if_else not exists!
-            - Else:
-                echo sub_if_else
-    - Else:
-        echo BROKEN not exists <my_file>_
+- If Exists <my_file>:
+    - if exists otherfile:
+        echo sub_if_else not exists!
+      else:
+        echo sub_if_else
+  Else:
+    echo BROKEN not exists <my_file>_
 

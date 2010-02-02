@@ -2,11 +2,13 @@ import unittest
 import os
 
 import sys
-sys.path.append(".")
-sys.path.append("..")
+# ensure that the package root is on the path
+package_root = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(package_root)
 
-from betterbatch import ParseScriptFile
-from betterbatch import ErrorCollection
+from parsescript import LoadAndCheckFile
+from parsescript import ErrorCollection
+from parsescript import PopulateVariables
 
 TEST_PATH = os.path.dirname(__file__)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
@@ -17,9 +19,10 @@ class LoadConfigTests(unittest.TestCase):
 
     def test_emtpy_file(self):
         """"""
-        vars_and_commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "empty.yaml"))
-        self.assertEquals(vars_and_commands, {})
+        path = os.path.join(TEST_FILES_PATH, "empty.yaml")
+        vars = PopulateVariables(path)
+        steps = LoadAndCheckFile(path, vars)
+        self.assertEquals(steps, [])
 
     def test_can_load_relative_include(self):
         """Should be able to load an include relative to the current config
@@ -28,64 +31,74 @@ class LoadConfigTests(unittest.TestCase):
         directory - so if running from another directory - config files were
         not found.
         """
-        vars = {}
-        commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "test_rel_include.yaml"), vars)
-        self.assertEquals(vars['test'], "Hello World")
+        path = os.path.join(TEST_FILES_PATH, "test_rel_include.yaml")
+        vars = PopulateVariables(path)
+        commands = LoadAndCheckFile(path, vars)
+        self.assertEquals(commands[0].value, "Hello World")
 
     def test_missing_file(self):
         """"""
+        
+        path = os.path.join(TEST_FILES_PATH, "missing.yaml")
+        vars = PopulateVariables(path)
 
         self.assertRaises(
-            ErrorCollection,
-            ParseScriptFile,
-            os.path.join(TEST_FILES_PATH, "missing.yaml"))
+            RuntimeError,
+            LoadAndCheckFile,
+            path, vars)
 
     def test_missing_include(self):
         """"""
 
+        path = os.path.join(TEST_FILES_PATH, "missing_include.yaml")
+        vars = PopulateVariables(path)
         self.assertRaises(
-            ErrorCollection,
-            ParseScriptFile,
-            os.path.join(TEST_FILES_PATH, "missing_include.yaml"))
+            RuntimeError,
+            LoadAndCheckFile,
+            path, vars)
 
     def test_variables_as_list(self):
         """"""
 
-        vars = {}
-        commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "variables_as_list.yaml"), vars)
-        self.assertEquals(vars['test'], "Hello World")
+        path = os.path.join(TEST_FILES_PATH, "variables_as_list.yaml")
+        vars = PopulateVariables(path)
+        commands = LoadAndCheckFile(path, vars)
+        commands[0].execute(vars)
+        
+        self.assertEquals(vars['test'].value, "Hello World")
 
     def test_numeric_variable(self):
         """"""
 
         try:
-            ParseScriptFile(
-                os.path.join(TEST_FILES_PATH, "number_variables.yaml"))
+            path = os.path.join(TEST_FILES_PATH, "number_variables.yaml")
+            vars = PopulateVariables(path)
+            LoadAndCheckFile(path, vars)
         except ErrorCollection, e:
             self.assertEquals(len(e.errors), 2)
 
     def test_empty_include_section(self):
         """"""
-        ParseScriptFile(os.path.join(TEST_FILES_PATH, "empty_includes.yaml"))
-        ParseScriptFile(os.path.join(TEST_FILES_PATH, "empty_includes2.yaml"))
-
-    def test_overlapping_variable(self):
-        """"""
-
+        path = os.path.join(TEST_FILES_PATH, "empty_includes.yaml")
+        vars = PopulateVariables(path)
         self.assertRaises(
             RuntimeError,
-            ParseScriptFile,
-            os.path.join(TEST_FILES_PATH, "overlapping_variables.yaml"))
+            LoadAndCheckFile, path, vars)
+        path = os.path.join(TEST_FILES_PATH, "empty_includes2.yaml")
+        self.assertRaises(
+            RuntimeError,
+            LoadAndCheckFile,
+                path, vars)
 
     def test_broken_variable_block(self):
         """"""
 
+        path = os.path.join(TEST_FILES_PATH, "variable_block_broken.yaml")
+        vars = PopulateVariables(path)
         self.assertRaises(
             RuntimeError,
-            ParseScriptFile,
-            os.path.join(TEST_FILES_PATH, "variable_block_broken.yaml"))
+            LoadAndCheckFile,
+                path, vars)
 
 
 

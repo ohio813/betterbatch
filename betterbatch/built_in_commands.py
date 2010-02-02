@@ -93,7 +93,7 @@ def PathNotExists(path, dummy = None):
 
     if os.path.exists(path):
         message = "Path found: '%s'"% path
-        raise RuntimeError(message)
+        return RESULT_FAILURE, message
     else:
         return RESULT_SUCCESS, 'SUCCESS: Path does not exist'
 
@@ -106,7 +106,7 @@ def PathExists(path, dummy = None):
         return RESULT_SUCCESS, 'SUCCESS: Path exists'
     else:
         message = "Path not found: '%s'"% path
-        raise RuntimeError(message)
+        return RESULT_FAILURE, message
 
 
 def SystemCommand(command, qualifiers = None):
@@ -124,8 +124,6 @@ def SystemCommand(command, qualifiers = None):
     # in the function body
     if qualifiers is None:
         qualifiers = []
-
-    shell = True
     
     #for shell_cmd in COMMANDS_REQUIRING_SHELL:
     #    if command.lower().startswith(shell_cmd):
@@ -138,7 +136,7 @@ def SystemCommand(command, qualifiers = None):
         new_stdout = tempfile.TemporaryFile()
 
     if isinstance(command, basestring):
-        comamnd = command.strip()
+        command = command.strip()
         command_len = len(command)
     else:
         command_len = len(" ".join(command))
@@ -147,17 +145,20 @@ def SystemCommand(command, qualifiers = None):
     if command_len > subprocess_safe_command_limit:
         raise RuntimeError(
             "The command is %d characters long. "
-            "It cannot be longer than %d characters"% (
-                command_len, subprocess_safe_command_limit))
-                
-    try:
-        ret_value = subprocess.call(
-            command[:100],
-            shell = shell,
-            stdout = new_stdout,
-            stderr = new_stdout)
-    except OSError, e:
-        return e.errno, str(e)
+            "It cannot be longer than %d characters. '%s...'"% (
+                command_len, subprocess_safe_command_limit, str(command)[:80]))
+    
+    # if we can turn shell off for some/all of the commands then it will
+    # allow us to better handle catastrophic issues (e.g. command not found)
+    #try:
+    shell = True
+    ret_value = subprocess.call(
+        command,
+        shell = shell,
+        stdout = new_stdout,
+        stderr = new_stdout)
+    #except OSError, e:
+    #    return e.errno, str(e)
 
     output = ''
     if 'ui' not in qualifiers:
@@ -231,7 +232,28 @@ class ExternalCommand(object):
 def EscapeNewlines(input, qualifiers = ''):
         text = input.replace("\r", "\\\\r")
         text = text.replace("\n", "\\\\n")
-        return 0, text
+        return 0, text    
+
+
+def PopulateFromToolsFolder(tools_folder, dummy = []):
+    
+    print "---------", tools_folder
+    for file in os.listdir(tools_folder):
+        name, ext = os.path.splitext(file)
+        name = name.lower()
+        ext = ext.upper()
+        
+        if ext in (
+            os.environ["pathext"].split(";") + [".PY", ".PL", ".PYW"]):
+            
+            full_path = os.path.join(tools_folder, file)
+            if name not in NAME_ACTION_MAPPING:
+                NAME_ACTION_MAPPING[name] = ExternalCommand(full_path)
+            else:
+                raise RuntimeError(
+                    "External command conflicts with built-in command: '%s'"%
+                        full_path)
+    return 0, ""
 
 
 NAME_ACTION_MAPPING = {
@@ -260,26 +282,11 @@ NAME_ACTION_MAPPING = {
 
     'escape_newlines': EscapeNewlines,
     'escapenewlines' : EscapeNewlines,
+
+    'add_tools_folder': PopulateFromToolsFolder,
 }
 
 
-def PopulateFromToolsFolder(tools_folder):
-    
-    for file in os.listdir(tools_folder):
-        name, ext = os.path.splitext(file)
-        name = name.lower()
-        ext = ext.upper()
-        
-        if ext in (
-            os.environ["pathext"].split(";") + [".PY", ".PL", ".PYW"]):
-            
-            if name not in NAME_ACTION_MAPPING:
-                full_path = os.path.join(tools_folder, file)
-                NAME_ACTION_MAPPING[name] = ExternalCommand(full_path)
-            else:
-                raise RuntimeError(
-                    "External command conflicts with built-in command: '%s'"%
-                        name)
 
 
 # the following commands will not require to use the command syntax

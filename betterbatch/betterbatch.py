@@ -98,69 +98,6 @@ class NumericVarNotAllowedError(TypeError):
                     variable, script_file, type(value).__name__, str(value)))
 
 
-def ParseYAMLFile(yaml_file):
-    """Parse a single YAML file
-
-    Most of the work of this function is to convert various different errors
-    into RuntimeErrors
-    """
-    absolute_yaml_dir = os.path.dirname(os.path.abspath(yaml_file))
-
-    try:
-
-        # read the YAML contents
-        f = open(yaml_file, "rb")
-        yaml_data = f.read()
-        f.close()
-
-        # Replace the 'pseudo' variable <__script_path__> with the actual path
-        yaml_path_re = re.compile("\<\s*__script_path__\s*\>", re.I)
-        yaml_data = yaml_path_re.sub(
-            absolute_yaml_dir.replace("\\", "\\\\"),
-            yaml_data)
-
-        # Parse the yaml data
-        script_data = yaml.load(yaml_data)
-        return script_data
-
-    except IOError, e:
-        raise RuntimeError(e)
-
-    except yaml.parser.ScannerError, e:
-        raise RuntimeError("%s - %s"% (yaml_file, e))
-
-    except yaml.parser.ParserError, e:
-        raise RuntimeError("%s - %s"% (yaml_file, e))
-
-
-def LoadIncludes(includes, base_path, variables):
-    "Load each of the include files"
-
-    if not includes:
-        return {}
-
-    all_included_cmds = {}
-    errors = []
-    # load each of the included script files
-    for inc in includes:
-        if not inc:
-            continue
-        LOG.debug("Parsing include: '%s'"% inc)
-        inc = os.path.join(base_path, inc)
-        try:
-            inc_cmds = ParseScriptFile(inc, variables)
-
-            # Update the included steps
-            all_included_cmds.update(inc_cmds)
-        except ErrorCollection, e:
-            errors.extend(e.errors)
-
-    if errors:
-        raise ErrorCollection(errors)
-
-    return all_included_cmds
-
-
 def ParseVariableBlock(var_block, script_file):
     "Parse the variable block and return the variables"
 

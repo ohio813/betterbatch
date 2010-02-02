@@ -1,10 +1,6 @@
-variables:
- my_file: <__script_path__>\if_else_checks.yaml
+- set my_file=  <__script_dir__>\if_else_checks.yaml
 
-working_else:
-- If:
-    - Exists: <my_file>_
-    - Do  :
-        - echo "exists" <my_file>
-    - Else:
-        - echo working_else
+- If Exists <my_file>_:
+    - echo "exists" <my_file>
+  Else:
+    - echo correct

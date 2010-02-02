@@ -1,10 +1,6 @@
-variables:
- my_file: <__script_path__>\basic.yaml
+- set my_file=<__script_dir__>\basic.yaml
 
-empty_else_2:
-- If:
-    - Exists: <my_file>_
-    - Do  :
-        - echo BROKEN exists <my_file>
-    - Else:
-        - 
+- If Exists <my_file>_:
+    - echo BROKEN exists <my_file>
+  Else:
+     - 

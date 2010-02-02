@@ -1,12 +1,8 @@
-variables:
- my_file: <__script_path__>\if_else_checks.yaml
+- set my_file=<__script_dir__>\basic.yaml
 
-broken_too_many:
-- If:
-    - Exists: <my_file>_
-    - Do  :
-        echo "BROKEN exists <my_file>
-    - Else:
+- If Exists <my_file>_:
+      echo "BROKEN exists <my_file>
+  Else:
         echo string_else
-    - run:
+  run:
         shouldn't be here!

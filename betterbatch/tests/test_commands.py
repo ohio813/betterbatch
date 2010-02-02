@@ -6,7 +6,7 @@ import sys
 sys.path.append(".")
 sys.path.append("..")
 
-from betterbatch import *
+from parsescript import *
 
 TEST_PATH = os.path.dirname(__file__)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
@@ -103,114 +103,6 @@ class CommandTests(unittest.TestCase):
         step_data = ""
         data = ParseStepData(step_data)
         self.assertEquals(data, ('run', [], ''))
-
-
-class IfElseTests(unittest.TestCase):
-    def test_working_do(self):
-        for filename in glob.glob(os.path.join(TEST_FILES_PATH, "if_else_*")):
-            
-            command = os.path.basename(filename)
-            command = command[:-len(".yaml")]
-            command = command[len("if_else_"):]
-            
-            # skip tests which are meant to fail
-            if 'if_else_broken' in filename:
-                continue
-            
-            vars = {}
-            commands = ParseScriptFile(
-                os.path.join(TEST_FILES_PATH, filename), vars)
-            steps = commands.values()[0]
-
-            try:
-                executable_steps = BuildExecutableSteps(steps, vars)
-            except ErrorCollection, e:
-                print "ERROR WHEN RUNNING", command
-                e.LogErrors()
-                raise
-
-            for step in executable_steps:
-                ret, out = step.Execute()
-                if "if_else_empty" in filename:
-                    self.assertEquals(out.strip(), "")
-                else:
-                    self.assertEquals(out.strip(), command)
-
-    def test_broken_not_list(self):
-        vars = {}
-        commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "if_else_broken_not_list.yaml"), 
-            vars)
-        steps = commands.values()[0]
-
-        self.assertRaises(
-            ErrorCollection,
-            BuildExecutableSteps,
-                steps, vars)            
-        
-    def test_broken_not_list2(self):
-        vars = {}
-        commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH,   "if_else_broken_not_list2.yaml"), 
-            vars)
-        steps = commands.values()[0]
-
-        self.assertRaises(
-            ErrorCollection,
-            BuildExecutableSteps,
-                steps, vars)
-
-    def test_broken_too_few_clauses(self):
-        vars = {}
-        commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "if_else_broken_only_one.yaml"),
-            vars)
-        steps = commands.values()[0]
-
-        try:
-            BuildExecutableSteps(steps, vars)
-        except ErrorCollection, e:
-            print "\n\n"
-            e.LogErrors()
-        self.assertRaises(
-            ErrorCollection,
-            BuildExecutableSteps,
-                steps, vars)
-
-    def test_broken_too_many_clauses(self):
-        vars = {}
-        commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "if_else_broken_too_many.yaml"),
-            vars)
-        steps = commands.values()[0]
-
-        self.assertRaises(
-            ErrorCollection,
-            BuildExecutableSteps,
-                steps, vars)
-
-    def test_broken_do_name(self):
-        vars = {}
-        commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "if_else_broken_do_name.yaml"), vars)
-        steps = commands.values()[0]
-
-        self.assertRaises(
-            ErrorCollection,
-            BuildExecutableSteps,
-                steps, vars)
-
-    def test_broken_else_name(self):
-        vars = {}
-        commands = ParseScriptFile(
-            os.path.join(TEST_FILES_PATH, "if_else_broken_else_name.yaml"),
-            vars)
-        steps = commands.values()[0]
-
-        self.assertRaises(
-            ErrorCollection,
-            BuildExecutableSteps,
-                steps, vars)
 
 
 class test_ValidateArgumentCounts(unittest.TestCase):

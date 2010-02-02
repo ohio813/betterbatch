@@ -1,6 +1,4 @@
-variables:
- my_file: <__script_path__>\if_else_checks.yaml
+- set my_file = <__script_dir__>\if_else_checks.yaml
 
-broken_not_list_2:
-- If: <my_file>_
+- If exists <my_file>_:
 
