@@ -206,7 +206,7 @@ class ReplaceVariablesInStepsTests(unittest.TestCase):
             ParseStep("echo <var1>")]
         ReplaceVariablesInSteps(
             steps, {'var1': DummyVar('here')}, update = False)
-        
+
         self.assertEquals(steps[0].step_data, "cd <var1>")
         self.assertEquals(steps[1].step_data, "echo <var1>")
 
@@ -476,7 +476,7 @@ class StepTests(unittest.TestCase):
     def test_basic_step_str(self):
         s = Step("here")
         self.assertEquals(s.__str__(), "here")
-    
+
     def test_basic_step_repr(self):
         s = Step("here")
         self.assertEquals(s.__repr__(), "<Step here>")
@@ -494,7 +494,7 @@ class VariableDefinitionTests(unittest.TestCase):
         s = VariableDefinition("set here=<there>", "here=<there>")
         s.replace_vars({'there': DummyVar('value')}, update = False)
         self.assertEquals(s.value, '<there>')
-        
+
         #s.replace_vars({'there': DummyVar('value')}, update = True)
         #self.assertEquals(s.value, 'value')
 
@@ -510,12 +510,12 @@ class VariableDefinitionTests(unittest.TestCase):
         variables = {}
         s.execute(variables)
         self.assertEquals(variables['here'].value, '<there>')
-    
+
     def test_execute_bad(self):
         s = VariableDefinition(
-            "set here={{{<not_there>}}}", 
+            "set here={{{<not_there>}}}",
             "here={{{<not_there>}}}")
-            
+
         self.assertRaises(
             ErrorCollection,
             s.execute,
@@ -531,8 +531,8 @@ class EndExecutionTests(unittest.TestCase):
     def test_construct(self):
         """"""
         e = EndExecution(123, "hi")
-        self.assertEquals(e.ret, 123) 
-        self.assertEquals(e.msg, "hi") 
+        self.assertEquals(e.ret, 123)
+        self.assertEquals(e.msg, "hi")
 
 
 def DebugAction(to_exec, dummy = None):
@@ -578,25 +578,25 @@ class CommandStepTests(unittest.TestCase):
         old_stdin = sys.stdin
         sys.stdin = open(os.path.join(TEST_FILES_PATH, "yes.txt"), "r")
         s = CommandStep('debug raise KeyboardInterrupt')
-        
+
         self.assertRaises(RuntimeError, s.execute, {})
-        
+
         sys.stdin.close()
         sys.stdin = old_stdin
 
     def test_Step_no_output(self):
         """"""
-        
+
         s = CommandStep('cd \\')
-        
+
         s.execute({})
         self.assertEquals(s.output, "")
-        
+
     def test_Step_no_error_and_output(self):
         """"""
-        
+
         s = CommandStep('dir')
-        
+
         s.execute({})
         self.assertEquals(s.ret, 0)
 
@@ -605,14 +605,14 @@ class IfStepTests(unittest.TestCase):
 
     def test_working_do(self):
         for filename in glob.glob(os.path.join(TEST_FILES_PATH, "if_else_*")):
-            
+
             # skip tests which are meant to fail
             if 'if_else_broken' in filename:
                 continue
-            
+
             script_filepath = os.path.join(TEST_FILES_PATH, filename)
             vars = PopulateVariables(script_filepath)
-            
+
             steps = LoadAndCheckFile(script_filepath, vars)
 
             try:
@@ -636,19 +636,19 @@ class IfStepTests(unittest.TestCase):
             RuntimeError,
             LoadAndCheckFile,
                 script_filepath, vars)
-        
+
     def test_broken_not_list2(self):
         script_filepath = os.path.join(TEST_FILES_PATH,   "if_else_broken_not_list2.yaml")
         vars = PopulateVariables(script_filepath)
         try:
             steps = LoadAndCheckFile(
-                script_filepath, 
+                script_filepath,
                 vars)
         except ErrorCollection, e:
             e.LogErrors()
             print e.errors
             import pdb; pdb.set_trace()
-        
+
 #
 #    def test_broken_too_few_clauses(self):
 #        vars = {}
