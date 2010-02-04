@@ -11,27 +11,31 @@ import yaml
 import built_in_commands
 import cmd_line
 
-
 PARAM_FILE = os.path.join(os.path.dirname(__file__), "param_counts.ini")
 
-def CreateLogger():
-    "Create and set up the logger - returns the new logger"
 
+def ConfigLogging():
+    "Create and set up the logger - returns the new logger"
     # allow the handler to output everything - we will set the actual level
     # through the logger
-    stdout_handler = logging.StreamHandler()
-    stdout_handler.setLevel(logging.INFO)
 
-    # make the output format very simple
-    basic_formatter = logging.Formatter("%(levelname)s - %(message)s")
-    stdout_handler.setFormatter(basic_formatter)
-
-    # set up the logger with handler and to output debug messages
     logger = logging.getLogger("betterbatch")
     logger.setLevel(logging.DEBUG)
-    logger.addHandler(stdout_handler)
-    return logger
-LOG = CreateLogger()
+
+    # make the output format very simple
+    basic_formatter = logging.Formatter("%(message)s")
+
+    if not logger.handlers:
+        stdout_handler = logging.StreamHandler()
+        stdout_handler.setLevel(logging.INFO)
+
+        logger.addHandler(stdout_handler)
+
+    for handler in logger.handlers:
+        handler.setFormatter(basic_formatter)
+
+ConfigLogging()
+LOG = logging.getLogger('betterbatch')
 
 
 class UndefinedVariableError(RuntimeError):
@@ -80,8 +84,9 @@ class ErrorCollection(RuntimeError):
 
     def __repr__(self):
         return "<ERRCOL %s>"% self.errors
-    def __str__(self):
-        return "<ERRCOL %s>"% self.errors
+
+    __str__ = __repr__
+
 
 class EndExecution(Exception):
     "Raised when an End statement called"
@@ -311,22 +316,35 @@ def SetupLogFile(log_filename):
 
     # try to find if the log file is already open
     # if it is - then just flush and return (without changing the logfilename)
-    if os.path.exists(log_filename):
-        for h in LOG.handlers:
-            if (hasattr(h, 'baseFilename') and (h.baseFilename.lower() ==
-                os.path.abspath(log_filename).lower())):
+    for h in LOG.handlers:
+        if not isinstance(h, logging.FileHandler):
+            continue
 
-                h.flush()
-                return
-        # file is not an open handler - try removing it
-        #try:
-        os.unlink(log_filename)
-        #except OSError:
-        #    LOG.warning("Could not remove previous log file")
+        # don't change anything if the current and old log file names are
+        # the same
+        if (os.path.abspath(h.baseFilename).lower() ==
+            os.path.abspath(log_filename).lower()):
+            return
+
+        else:
+            LOG.debug("Changing log file to: '%s'"% log_filename)
+            h.flush()
+            h.close()
+            LOG.removeHandler(h)
+
+    # if that logfile already exists - then try and delete it
+    if os.path.exists(log_filename):
+        try:
+            os.unlink(log_filename)
+        except OSError:
+            LOG.warning("Could not remove previous log file")
 
     h = logging.FileHandler(log_filename)
-    # make the output format very simple
-    basic_formatter = logging.Formatter("%(levelname)s - %(message)s")
+
+    # make the output format very simple, and remove the date
+    basic_formatter = logging.Formatter(
+        "%(asctime)s\t%(levelname)s\t%(message)s",
+        "%H:%M:%S")
     h.setFormatter(basic_formatter)
 
     LOG.addHandler(h)
@@ -412,7 +430,9 @@ def ParseComplexStep(step):
         else_steps = parsed_else_steps
 
         if not if_steps + else_steps:
-            raise RuntimeError("IF statement has no statements to run '%s'"% condition.raw_step)
+            raise RuntimeError(
+                "IF statement has no statements to run '%s'"%
+                    condition.raw_step)
 
         return IfStep(step, condition, if_steps, else_steps)
 
@@ -429,8 +449,8 @@ class Step(object):
 
     def __init__(self, raw_step):
         self.raw_step = raw_step
+        #self.referenced_variables = FindVariableReferences(raw_step)
         self.step_data = raw_step
-        #self.referenced_variables = FindVariableReferences(self.raw_step)
 
     def __str__(self):
         return str(self.raw_step)
@@ -461,7 +481,6 @@ class VariableDefinition(Step):
 
         #if update:
         #    self.value = ReplaceVariableReferences(self.value, variables)
-
         # Replace executable sections - If execute is False - then the
         # command will not be actually run
         new_val = ReplaceExecutableSections(
@@ -492,9 +511,9 @@ class CommandStep(Step):
 
     def __init__(self, raw_step):
         Step.__init__(self, raw_step)
-        self.qualifiers, self.step_data = self._parse_qualifiers()
         #self.output = None
         #self.ret = None
+        self.qualifiers, self.step_data = self._parse_qualifiers()
 
     def replace_vars(self, variables, update = False):
         """Replace variables referenced in the step with the variable values
@@ -508,34 +527,37 @@ class CommandStep(Step):
 
     def _parse_qualifiers(self):
         "Find the qualifiers and replace them"
-    
+
         qualifier_re = re.compile("""
             \{\*
             (?P<qualifier>[a-zA-Z]+)
             \*\}""", re.VERBOSE)
-    
+
         qualifiers = qualifier_re.findall(self.step_data)
         parsed_step = qualifier_re.sub("", self.step_data)
         return qualifiers, parsed_step
 
-    def command_as_string_for_log(self, params):
+    def command_as_string_for_log(self, cmd, params):
         "return the command as a string for logging"
         if isinstance(params, list):
             params = " ".join(params)
 
         def shorten_string(string, length = 100):
+            "Ensure the string is max length characters"
             if len(string) > length:
                 string = string[:length-3] + "..."
             return string
 
         command_message = params
+        if cmd:
+            command_message = " ".join((cmd, command_message))
 
-        if command_message != self.raw_step:
+        if command_message.split() != self.raw_step.split():
             command_message = "'%s' -> '%s'"% (
                 shorten_string(self.raw_step),
                 shorten_string(command_message))
         else:
-            command_message = "'%s'"% (command_message)
+            command_message = "'%s'"% command_message
 
         command_message = command_message.replace('\\', '\\\\')
         command_message = command_message.replace('\r\n', '\\r\\n')
@@ -546,8 +568,6 @@ class CommandStep(Step):
         "Run this step"
         self.replace_vars(variables, update = True)
 
-        #self.qualifiers, self.step_data = self._parse_qualifiers()
-
         # Check if the command in the mapping
         parts = SplitStatementAndData(self.step_data)
 
@@ -555,14 +575,16 @@ class CommandStep(Step):
         if cmd in built_in_commands.NAME_ACTION_MAPPING:
             func = built_in_commands.NAME_ACTION_MAPPING[cmd]
             params = parts[1]
+            cmd_log_string = self.command_as_string_for_log(cmd, params)
         else:
             func = built_in_commands.SystemCommand
             params = self.step_data
+            cmd_log_string = self.command_as_string_for_log("", params)
 
         if cmd == "echo":
             self.qualifiers.append('echo')
 
-        cmd_log_string = self.command_as_string_for_log(params)
+        #cmd_log_string = self.command_as_string_for_log(cmd, params)
         try:
             LOG.debug("Executing command %s"% cmd_log_string)
             # call the function and get the output and the return value
@@ -625,12 +647,13 @@ class IfStep(Step):
         # check if the condition is true
         #try:
         self.condition.execute(variables, raise_on_error = False)
-        if self.condition.ret  == 0:
+        if self.condition.ret == 0:
             check_true = True
             LOG.debug("Condition evaluated to true: %s"% self.condition.output)
         #except RuntimeError, e:
         else:
-            LOG.debug("Condition evaluated to false: %s"% self.condition.output)
+            LOG.debug(
+                "Condition evaluated to false: %s"% self.condition.output)
             check_true = False
 
         # if it is - then execute true steps
@@ -643,6 +666,7 @@ class IfStep(Step):
 
     def __repr__(self):
         return "<IF %s...>"% self.condition.raw_step
+
 
 class ExecutionEndStep(Step):
     "Request end execution of the script"
@@ -699,8 +723,6 @@ class IncludeStep(Step):
         if update:
             self.filename = new_val
 
-        # ensure that it can be included
-
     def execute(self, variables, raise_on_error = True):
         "Run this step"
         self.replace_vars(variables, update = True)
@@ -745,10 +767,12 @@ STATEMENT_HANDLERS = {
     'logfile': LogFileStep,
     #'if':   ,
     #'usage':   ,
-    'end': ExecutionEndStep
     # 'for'
-}
+    'end': ExecutionEndStep, }
+
+
 def LoadAndCheckFile(filepath, variables):
+    "Load the script file and check that variable references work"
     steps = ParseYAMLFile(filepath)
 
     if not steps:
@@ -764,10 +788,11 @@ def LoadAndCheckFile(filepath, variables):
     for step in steps:
         try:
             parsed_steps.append(ParseStep(step))
-            if isinstance(parsed_steps[-1] , IncludeStep):
+            if isinstance(parsed_steps[-1], IncludeStep):
                 # note - because we load include steps before
-                # executing other steps - we can only use variables defined outside
-                # the script (either command line, environment vars or pseudo vars)
+                # executing other steps - we can only use variables defined
+                # outside the script (either command line, environment vars or
+                # pseudo vars)
                 include_step = parsed_steps.pop()
                 include_step.execute(variables)
                 parsed_steps.extend(include_step.steps)
@@ -787,10 +812,9 @@ def LoadAndCheckFile(filepath, variables):
 
 
 def ExecuteSteps(steps, variables):
+    "Execute the steps"
     for step in steps:
         step.execute(variables)
-
-
 
 
 def PopulateVariables(script_file):
@@ -813,6 +837,7 @@ def PopulateVariables(script_file):
 
 
 def ValidateArgumentCounts(steps, count_db):
+    """Ensure commands have the correct number of arguments"""
     # get the name of the command
     errors = []
 
@@ -825,14 +850,13 @@ def ValidateArgumentCounts(steps, count_db):
     #    # it is not a valid shell command - so just use a normal split
     #    parts = self.params.split()
 
-
     for step in steps:
         # skip non command steps
         if not isinstance(step, CommandStep):
             continue
-        
+
         parts = shlex.split(step.step_data, posix = False)
-        
+
         command = os.path.basename(parts[0].lower())
 
         # See if it is in the DB
@@ -859,18 +883,18 @@ def ValidateArgumentCounts(steps, count_db):
 
 
 def ReadParamRestrictions(param_file):
-    ""
+    "Read the param counts from param_file"
     params = ConfigParser.RawConfigParser()
 
 
     try:
-        if (
-            not params.read(param_file) or
+        if (not params.read(param_file) or
             not params.has_section('param_counts')):
-                LOG.info(
-                    "Param file does not exist or does "
-                    "not contain [param_counts]")
-                return {}
+
+            LOG.info(
+                "Param file does not exist or does "
+                "not contain [param_counts]")
+            return {}
 
     except ConfigParser.ParsingError, e:
         LOG.warning(str(e))
@@ -925,7 +949,7 @@ def Main():
         steps = LoadAndCheckFile(options.script_file, variables)
     except ErrorCollection, e:
         e.LogErrors()
-        sys.exit()
+        sys.exit(1)
 
     arg_counts_db = ReadParamRestrictions(PARAM_FILE)
     try:
@@ -933,7 +957,6 @@ def Main():
     except ErrorCollection, e:
         e.LogErrors()
         sys.exit(1)
-        
 
     try:
         ExecuteSteps(steps, variables)
@@ -956,11 +979,5 @@ def Main():
     sys.exit(0)
 
 
-
-
 if __name__ == "__main__":
     Main()
-
-
-    sys.exit()
-
