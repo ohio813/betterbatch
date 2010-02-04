@@ -80,6 +80,8 @@ class ErrorCollection(RuntimeError):
 
     def __repr__(self):
         return "<ERRCOL %s>"% self.errors
+    def __str__(self):
+        return "<ERRCOL %s>"% self.errors
 
 class EndExecution(Exception):
     "Raised when an End statement called"
@@ -490,7 +492,7 @@ class CommandStep(Step):
 
     def __init__(self, raw_step):
         Step.__init__(self, raw_step)
-        self.set_data = raw_step
+        self.qualifiers, self.step_data = self._parse_qualifiers()
         #self.output = None
         #self.ret = None
 
@@ -500,18 +502,18 @@ class CommandStep(Step):
         If update is False - then this will only test that the variables
         can be replaced
         """
-        new_val = ReplaceVariableReferences(self.set_data, variables)
+        new_val = ReplaceVariableReferences(self.step_data, variables)
         if update:
             self.step_data = new_val
 
     def _parse_qualifiers(self):
         "Find the qualifiers and replace them"
-
+    
         qualifier_re = re.compile("""
             \{\*
             (?P<qualifier>[a-zA-Z]+)
             \*\}""", re.VERBOSE)
-
+    
         qualifiers = qualifier_re.findall(self.step_data)
         parsed_step = qualifier_re.sub("", self.step_data)
         return qualifiers, parsed_step
@@ -544,7 +546,7 @@ class CommandStep(Step):
         "Run this step"
         self.replace_vars(variables, update = True)
 
-        self.qualifiers, self.step_data = self._parse_qualifiers()
+        #self.qualifiers, self.step_data = self._parse_qualifiers()
 
         # Check if the command in the mapping
         parts = SplitStatementAndData(self.step_data)
@@ -825,28 +827,32 @@ def ValidateArgumentCounts(steps, count_db):
 
 
     for step in steps:
-        command = step.command.lower()
+        # skip non command steps
+        if not isinstance(step, CommandStep):
+            continue
+        
+        parts = shlex.split(step.step_data, posix = False)
+        
+        command = os.path.basename(parts[0].lower())
 
         # See if it is in the DB
         if command in count_db:
 
             # If it is then get the count of it's parameters
-            arg_count = step.argcount
+            arg_count = len(parts) -1
 
-            lower, upper = count_db[command]
+            lower_limit, upper_limit = count_db[command]
 
             # check that is it appropriate
-            if not lower <= arg_count <= upper:
-                print arg_count, step, step.params
+            if not lower_limit <= arg_count <= upper_limit:
 
                 errors.append(RuntimeError((
                     "Invalid number of parameters '%d'. "
-                    "Expected %d to %s. Command:\n\t%s: %s")% (
+                    "Expected %d to %d. Command:\n\t%s")% (
                         arg_count,
-                        lower,
-                        count_db[command][1],
-                        step.action_type,
-                        step.params)))
+                        lower_limit,
+                        upper_limit,
+                        step.raw_step)))
 
     if errors:
         raise ErrorCollection(errors)
@@ -913,7 +919,6 @@ def Main():
 
     variables = PopulateVariables(options.script_file)
 
-
     LOG.debug("Environment:"% variables)
 
     try:
@@ -923,7 +928,12 @@ def Main():
         sys.exit()
 
     arg_counts_db = ReadParamRestrictions(PARAM_FILE)
-    #ValidateArgumentCounts(executable_steps, arg_counts_db)
+    try:
+        ValidateArgumentCounts(steps, arg_counts_db)
+    except ErrorCollection, e:
+        e.LogErrors()
+        sys.exit(1)
+        
 
     try:
         ExecuteSteps(steps, variables)
