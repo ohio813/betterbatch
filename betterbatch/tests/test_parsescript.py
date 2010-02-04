@@ -547,14 +547,14 @@ class CommandStepTests(unittest.TestCase):
         """"""
         c = CommandStep("")
         self.assertEquals(
-            c.command_as_string_for_log(['1', '2', '3']),
+            c.command_as_string_for_log('', ['1', '2', '3']),
             "'' -> '1 2 3'")
 
     def test_command_as_string_for_log_long_string_diff(self):
         """"""
         c = CommandStep("")
         self.assertEquals(
-            c.command_as_string_for_log("s" * 300),
+            c.command_as_string_for_log('', "s" * 300),
             "'' -> '%s'"% ("s"*97 + "..."))
 
     def _test_command_as_string_for_log_long_string_equal(self):
