@@ -368,6 +368,7 @@ def ParseStep(step):
         # as all known statement types have statements without spaces
         # we can use the simple splitting used above to construct the type
         parsed_step = handler(step, step_data)
+
     else:
         # more complex splitting maybe required so we let the command do
         # the parsing
@@ -643,7 +644,7 @@ class IfStep(Step):
         "Run this step"
         self.replace_vars(variables, update=True)
 
-        LOG.debug("Testing Condition:")
+        LOG.debug("Testing Condition: '%s'"% self.condition)
         # check if the condition is true
         #try:
         self.condition.execute(variables, raise_on_error = False)
@@ -761,10 +762,48 @@ class LogFileStep(Step):
         LOG.debug('Variables at logfile creation: %s'% variables)
 
 
+class VariableDefinedCheck(Step):
+    "Check if a variable is defined"
+
+    def __init__(self, raw_step, variable_name):
+        Step.__init__(self, raw_step)
+        if not variable_name:
+            raise RuntimeError("Cannot check if null variable is defined")
+        self.variable = variable_name
+
+    def replace_vars(self, variables, update = False):
+        """Replace variables referenced in the step with the variable values
+
+        If update is False - then this will only test that the variables
+        can be replaced
+        """
+        new_val = ReplaceVariableReferences(self.variable, variables)
+        if new_val != self.variable:
+            raise RuntimeError(
+                "Checking a variable cannot use a variable reference, "
+                    "remove the angle brackets: '%s'"% self.variable)
+
+    def execute(self, variables, raise_on_error = True):
+        "Run this step"
+
+        key = self.variable.strip().lower()
+        if key in variables:
+            LOG.debug("Variable is defined: %s : '%s'"%
+                (self.variable, variables[key]))
+            self.ret = 0
+        else:
+            LOG.debug("Variable is not defined: '%s'"% self.variable)
+            self.ret = 1
+        self.output = ''
+
+        LOG.debug('Variables at logfile creation: %s'% variables)
+
+
 STATEMENT_HANDLERS = {
     'set': VariableDefinition,
     'include': IncludeStep,
     'logfile': LogFileStep,
+    'defined': VariableDefinedCheck,
     #'if':   ,
     #'usage':   ,
     # 'for'
@@ -942,6 +981,7 @@ def Main():
     LOG.debug("Run Options:"% options)
 
     variables = PopulateVariables(options.script_file)
+    variables.update(options.variables)
 
     LOG.debug("Environment:"% variables)
 
