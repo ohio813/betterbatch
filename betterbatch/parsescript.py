@@ -1005,24 +1005,17 @@ def Main():
 
     try:
         steps = LoadAndCheckFile(options.script_file, variables)
-    except ErrorCollection, e:
-        e.LogErrors()
-        sys.exit(1)
 
-    arg_counts_db = ReadParamRestrictions(PARAM_FILE)
-    try:
+        arg_counts_db = ReadParamRestrictions(PARAM_FILE)
         ValidateArgumentCounts(steps, arg_counts_db)
-    except ErrorCollection, e:
-        e.LogErrors()
-        sys.exit(1)
 
-    # only checking - so quit before executing steps
-    if options.check:
-        print "No Errors"
-        sys.exit(0)
-
-    try:
+        # only checking - so quit before executing steps
+        if options.check:
+            print "No Errors"
+            sys.exit(0)
+            
         ExecuteSteps(steps, variables)
+
     except ErrorCollection, e:
         e.LogErrors()
         sys.exit(1)
