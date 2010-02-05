@@ -522,7 +522,7 @@ class VariableDefinition(Step):
         variables[self.name] = self
 
     def __repr__(self):
-        return "'%s'"% self.value
+        return '"%s"'% self.value
 
 
 class CommandStep(Step):
