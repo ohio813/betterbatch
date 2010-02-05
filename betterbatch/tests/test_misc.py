@@ -74,28 +74,6 @@ class MainTests(unittest.TestCase):
         """"""
         log = CreateLogger()
 
-    def test_ErrorCollection_LOGErrors(self):
-        """"""
-        errs = [
-            'err1',
-            "err1",
-            "err2",
-            "err3", ]
-
-        collection = ErrorCollection(errs)
-        collection.LogErrors()
-
-        errs += [
-            UndefinedVariableError("var", "yo"),
-            UndefinedVariableError("var", "yo2"),
-            UndefinedVariableError("var", "yo2"),
-            UndefinedVariableError("var2", "yo"),
-            ]
-
-        collection = ErrorCollection(errs)
-        collection.LogErrors()
-
-
     def test_SetUpLogFile_exists_cannot_del(self):
         """"""
         import tempfile

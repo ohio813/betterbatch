@@ -49,6 +49,35 @@ class ParseYAMLFileTests(unittest.TestCase):
                 full_path)
 
 
+class ErrorCollectionTests(unittest.TestCase):
+    def test_LOGErrors(self):
+        """"""
+        errs = ['err1', "err1"]
+
+        collection = ErrorCollection(errs)
+        collection.LogErrors()
+
+        errs += [
+            UndefinedVariableError("var", "yo"),
+            UndefinedVariableError("var", "yo2"),
+            UndefinedVariableError("var", "yo2"),
+            UndefinedVariableError("var2", "yo"),
+            ]
+
+        collection = ErrorCollection(errs)
+        collection.LogErrors()
+
+    def test_repr__(self):
+        """"""
+        errs = ['err1', "err1"]
+
+        collection = ErrorCollection(errs)
+        repr(collection)
+
+
+
+
+
 class ParseVariableDefinitionTests(unittest.TestCase):
     "Unit tests for the commands"
 
@@ -268,12 +297,24 @@ class SetupLogFileTests(unittest.TestCase):
         """"""
         import tempfile
         file, path = tempfile.mkstemp(suffix = "log")
-        self.assertRaises(
-            OSError,
-            SetupLogFile,
-                path)
+                
+        SetupLogFile(path)
+        log = logging.getLogger('betterbatch')
+        log.info("test message")
+        
         #os.close(file)
-        #os.unlink(file)
+        #os.unlink(path)
+
+    def test_same_logfilepath_already_set(self):
+        """"""
+        import tempfile
+        file, path = tempfile.mkstemp(suffix = "log")
+                
+        SetupLogFile(path)
+        SetupLogFile(path)
+        log = logging.getLogger('betterbatch')
+        log.info("test message")
+
 
     def test_folder_doesnt_exist(self):
         """"""
@@ -367,6 +408,13 @@ class ReplaceExecutableSectionsTests(unittest.TestCase):
             ReplaceExecutableSections,
                 text, variables, )
 
+    def test_trailing_braces(self):
+        """"""
+        text = "{{{ echo <var> {*nocheck*}}}}-"
+        variables = {'var': DummyVar('car')}
+        replaced = ReplaceExecutableSections(text, variables)
+        self.assertEquals(replaced, "car-")
+
 
 class ParseStepTests(unittest.TestCase):
     ""
@@ -431,7 +479,6 @@ class ParseComplexStepTests(unittest.TestCase):
         """"""
         step = ParseComplexStep({r"if exists c:\temp": "cd 1", 'else': "cd 2"})
 
-
     def test_broken_if_step_wrong_key(self):
         """"""
         step = {r"if exists c:\temp": ["cd 1"], 'there': ["cd 2"]}
@@ -440,13 +487,18 @@ class ParseComplexStepTests(unittest.TestCase):
             ParseComplexStep,
                 step)
 
-    def test_if_step_none_value(self):
+    def test_if_step_none_when(self):
         """"""
         step = {r"if 1": None,}
         self.assertRaises(
             RuntimeError,
             ParseComplexStep,
                 step)
+
+    def test_if_step_none_else(self):
+        step = {r"if 1": "echo here", 'else': None}
+        ParseComplexStep(step)
+
 
     def test_for_step(self):
         """"""
@@ -463,6 +515,14 @@ class ParseComplexStepTests(unittest.TestCase):
             RuntimeError,
             ParseComplexStep,
                 step)
+
+    def test_empty_steps(self):
+        step = {r"if 1": [None, None], 'else': [None, None]}
+        self.assertRaises(
+            RuntimeError,
+            ParseComplexStep,
+                step)
+
 
 
 class StepTests(unittest.TestCase):
