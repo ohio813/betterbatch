@@ -1,0 +1,39 @@
+******************************************************
+The available built-in commands are:
+******************************************************
+------------------------------------------------------
+run (aliases execute)
+------------------------------------------------------
+Execute a single command on the command line shell.
+
+It can take the following qualifiers
+
+**ui**
+    output will not be captured - this allows the user to
+    interact with the command (i.e. if it may request the user
+
+**nocheck**
+    Do not check the return value. Default is to raise an
+    exception if the return value is not 0 (success)
+
+
+
+------------------------------------------------------
+dirname
+------------------------------------------------------
+
+------------------------------------------------------
+filename    (aliases basename)
+------------------------------------------------------
+
+------------------------------------------------------
+count 
+------------------------------------------------------
+
+------------------------------------------------------
+exists  (aliases exist)
+------------------------------------------------------
+
+------------------------------------------------------
+notexists  (aliases notexist)
+------------------------------------------------------
