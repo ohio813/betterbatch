@@ -235,6 +235,27 @@ def EscapeNewlines(input, qualifiers = ''):
         text = text.replace("\n", "\\\\n")
         return 0, text    
 
+def unescape_text(input):
+    input = input.replace("\\t", "\t")
+    input = input.replace("\\\\", "\\")
+    input = input.replace("\\r", "\r")
+    input = input.replace("\\n", "\n")
+    return input
+   
+
+def Replace(input, qualifiers = None):
+    #print input, qualifiers
+    #import pdb; pdb.set_trace()
+    to_find = unescape_text(qualifiers[0])
+    replace_with = unescape_text(qualifiers[1])
+    replaced = input.replace(to_find, replace_with)
+    print to_find
+    print replace_with
+    print replaced
+    import pdb; pdb.set_trace()
+    
+    return 0, replaced
+    
 
 def PopulateFromToolsFolder(tools_folder, dummy = []):
     
@@ -283,6 +304,7 @@ NAME_ACTION_MAPPING = {
 
     'escape_newlines': EscapeNewlines,
     'escapenewlines' : EscapeNewlines,
+    'replace' :        Replace,
 
     'add_tools_dir'   : PopulateFromToolsFolder,
 }
