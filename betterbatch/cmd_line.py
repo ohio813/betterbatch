@@ -5,11 +5,10 @@ import os
 USAGE = r"""
 Executes a BetterBatch script file.
 
-(betterbatch.py or bbrun.py) [-v] [-h] (script file) [var=value] [var=value]...
+%prog [-c][-h][-v] (script file) [var=value] [var=value]...
 
 Examples:
-    bbrun.py --verbose my_script.bb test_dir=%temp%\there build=H099
-"""
+    bbrun.py --verbose my_script.bb test_dir=%temp%\there build=H099"""
 
 def ParseArguments():
     "Build up the command line parser and parse the arguments"
@@ -17,6 +16,7 @@ def ParseArguments():
     # create the parser
     parser = optparse.OptionParser(
         description='Parse and run the script file',
+        usage = USAGE,
         epilog = "Examples:\n\ttest1\n\ttest2",
         version = 0.0)
 
@@ -25,10 +25,10 @@ def ParseArguments():
     #    'script_file', metavar='script.yaml', type=str,
     #    help='YAML scripturation file')
 
-    #parser.add_option(
-    #    "-d", '--define', metavar='var=value', type=str, dest='variables',
-    #    action = "append", default = [],
-    #    help='Override or define a variable')
+    parser.add_option(
+        "-c", '--check', 
+        action = "store_true",
+        help='do not execute any commands, read and validate script file')
 
     #parser.add_option(
     #    '-e', '--execute',
@@ -46,9 +46,14 @@ def ParseArguments():
     #    '-l', '--list', action = "store_true",
     #    help='List available commands')
 
+    #parser.add_option(
+    #    "-t", '--timing', 
+    #    action = "store_true"
+    #    help='include execution time in the log file')
+
     parser.add_option(
         '-v', '--verbose', action = "store_true",
-        help='Show debug messages also')
+        help='output debug messages to console')
 
     # parse the command line
     options, args =  parser.parse_args()
