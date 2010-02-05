@@ -171,10 +171,11 @@ def SystemCommand(command, qualifiers = None):
 def dirname(path, dummy = None):
     return 0, os.path.dirname(path)
 
-
 def basename(path, dummy = None):
     return 0, os.path.basename(path)
 
+def abspath(path, dummy = None):
+    return 0, os.path.normpath(os.path.abspath(path))
 
 def ChangeCurrentDirectory(path, dummy = None):
     try:
@@ -270,6 +271,7 @@ NAME_ACTION_MAPPING = {
     'dirname' : dirname,
     'filename': basename,
     'basename': basename,
+    'abspath' : abspath,
 
     'cd'   : ChangeCurrentDirectory,
     'chdir': ChangeCurrentDirectory,
@@ -282,7 +284,7 @@ NAME_ACTION_MAPPING = {
     'escape_newlines': EscapeNewlines,
     'escapenewlines' : EscapeNewlines,
 
-    'add_tools_folder': PopulateFromToolsFolder,
+    'add_tools_dir'   : PopulateFromToolsFolder,
 }
 
 
