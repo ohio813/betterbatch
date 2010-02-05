@@ -655,18 +655,25 @@ class IfStep(Step):
         """
 
         self.condition.replace_vars(variables, update = update)
-        ReplaceVariablesInSteps(self.else_steps, variables, update = update)
-        
-        # if the if is checking if a variable is defined then that variable
-        # must be defined for the contained if_true statements - so
-        # add a dummy 
-        if isinstance(self.condition, VariableDefinedCheck) and not update:
+        # only try to replace the variables when NOT executing
+        # because when executing both sides will not be exucuted
+        # and we will explictily update the one we are executing.
+        if not update:
+            # replace in the 'else' section
+            ReplaceVariablesInSteps(
+                self.else_steps, variables, update = False)
+            
+            # if the condition is checking if a variable is defined
+            # then we can take it for granted that it is defined, so 
             variables_copy = variables.copy()
-            variables_copy[self.condition.variable] = VariableDefinition("",
-                '%s='% self.condition.variable)
-            ReplaceVariablesInSteps(self.if_steps, variables_copy, update = update)
-        else:
-            ReplaceVariablesInSteps(self.if_steps, variables, update = update)
+            if (isinstance(self.condition, VariableDefinedCheck) and 
+                self.condition.variable not in variables):
+                variables_copy[self.condition.variable] = \
+                    VariableDefinition("",'%s='% self.condition.variable)
+            # use the copy of the variables as they may be required
+            ReplaceVariablesInSteps(
+                self.if_steps, variables_copy, update = False)
+
     def execute(self, variables, raise_on_error = True):
         "Run this step"
         self.replace_vars(variables, update=True)
