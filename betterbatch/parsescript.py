@@ -549,7 +549,7 @@ class CommandStep(Step):
 
         qualifier_re = re.compile("""
             \{\*
-            (?P<qualifier>[a-zA-Z]+)
+            (?P<qualifier>.+?)
             \*\}""", re.VERBOSE)
 
         qualifiers = qualifier_re.findall(self.step_data)
