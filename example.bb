@@ -28,11 +28,11 @@
 
 # Note - include statements cannot use variables defined in the script (because 
 # includes are executed before variable definitions statements are)
-- include <__script_dir__>\betterbatch\tests\test_files\basic.bb
+- include <__script_dir__>\betterbatch\tests\test_files\basic.yaml
 
 # this will not work for example because <project_root> is
 # not defined by the time the include will be executed
-#- include <project_root>\betterbatch\tests\test_files\basic.bb
+#- include <project_root>\betterbatch\tests\test_files\basic.yaml
 
 
 # change 0 to 1 to test
@@ -67,7 +67,7 @@
 
 # add_tools_folder will make the executable programs in the specified folder
 # availabe in the script without requing path or extension
-- add_tools_folder c:\  # you a folder on your machine or in your config
+- add_tools_dir c:\  # you a folder on your machine or in your config
 
 
 # you can assign variables to the output of commands
