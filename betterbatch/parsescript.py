@@ -962,7 +962,7 @@ def ReadParamRestrictions(param_file):
         if (not params.read(param_file) or
             not params.has_section('param_counts')):
 
-            LOG.info(
+            LOG.debug(
                 "Param file does not exist or does "
                 "not contain [param_counts]")
             return {}
