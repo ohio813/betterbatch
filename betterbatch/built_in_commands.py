@@ -237,7 +237,6 @@ def EscapeNewlines(input, qualifiers = ''):
 
 def PopulateFromToolsFolder(tools_folder, dummy = []):
     
-    print "---------", tools_folder
     for file in os.listdir(tools_folder):
         name, ext = os.path.splitext(file)
         name = name.lower()
