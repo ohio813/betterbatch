@@ -874,10 +874,12 @@ def ExecuteSteps(steps, variables):
         step.execute(variables)
 
 
-def PopulateVariables(script_file):
+def PopulateVariables(script_file, cmd_line_vars):
     "Allow variables from the command line to be used also"
     variables = {}
-    for var, val in os.environ.items():
+    vars_to_wrap = dict(os.environ)
+    vars_to_wrap.update(cmd_line_vars)
+    for var, val in vars_to_wrap.items():
         var = var.lower()
         variables[var] = ParseStep(
             "set %s=%s"%(var, val))
@@ -1001,8 +1003,7 @@ def Main():
 
     LOG.debug("Run Options:"% options)
 
-    variables = PopulateVariables(options.script_file)
-    variables.update(options.variables)
+    variables = PopulateVariables(options.script_file, options.variables)
 
     LOG.debug("Environment:"% variables)
 
