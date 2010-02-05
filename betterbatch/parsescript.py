@@ -886,6 +886,9 @@ def PopulateVariables(script_file):
         '__script_dir__':
             ParseStep('set __script_dir__ = %s'%
                 os.path.abspath(os.path.dirname(script_file))),
+        '__script_filename__':
+            ParseStep('set __script_dir__ = %s'%
+                os.path.basename(script_file)),
         '__working_dir__':
             ParseStep('set __working_dir__ = %s'%
                 os.path.abspath(os.getcwd()))})
