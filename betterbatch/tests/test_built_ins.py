@@ -25,10 +25,8 @@ class BuiltInCommandsTests(unittest.TestCase):
     def test_PathExists_false(self):
         """"""
 
-        self.assertRaises(
-            RuntimeError,
-            PathExists,
-            "does not exist.blah")
+        ret, out = PathExists("does not exist.blah")
+        self.assertNotEquals(ret ,0)
 
     def test_PathNotExists_true(self):
         """"""
@@ -39,10 +37,7 @@ class BuiltInCommandsTests(unittest.TestCase):
     def test_PathNotExists_false(self):
         """"""
 
-        self.assertRaises(
-            RuntimeError,
-            PathNotExists,
-            __file__)
+        self.assertNotEquals(PathNotExists(__file__), 0)
 
 
     def test_count_passes(self):
