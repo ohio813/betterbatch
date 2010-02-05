@@ -676,21 +676,21 @@ class IfStep(Step):
         #try:
         self.condition.execute(variables, raise_on_error = False)
         if self.condition.ret == 0:
-            check_true = True
             LOG.debug("Condition evaluated to true: %s"% self.condition.output)
+            steps_to_exec = self.if_steps
         #except RuntimeError, e:
         else:
             LOG.debug(
                 "Condition evaluated to false: %s"% self.condition.output)
             check_true = False
-
-        # if it is - then execute true steps
-        if check_true:
-            for step in self.if_steps:
-                step.execute(variables)
-        else:
-            for step in self.else_steps:
-                step.execute(variables)
+            steps_to_exec = self.else_steps
+            
+        # replace variables in the steps to be executed
+        ReplaceVariablesInSteps(steps_to_exec, variables, update = True)
+         
+        # Execute the steps
+        for step in steps_to_exec:
+            step.execute(variables)
 
     def __repr__(self):
         return "<IF %s...>"% self.condition.raw_step
