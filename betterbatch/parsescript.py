@@ -276,38 +276,56 @@ def ReplaceExecutableSections(text, variables, execute = True):
     """If variable has {{{cmd}}} - execute 'cmd' and update value with output
     """
 
+    # replace qualifiers before finding sections
+    text = re.sub(r"\{\*(.+?)\*\}", r"--#QUAL_#--\1--#_QUAL#--", text)
+
     EXECUTABLE_SECTION = re.compile(
-        """
+        r"""
             \{\{\{
                 \s*
                 (?P<command_line>.+?)
                 \s*
             \}\}\}""", re.VERBOSE)
 
-    # See if it matches the external variable pattern
+    # See if it matches the executable section pattern
     sections = EXECUTABLE_SECTION.finditer(text)
 
-    for section in reversed(list(sections)):
+    replaced = []
+    # was going reversed so that it would be easier to replace the text
+    # but that meant the commands were executed backwards when there was more
+    # than one on a line (maybe not a big issue but a little confusing)
+    last_section_end = 0
+    for section in sections:
         if "{{{" in section.group('command_line'):
             raise RuntimeError(
                 "Do not embed executable section {{{...}}} in another "
                 "executable section: '%s'"% text)
-        step = ParseStep(section.group('command_line'))
+        
+        command = section.group('command_line').replace("--#QUAL_#--", "{*")
+        command = command.replace("--#_QUAL#--", "*}")
+        step = ParseStep(command)
 
         if execute:
+            # text before the section
+            replaced.append(text[last_section_end:section.start()])
             step.replace_vars(variables, update=True)
             step.execute(variables)
 
-            text = (
-                text[:section.start()] +
-                step.output.strip() +
-                text[section.end():])
+            replaced.append(step.output.strip())
+            last_section_end = section.end()
         else:
             # if we are not actually executing - don't actually replace the
             # variables references. We still try and replace vars to ensure
             # that they are defined
             step.replace_vars(variables, update=False)
+    
+    # if we were not exectuing - then replaced will still contain the 
+    # original string
+    replaced.append(text[last_section_end:])
 
+    text = "".join(replaced)
+    text = text.replace("--#QUAL_#--", "{*")
+    text = text.replace("--#_QUAL#--", "*}")
     return text
 
 
@@ -337,7 +355,7 @@ def SetupLogFile(log_filename):
         try:
             os.unlink(log_filename)
         except OSError:
-            LOG.warning("Could not remove previous log file")
+            LOG.warning("WARNING: Could not remove previous log file")
 
     h = logging.FileHandler(log_filename)
 
@@ -416,7 +434,7 @@ def ParseComplexStep(step):
 
         # get the steps to run if the condition is false
         else_statement, else_data, else_steps = statements_by_type.get(
-            'else', ('else', '', None))
+            'else', ('else', '', []))
 
         if else_steps is None:
             else_steps = []
@@ -432,7 +450,7 @@ def ParseComplexStep(step):
 
         if not if_steps + else_steps:
             raise RuntimeError(
-                "IF statement has no statements to run '%s'"%
+                "IF statement has no 'if_true' or 'else' statements '%s'"%
                     condition.raw_step)
 
         return IfStep(step, condition, if_steps, else_steps)
@@ -613,8 +631,8 @@ class CommandStep(Step):
 
             raise RuntimeError(message)
 
-        if 'echo' in self.qualifiers and indented_output != '\n':
-            LOG.info(indented_output)
+        if 'echo' in self.qualifiers and self.output.strip():
+            LOG.info(self.output.strip())
 
         elif indented_output != "\n":
             LOG.debug("Output from command:\n%s"% indented_output)
@@ -936,7 +954,7 @@ def ReadParamRestrictions(param_file):
             return {}
 
     except ConfigParser.ParsingError, e:
-        LOG.warning(str(e))
+        LOG.warning("WARNING: "+ str(e))
         return {}
 
     counts_db = {}
@@ -997,6 +1015,11 @@ def Main():
     except ErrorCollection, e:
         e.LogErrors()
         sys.exit(1)
+
+    # only checking - so quit before executing steps
+    if options.check:
+        print "No Errors"
+        sys.exit(0)
 
     try:
         ExecuteSteps(steps, variables)
