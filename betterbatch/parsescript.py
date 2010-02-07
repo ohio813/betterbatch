@@ -726,7 +726,7 @@ class ExecutionEndStep(Step):
                 "0 for success: '%s'"% raw_step)
 
         if len(parts) == 2:
-            self.message = parts[1]
+            self.message = parts[1].strip()
 
     def replace_vars(self, variables, update = False):
         """Replace variables referenced in the step with the variable values
@@ -741,7 +741,7 @@ class ExecutionEndStep(Step):
     def execute(self, variables, raise_on_error = True):
         "Run this step"
         self.replace_vars(variables, update = True)
-        raise EndExecution(self.ret, self.message.strip())
+        raise EndExecution(self.ret, self.message)
 
 
 class IncludeStep(Step):
