@@ -1,9 +1,10 @@
 import unittest
 import os
-
 import sys
-sys.path.append(".")
-sys.path.append("..")
+
+# ensure that the package root is on the path
+package_root = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(package_root)
 
 from parsescript import *
 from parsescript import built_in_commands
@@ -12,20 +13,18 @@ TEST_PATH = os.path.dirname(__file__)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
 
-
-
-    #def test_parsestepdata_DOS_replacement_cmd(self):
+    #def test_ParseStep_DOS_replacement_cmd(self):
 
     #    step_data = "cd test"
-    #    data = ParseStepData(step_data)
+    #    data = ParseStep(step_data)
     #    self.assertEquals(data, ('cd', [], 'test'))
 
     #    step_data = {"run": "cd test"}
-    #    data = ParseStepData(step_data)
+    #    data = ParseStep(step_data)
     #    self.assertEquals(data, ('cd', [], 'test'))
 
     #    step_data = {"run": ["cd", "test"]}
-    #    data = ParseStepData(step_data)
+    #    data = ParseStep(step_data)
     #    self.assertEquals(data, ('cd', [], ['test']))
 
 
@@ -35,129 +34,134 @@ class StepTests(unittest.TestCase):
     def test_StepFromString(self):
         """"""
 
-        s = ParseStepData("echo this step")
-        self.assertEquals(s, ('run', [], "echo this step"))
+        s = ParseStep("echo this step")
+        self.assertEquals(isinstance(s, CommandStep), True)
+        self.assertEquals(s.qualifiers, [])
+        self.assertEquals(s.raw_step, "echo this step")
+        self.assertEquals(s.step_data, "echo this step")
 
-    def test_StepFromDict(self):
-        """"""
-        s = ParseStepData({'run': "echo this step"})
-        self.assertEquals(s, ('run', [], "echo this step"))
+    #def test_StepFromDict(self):
+    #    """"""
+    #    s = ParseStep({'run': "echo this step"})
+    #    self.assertEquals(s, ('run', [], "echo this step"))
 
-    def test_Step_from_list(self):
-        """"""
-        s = ParseStepData({'run': ["echo", "run this"]})
-        self.assertEquals(s, ('run', [], ["echo", "run this"]))
+    #def test_Step_from_list(self):
+    #    """"""
+    #    s = ParseStep({'run': ["echo", "run this"]})
+    #    self.assertEquals(s, ('run', [], ["echo", "run this"]))
 
     def test_StepFromBadDict(self):
         """"""
         self.assertRaises(
             RuntimeError,
-            ParseStepData,
+            ParseStep,
                 {'run': "echo this step", "a": 123})
 
-    def test_Step_DosCommand(self):
+    #def test_Step_DosCommand(self):
         """"""
-        s = Step('run', [], 'cd "some directory"')
+        s = CommandStep('cd "some directory"')
         
-        self.assertEquals(
-            s.params, '"some directory"')
+        #self.assertEquals(
+        #    s.params, '"some directory"')
 
-        self.assertEquals(s.argcount, 1)
-        self.assertEquals(s.command, "cd")
+        #self.assertEquals(s.argcount, 1)
+        #self.assertEquals(s.command, "cd")
 
-        self.assertEquals(
-            s.action, built_in_commands.NAME_ACTION_MAPPING['cd'])
+        #self.assertEquals(
+        #    s.action, built_in_commands.NAME_ACTION_MAPPING['cd'])
 
-    def test_Step_DosCommand_not_run(self):
+    #def test_Step_DosCommand_not_run(self):
         """"""
-        s = Step('cd', [], '"some directory"')
+        #s = Step('cd', [], '"some directory"')
         
-        self.assertEquals(
-            s.params, '"some directory"')
+        #self.assertEquals(
+        #    s.params, '"some directory"')
             
-        self.assertEquals(s.argcount, 1)
+        #self.assertEquals(s.argcount, 1)
 
     def test_Step_DosCommand(self):
         """"""
-        s = Step('run', [], ['cd', 'some directory'])
+        #s = Step('run', [], ['cd', 'some directory'])
         
-        self.assertEquals(
-            s.params, ['some directory'])
+        #self.assertEquals(
+        #    s.params, ['some directory'])
 
-        self.assertEquals(s.argcount, 1)
-        self.assertEquals(s.command, "cd")
+        #self.assertEquals(s.argcount, 1)
+        #self.assertEquals(s.command, "cd")
 
-        self.assertEquals(
-            s.action, built_in_commands.NAME_ACTION_MAPPING['cd'])
+        #self.assertEquals(
+        #    s.action, built_in_commands.NAME_ACTION_MAPPING['cd'])
 
 
     #def test_StepWithDict_params(self):
     #    """"""
-    #    s = ParseStepData({'run': {'test': "echo this step"}})
+    #    s = ParseStep({'run': {'test': "echo this step"}})
 
 
     def test_StepWithQualifiers(self):
         """"""
-        Step("run", ['ui', 'nocheck'], 'dir')
-        Step("run", ['nocheck'], 'dir')
-        Step("count", [5], 'dir')
+        s = CommandStep('dir {*ui*} {*nocheck*}')
+        self.assertEquals(s.qualifiers, ['ui', 'nocheck'])
+        
+        #Step('dir {*nocheck*}')
+        #Step("count", [5], 'dir')
 
-    def test_StepUnknownActionType(self):
+    #def test_StepUnknownActionType(self):
+    #    """"""
+
+  # #     self.assertRaises(
+    #        RuntimeError,
+    #        Step,
+    #            "blah", [], ['dir', "c:\\", "/b"])
+
+    def test_Stepexecute_no_ret(self):
         """"""
-
-        self.assertRaises(
-            RuntimeError,
-            Step,
-                "blah", [], ['dir', "c:\\", "/b"])
-
-    def test_StepExecute_no_ret(self):
-        """"""
-        Step('run', [], "dir").Execute()
+        CommandStep("dir").execute({})
 
     def test_Step_output(self):
         """"""
-        Step('output', [], "my message").Execute()
+        CommandStep('echo my message').execute({})
 
-    def test_StepExecute_ret(self):
+    def test_Stepexecute_ret(self):
         """Test that 'nocheck' doesn't raise on error"""
-        Step('run', ['nocheck'], "dirsad").Execute()
+        CommandStep("dirsad {*nocheck*}").execute({})
 
-    def test_StepExecute_with_echo(self):
+    def test_Stepexecute_with_echo(self):
         """"""
-        Step('run', ['echo'], "echo Hi Tester").Execute()
+        CommandStep("echo Hi Tester").execute({})
 
-    def test_StepExecute_with_echo(self):
+    def test_Stepexecute_with_echo(self):
         """"""
-        Step('run', ['echo'], "echo Hi Tester").Execute()
+        CommandStep("echo Hi Tester {*echo*}").execute({})
 
-    def test_StepExecute_(self):
+    def test_Stepexecute_(self):
         """"""
-        Step('run', ['echo'], "echo Hi Tester").Execute()
+        CommandStep("echo Hi Tester").execute({})
 
     def test_Step_repr(self):
         """"""
-        rep = repr(Step('run', ['echo'], "echo Hi Tester"))
+        rep = repr(Step("echo Hi Tester"))
         
-        self.assertEquals(rep, "<Step: %s %s>"% ('run', 'echo'))
+        self.assertEquals(rep, "<Step echo Hi Tester>")
 
-    def test_Step_command_with_list(self):
-        """"""
-        step = Step('run', ['echo'], ["echo", "Hi", "Tester"])
-        
-        self.assertEquals(step.command, 'echo')
+    #def test_Step_command_with_list(self):
+    #    """"""
+    #    step = Step(["echo", "Hi", "Tester"])
+    #    
+    #    self.assertEquals(step.command, 'echo')
 
-    def test_Step_argcount_with_list(self):
-        """"""
-        step = Step('run', ['echo'], ["echo", "Hi", "Tester"])
-        
-        self.assertEquals(step.argcount, 2)
+  # # def test_Step_argcount_with_list(self):
+    #    """"""
+    #    step = Step(["echo", "Hi", "Tester"])
+    #    
+    #    self.assertEquals(step.argcount, 2)
 
-    def test_Step_argcount_with_invalid_shlex_str(self):
-        """"""
-        step = Step('run', ['echo'], 'echo Hi " Tester')
-        self.assertEquals(step.argcount, 3)
+  # # def test_Step_argcount_with_invalid_shlex_str(self):
+    #    """"""
+    #    step = Step('echo Hi " Tester')
+    #    self.assertEquals(step.argcount, 3)
 
 
-
+#
 if __name__ == "__main__":
     unittest.main()

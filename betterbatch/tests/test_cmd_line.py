@@ -2,13 +2,16 @@ import unittest
 import os
 
 
+import sys
+# ensure that the package root is on the path
+package_root = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(package_root)
+
+from cmd_line import *
+
 TEST_PATH = os.path.dirname(__file__)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
-import sys
-sys.path.append(os.path.dirname(TEST_PATH))
-
-from cmd_line import *
 
 class CommandLineTests(unittest.TestCase):
     "Unit tests for the command line processing functionality"
