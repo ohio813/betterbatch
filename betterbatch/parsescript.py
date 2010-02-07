@@ -218,7 +218,9 @@ def ReplaceVariableReferences(text, variables, loop = None):
 
         # ensure that we are not in a variable loop e.g x -> y -> x
         if variable in loop:
-            errors.append("following variables cause a loop %s"% loop)
+            if len (loop) > 1:
+                errors.append("Loop found in variable definition "
+                    "'%s', variable %s"% (original_text, loop))
             continue
         loop.append(variable)
 
@@ -253,18 +255,19 @@ def ReplaceVariableReferences(text, variables, loop = None):
 
 def ReplaceVariablesInSteps(steps, defined_variables, update = False):
     "Replace variables in all the steps"
+    
     # don't modify the variables passed in
-
     if not update:
         defined_variables = defined_variables.copy()
 
     errors = []
     for step in steps:
         try:
+            step.replace_vars(defined_variables, update = update)
+            
             if isinstance(step, VariableDefinition):
                 defined_variables[step.name] = step
 
-            step.replace_vars(defined_variables, update = update)
         except ErrorCollection, e:
             errors.extend(e.errors)
 
@@ -308,7 +311,8 @@ def ReplaceExecutableSections(text, variables, execute = True):
         if execute:
             # text before the section
             replaced.append(text[last_section_end:section.start()])
-            step.replace_vars(variables, update=True)
+            #step.replace_vars(variables, update=True)
+            ReplaceVariableReferences(text, variables)
             step.execute(variables)
 
             replaced.append(step.output.strip())
@@ -497,7 +501,6 @@ class VariableDefinition(Step):
         that when we actually need it. The reason for this is that a variable
         may reference a variable that is defined/changed later.
         """
-
         #if update:
         #    self.value = ReplaceVariableReferences(self.value, variables)
         # Replace executable sections - If execute is False - then the
@@ -511,8 +514,28 @@ class VariableDefinition(Step):
     def execute(self, variables, raise_on_error = True):
         """Set the variable
 
-        Note - we don't replace all sub variables at this point
-        """
+        Note - we don't replace all sub variables at this point"""
+        
+        # does the variable reference itself
+        refs = FindVariableReferences(self.value)
+        value = self.value
+        if self.name in refs:
+
+            # get a new name for the old value (so we have it)
+            i = 0
+            prev_var = self.name
+            while prev_var in variables:
+                prev_var = "%s._%d_"% (self.name, i)
+                i += 1
+            
+            # keep a copy of the old value under the new name
+            variables[prev_var] = variables[self.name]      
+            variables[prev_var].name = prev_var
+
+            # and update the current value to reference the new variable
+            for match in refs[self.name]:
+                self.value = self.value.replace(match, "<%s>"% prev_var)
+
         #self.value = ReplaceExecutableSections(
         #    self.value, variables, execute = True)
         self.replace_vars(variables, update = True)
@@ -540,7 +563,8 @@ class CommandStep(Step):
         If update is False - then this will only test that the variables
         can be replaced
         """
-        new_val = ReplaceVariableReferences(self.step_data, variables)
+        new_val = ReplaceExecutableSections(self.step_data, variables, execute = update)
+        new_val = ReplaceVariableReferences(new_val, variables)
         if update:
             self.step_data = new_val
 
@@ -651,9 +675,8 @@ class IfStep(Step):
         """Replace variables referenced in the step with the variable values
 
         If update is False - then this will only test that the variables
-        can be replaced
-        """
-
+        can be replaced"""
+        
         self.condition.replace_vars(variables, update = update)
         # only try to replace the variables when NOT executing
         # because when executing both sides will not be exucuted
@@ -711,7 +734,6 @@ class ExecutionEndStep(Step):
         self.ret = 0
         self.message = ''
 
-
         parts = ret_message.split(',', 1)
         try:
             self.ret = int(parts[0])
@@ -721,7 +743,7 @@ class ExecutionEndStep(Step):
                 "0 for success: '%s'"% raw_step)
 
         if len(parts) == 2:
-            self.message = parts[1]
+            self.message = parts[1].strip()
 
     def replace_vars(self, variables, update = False):
         """Replace variables referenced in the step with the variable values

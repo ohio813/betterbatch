@@ -225,7 +225,21 @@ class ReplaceVariableReferencesTests(unittest.TestCase):
                     'here': DummyVar('<not_there>'),
                     'there': DummyVar('<here>')})
 
+    def test_2nd_level_single_var_loop(self):
+        """"""
+        variables = {'x': DummyVar("uses <x>")}
+        ReplaceVariableReferences("using <x> again", variables)
 
+    def test_2nd_level_multiple_var_loop(self):
+        """"""
+        variables = {
+            'x': DummyVar("uses <y>"),
+            'y': DummyVar("uses <x>"),
+            }
+        self.assertRaises(
+            ErrorCollection,
+            ReplaceVariableReferences,
+                "<x>", variables)
 
 class ReplaceVariablesInStepsTests(unittest.TestCase):
     """"""
@@ -581,6 +595,34 @@ class VariableDefinitionTests(unittest.TestCase):
             s.execute,
                 {})
 
+    def test_execute_ok_loop(self):
+        steps = [
+            ParseStep(s) for s in 
+                ["set x = 0" ,"set x= <x> + 1", "set x= <x> + 2"]]
+        
+        variables = {}
+        for s in steps:
+            s.execute(variables)
+        
+        self.assertEquals(
+            ReplaceVariableReferences("<x>", variables),
+            "0 + 1 + 2")
+
+    def test_execute_bad_loop(self):
+        steps = [
+            ParseStep(s) for s in 
+                ["set x = 0" ,"set y= <x>", "set x= <y> + 2"]]
+        
+        variables = {}
+        for s in steps:
+            s.execute(variables)
+        
+        self.assertRaises(
+            ErrorCollection,
+            ReplaceVariableReferences,
+                "<x>", variables)
+       
+
     def test_basic_step_repr(self):
         s = VariableDefinition("blah blah", "_yikes_=_close_")
         self.assertEquals(s.__repr__(), "'_close_'")
@@ -593,6 +635,60 @@ class EndExecutionTests(unittest.TestCase):
         e = EndExecution(123, "hi")
         self.assertEquals(e.ret, 123)
         self.assertEquals(e.msg, "hi")
+
+
+class ExecutionEndStepTests(unittest.TestCase):
+    ""
+    def test_construct(self):
+        """"""
+        e = ExecutionEndStep("", " 123 ,hi ")
+        self.assertEquals(e.ret, 123)
+        self.assertEquals(e.message, "hi")
+
+    def test_construct_no_message(self):
+        """"""
+        e = ExecutionEndStep("", " 123 , ")
+        self.assertEquals(e.ret, 123)
+        self.assertEquals(e.message, "")
+
+        e = ExecutionEndStep("", " 123 ")
+        self.assertEquals(e.ret, 123)
+        self.assertEquals(e.message, "")
+
+
+    def test_construct_bad_return_code(self):
+        """"""
+        self.assertRaises(
+            RuntimeError,
+            ExecutionEndStep,
+                "", "123d, hi")
+
+    def test_replace_vars_update_false(self):
+        """"""
+        variables = {'hi': DummyVar("there")}
+        e = ExecutionEndStep("", " 123 , <hi>")
+        
+        e.replace_vars(variables)
+        self.assertEquals(e.message, "<hi>")
+
+    def test_replace_vars_update_true(self):
+        """"""
+        variables = {'hi': DummyVar("there")}
+        e = ExecutionEndStep("", "123, <hi>")
+        
+        e.replace_vars(variables, True)
+        self.assertEquals(e.message, "there")
+
+    def test_replace_vars_update_false(self):
+        """"""
+        e = ExecutionEndStep("", "123, hi")
+        
+        self.assertRaises(
+            EndExecution,
+            e.execute,
+                {})
+
+                
 
 
 def DebugAction(to_exec, dummy = None):

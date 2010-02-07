@@ -1,14 +1,16 @@
 import unittest
 import os
-
 import sys
-sys.path.append(".")
-sys.path.append("..")
+
+# ensure that the package root is on the path
+package_root = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(package_root)
 
 from parsescript import *
 
 TEST_PATH = os.path.dirname(__file__)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
+
 
 class VarReplacementTests(unittest.TestCase):
     "Perform some simple tests"
@@ -88,3 +90,6 @@ class VarReplacementTests(unittest.TestCase):
     # check parsing a value with 1 var
     # check parsing a value which is only a variable reference
     # check that > and < work OK (begining, middle and end of the string)
+
+if __name__ == "__main__":
+    unittest.main()

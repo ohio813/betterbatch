@@ -3,8 +3,9 @@ import os
 import glob
 
 import sys
-sys.path.append(".")
-sys.path.append("..")
+# ensure that the package root is on the path
+package_root = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(package_root)
 
 from parsescript import *
 
