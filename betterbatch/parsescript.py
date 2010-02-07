@@ -311,7 +311,8 @@ def ReplaceExecutableSections(text, variables, execute = True):
         if execute:
             # text before the section
             replaced.append(text[last_section_end:section.start()])
-            step.replace_vars(variables, update=True)
+            #step.replace_vars(variables, update=True)
+            ReplaceVariableReferences(text, variables)
             step.execute(variables)
 
             replaced.append(step.output.strip())
