@@ -562,7 +562,8 @@ class CommandStep(Step):
         If update is False - then this will only test that the variables
         can be replaced
         """
-        new_val = ReplaceVariableReferences(self.step_data, variables)
+        new_val = ReplaceExecutableSections(self.step_data, variables, execute = update)
+        new_val = ReplaceVariableReferences(new_val, variables)
         if update:
             self.step_data = new_val
 
