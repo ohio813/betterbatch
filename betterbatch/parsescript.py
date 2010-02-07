@@ -742,7 +742,7 @@ class ExecutionEndStep(Step):
     def execute(self, variables, raise_on_error = True):
         "Run this step"
         self.replace_vars(variables, update = True)
-        raise EndExecution(self.ret, self.message)
+        raise EndExecution(self.ret, self.message.strip())
 
 
 class IncludeStep(Step):
