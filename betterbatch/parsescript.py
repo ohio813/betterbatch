@@ -218,7 +218,9 @@ def ReplaceVariableReferences(text, variables, loop = None):
 
         # ensure that we are not in a variable loop e.g x -> y -> x
         if variable in loop:
-            errors.append("following variables cause a loop %s"% loop)
+            if len (loop) > 1:
+                errors.append("Loop found in variable definition "
+                    "'%s', variable %s"% (original_text, loop))
             continue
         loop.append(variable)
 
@@ -511,8 +513,28 @@ class VariableDefinition(Step):
     def execute(self, variables, raise_on_error = True):
         """Set the variable
 
-        Note - we don't replace all sub variables at this point
-        """
+        Note - we don't replace all sub variables at this point"""
+        
+        # does the variable reference itself
+        refs = FindVariableReferences(self.value)
+        value = self.value
+        if self.name in refs:
+
+            # get a new name for the old value (so we have it)
+            i = 0
+            prev_var = self.name
+            while prev_var in variables:
+                prev_var = "%s._%d_"% (self.name, i)
+                i += 1
+            
+            # keep a copy of the old value under the new name
+            variables[prev_var] = variables[self.name]      
+            variables[prev_var].name = prev_var
+
+            # and update the current value to reference the new variable
+            for match in refs[self.name]:
+                self.value = self.value.replace(match, "<%s>"% prev_var)
+
         #self.value = ReplaceExecutableSections(
         #    self.value, variables, execute = True)
         self.replace_vars(variables, update = True)
