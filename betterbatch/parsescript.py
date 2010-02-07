@@ -263,10 +263,11 @@ def ReplaceVariablesInSteps(steps, defined_variables, update = False):
     errors = []
     for step in steps:
         try:
+            step.replace_vars(defined_variables, update = update)
+            
             if isinstance(step, VariableDefinition):
                 defined_variables[step.name] = step
 
-            step.replace_vars(defined_variables, update = update)
         except ErrorCollection, e:
             errors.extend(e.errors)
 
