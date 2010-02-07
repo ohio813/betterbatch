@@ -716,7 +716,6 @@ class ExecutionEndStep(Step):
         self.ret = 0
         self.message = ''
 
-
         parts = ret_message.split(',', 1)
         try:
             self.ret = int(parts[0])
