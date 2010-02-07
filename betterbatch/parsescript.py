@@ -255,8 +255,8 @@ def ReplaceVariableReferences(text, variables, loop = None):
 
 def ReplaceVariablesInSteps(steps, defined_variables, update = False):
     "Replace variables in all the steps"
+    
     # don't modify the variables passed in
-
     if not update:
         defined_variables = defined_variables.copy()
 
@@ -499,7 +499,6 @@ class VariableDefinition(Step):
         that when we actually need it. The reason for this is that a variable
         may reference a variable that is defined/changed later.
         """
-
         #if update:
         #    self.value = ReplaceVariableReferences(self.value, variables)
         # Replace executable sections - If execute is False - then the
@@ -674,9 +673,8 @@ class IfStep(Step):
         """Replace variables referenced in the step with the variable values
 
         If update is False - then this will only test that the variables
-        can be replaced
-        """
-
+        can be replaced"""
+        
         self.condition.replace_vars(variables, update = update)
         ReplaceVariablesInSteps(self.if_steps, variables, update = update)
         ReplaceVariablesInSteps(self.else_steps, variables, update = update)
