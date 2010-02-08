@@ -801,7 +801,11 @@ class IncludeStep(Step):
             variables['__script_dir__'].value, self.filename)
             
         self.steps = LoadScriptFile(self.filename)
-        self.steps = FinalizeSteps(self.steps, variables)
+        # we may not be abel to do this at this stage
+        # as execute for includes will be done before the variables are
+        # added!, so steps inside the includes will not have the all
+        # the variables available
+        #self.steps = FinalizeSteps(self.steps, variables)
 
 
 class LogFileStep(Step):
@@ -882,17 +886,18 @@ STATEMENT_HANDLERS = {
 def FinalizeSteps(steps, variables):
     finalized_steps = []
     for i, step in enumerate(steps):
+
         if isinstance(step, IncludeStep):
             step.execute(variables)
             finalized_steps.extend(step.steps)
-        
+
         else:
             #if isinstance(step, IfStep):
             #    step.if_steps = FinalizeSteps(step.if_steps, variables)
             #    step.else_steps = FinalizeSteps(step.else_steps)
 
             finalized_steps.append(step)
-    
+
     ReplaceVariablesInSteps(finalized_steps, variables, update = False)
 
     return finalized_steps
