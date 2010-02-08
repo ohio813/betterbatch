@@ -1,0 +1,2 @@
+- assoc .bb=BetterBatchScriptFile
+- ftype BetterBatchScriptFile=python.exe G:\GrandPrix\tools\betterbatch\bbrun.py %1 %*
