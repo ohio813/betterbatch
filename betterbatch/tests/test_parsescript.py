@@ -625,7 +625,7 @@ class VariableDefinitionTests(unittest.TestCase):
 
     def test_basic_step_repr(self):
         s = VariableDefinition("blah blah", "_yikes_=_close_")
-        self.assertEquals(s.__repr__(), "'_close_'")
+        self.assertEquals(s.__repr__(), '"_close_"')
 
 
 class EndExecutionTests(unittest.TestCase):
@@ -767,9 +767,10 @@ class IfStepTests(unittest.TestCase):
                 continue
 
             script_filepath = os.path.join(TEST_FILES_PATH, filename)
-            vars = PopulateVariables(script_filepath)
+            vars = PopulateVariables(script_filepath, {})
 
-            steps = LoadAndCheckFile(script_filepath, vars)
+            steps = LoadScriptFile(script_filepath)
+            steps = FinalizeSteps(steps, vars)
 
             try:
                 ExecuteSteps(steps, vars)
@@ -787,19 +788,20 @@ class IfStepTests(unittest.TestCase):
 
     def test_broken_not_list(self):
         script_filepath = os.path.join(TEST_FILES_PATH,   "if_else_broken_not_list.yaml")
-        vars = PopulateVariables(script_filepath)
+        
         self.assertRaises(
             RuntimeError,
-            LoadAndCheckFile,
-                script_filepath, vars)
+            LoadScriptFile,
+                script_filepath)
 
     def test_broken_not_list2(self):
         script_filepath = os.path.join(TEST_FILES_PATH,   "if_else_broken_not_list2.yaml")
-        vars = PopulateVariables(script_filepath)
+        vars = PopulateVariables(script_filepath, {})
         try:
-            steps = LoadAndCheckFile(
-                script_filepath,
-                vars)
+        
+            steps = LoadScriptFile(script_filepath)
+            steps = FinalizeSteps(steps, vars)
+
         except ErrorCollection, e:
             e.LogErrors()
             print e.errors
@@ -821,28 +823,29 @@ class IfStepTests(unittest.TestCase):
 #                steps, vars)
 #
     def test_broken_too_many_clauses(self):
-        vars = {}
+        script_filepath = os.path.join(TEST_FILES_PATH,   "if_else_broken_too_many.yaml")
+
         self.assertRaises(
             RuntimeError,
-            LoadAndCheckFile,
-                os.path.join(TEST_FILES_PATH, "if_else_broken_too_many.yaml"),
-                vars)
+            LoadScriptFile,
+                script_filepath)
 
     def test_broken_do_name(self):
         script_filepath = os.path.join(TEST_FILES_PATH,   "if_else_broken_do_name.yaml")
-        vars = PopulateVariables(script_filepath)
-        steps = LoadAndCheckFile(
-            script_filepath, vars)
+        vars = PopulateVariables(script_filepath, {})
 
+        steps = LoadScriptFile(script_filepath)
+        steps = FinalizeSteps(steps, vars)
+        
         ExecuteSteps(steps, vars)
 
     def test_broken_else_name(self):
         script_filepath = os.path.join(TEST_FILES_PATH, "if_else_broken_else_name.yaml")
-        vars = PopulateVariables(script_filepath)
+
         self.assertRaises(
             RuntimeError,
-            LoadAndCheckFile,
-                script_filepath, vars)
+            LoadScriptFile,
+                script_filepath)
 
     def test_minimal_if(self):
         pass

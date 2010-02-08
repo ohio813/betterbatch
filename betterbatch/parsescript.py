@@ -372,11 +372,38 @@ def SetupLogFile(log_filename):
     LOG.addHandler(h)
 
 
+def ParseSteps(steps):
+    if steps is None:
+        return []
+    
+    if isinstance(steps, basestring):
+        steps = [steps]
+
+    parsed_steps = []
+    errors = []
+    for step in steps:
+        if step is None:
+            continue
+
+        try:
+            parsed_steps.append(ParseStep(step))
+        except ErrorCollection, e:
+            errors.extend(e.errors)
+
+    if errors:
+        raise ErrorCollection(errors)
+
+    return parsed_steps
+
+
 def ParseStep(step):
     """Return the parsed step ready to check and execute"""
     # parse the if/for etc block
     if isinstance(step, dict):
         return ParseComplexStep(step)
+
+    if step is None:
+        return None
 
     # get the statement type
     statement_type, step_data = SplitStatementAndData(step)
@@ -424,33 +451,13 @@ def ParseComplexStep(step):
         if_statement, condition, if_steps = statements_by_type['if']
         condition = ParseStep(condition)
 
-        if if_steps is None:
-            if_steps = []
-        if isinstance(if_steps, basestring):
-            if_steps = [if_steps]
-
-        parsed_if_steps = []
-        for step in if_steps:
-            if step is None:
-                continue
-            parsed_if_steps.append(ParseStep(step))
-        if_steps = parsed_if_steps
+        if_steps = ParseSteps(if_steps)
 
         # get the steps to run if the condition is false
         else_statement, else_data, else_steps = statements_by_type.get(
             'else', ('else', '', []))
 
-        if else_steps is None:
-            else_steps = []
-        if isinstance(else_steps, basestring):
-            else_steps = [else_steps]
-
-        parsed_else_steps = []
-        for step in else_steps:
-            if step is None:
-                continue
-            parsed_else_steps.append(ParseStep(step))
-        else_steps = parsed_else_steps
+        else_steps = ParseSteps(else_steps)
 
         if not if_steps + else_steps:
             raise RuntimeError(
@@ -714,6 +721,8 @@ class IfStep(Step):
                 "Condition evaluated to false: %s"% self.condition.output)
             check_true = False
             steps_to_exec = self.else_steps
+
+        steps_to_exec = FinalizeSteps(steps_to_exec, variables)
             
         # replace variables in the steps to be executed
         ReplaceVariablesInSteps(steps_to_exec, variables, update = True)
@@ -782,14 +791,17 @@ class IncludeStep(Step):
 
     def execute(self, variables, raise_on_error = True):
         "Run this step"
-        self.replace_vars(variables, update = True)
-        self.filename = os.path.join(
-            variables['__script_dir__'].value, self.filename)
-
         # todo: should the __script_dir__ be updated to the include
         # directory? if yes- then don't forget to set it back afterwards
         # in a safe try finally!
-        self.steps = LoadAndCheckFile(self.filename, variables)
+
+        self.replace_vars(variables, update = True)
+
+        self.filename = os.path.join(
+            variables['__script_dir__'].value, self.filename)
+            
+        self.steps = LoadScriptFile(self.filename)
+        self.steps = FinalizeSteps(self.steps, variables)
 
 
 class LogFileStep(Step):
@@ -866,8 +878,29 @@ STATEMENT_HANDLERS = {
     'end': ExecutionEndStep, }
 
 
-def LoadAndCheckFile(filepath, variables):
+
+def FinalizeSteps(steps, variables):
+    finalized_steps = []
+    for i, step in enumerate(steps):
+        if isinstance(step, IncludeStep):
+            step.execute(variables)
+            finalized_steps.extend(step.steps)
+        
+        else:
+            #if isinstance(step, IfStep):
+            #    step.if_steps = FinalizeSteps(step.if_steps, variables)
+            #    step.else_steps = FinalizeSteps(step.else_steps)
+
+            finalized_steps.append(step)
+    
+    ReplaceVariablesInSteps(finalized_steps, variables, update = False)
+
+    return finalized_steps
+
+
+def LoadScriptFile(filepath):
     "Load the script file and check that variable references work"
+
     steps = ParseYAMLFile(filepath)
 
     if not steps:
@@ -878,32 +911,7 @@ def LoadAndCheckFile(filepath, variables):
             "Configuration file not correctly defined (remember to start each "
             "statement with '-')")
 
-    parsed_steps = []
-    errors = []
-    for step in steps:
-        try:
-            parsed_steps.append(ParseStep(step))
-            if isinstance(parsed_steps[-1], IncludeStep):
-                # note - because we load include steps before
-                # executing other steps - we can only use variables defined
-                # outside the script (either command line, environment vars or
-                # pseudo vars)
-                include_step = parsed_steps.pop()
-                include_step.execute(variables)
-                parsed_steps.extend(include_step.steps)
-
-        except ErrorCollection, e:
-            errors.extend(e.errors)
-        # todo: add a check for number of parameters
-
-    try:
-        ReplaceVariablesInSteps(parsed_steps, variables, update = False)
-    except ErrorCollection, e:
-        errors.extend(e.errors)
-
-    if errors:
-        raise ErrorCollection(errors)
-    return parsed_steps
+    return ParseSteps(steps)
 
 
 def ExecuteSteps(steps, variables):
@@ -1046,7 +1054,8 @@ def Main():
     LOG.debug("Environment:"% variables)
 
     try:
-        steps = LoadAndCheckFile(options.script_file, variables)
+        steps = LoadScriptFile(options.script_file)
+        steps = FinalizeSteps(steps, variables)
 
         arg_counts_db = ReadParamRestrictions(PARAM_FILE)
         ValidateArgumentCounts(steps, arg_counts_db)

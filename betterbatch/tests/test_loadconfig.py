@@ -6,7 +6,7 @@ import sys
 package_root = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(package_root)
 
-from parsescript import LoadAndCheckFile
+#from parsescript import LoadAndCheckFile
 from parsescript import ErrorCollection
 from parsescript import PopulateVariables
 
