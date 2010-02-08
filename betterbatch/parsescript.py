@@ -592,24 +592,17 @@ class CommandStep(Step):
         if isinstance(params, list):
             params = " ".join(params)
 
-        def shorten_string(string, length = 100):
-            "Ensure the string is max length characters"
-            if len(string) > length:
-                string = string[:length-3] + "..."
-            return string
-
         command_message = params
         if cmd:
             command_message = " ".join((cmd, command_message))
 
         if command_message.split() != self.raw_step.split():
             command_message = "'%s' -> '%s'"% (
-                shorten_string(self.raw_step),
-                shorten_string(command_message))
+                self.raw_step,command_message)
         else:
             command_message = "'%s'"% command_message
 
-        command_message = command_message.replace('\\', '\\\\')
+        #command_message = command_message.replace('\\', '\\\\')
         command_message = command_message.replace('\r\n', '\\r\\n')
 
         return command_message
