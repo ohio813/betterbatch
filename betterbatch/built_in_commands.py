@@ -249,10 +249,6 @@ def Replace(input, qualifiers = None):
     to_find = unescape_text(qualifiers[0])
     replace_with = unescape_text(qualifiers[1])
     replaced = input.replace(to_find, replace_with)
-    print to_find
-    print replace_with
-    print replaced
-    import pdb; pdb.set_trace()
     
     return 0, replaced
     
