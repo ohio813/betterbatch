@@ -1,3 +1,3 @@
 from betterbatch import *
 
-__version__ = '0.90'
+__version__ = '0.92'

@@ -18,6 +18,10 @@
 - if exist <computername>.bb:
   - include <computername>.bb
 
+- if exist betterbatch\tests\test_files\commands.yaml:
+  - include betterbatch\tests\test_files\commands.yaml
+- end 0
+
 # or user specific configuration
 - if exist <username>.bb:
   - include <username>.bb
