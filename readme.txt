@@ -5,41 +5,35 @@ BetterBatch Readme
 ====================================
 What is BetterBatch
 ====================================
-BetterBatch is meant as a simple replacement for batch files. It has the following 
+BetterBatch is meant as a replacement for batch files. It has the following 
 advantages over batch files:
 
 * easily include commands/variables from other files
 * set variables from the output of system commands
-* automatically check the return value of executed commands
+* automatically checks the return value of executed commands
 * built-in commands to allow easy checking of conditions (e.g. that a file exists)
-* easier to understand variable format
+* easier to read variable format
 * strongly encourages separation of code and configuration
-  
-  * no looping constructs in configuration files
-  * allow easily and safely using code in external files.
+* allow easily and safely using external scripts/executables
 
 BetterBatch's sweet spot is for things that can be done by a batch command and 
 need to be maintained over time by different people who may not have the same
-knowledge of scripts nor want the extra complexity of scripts that are harder
-to maintain.
+knowledge of scripts nor want the extra complexity of scripts (which are harder
+to maintain).
 
 The following example shows how to check if a file exists and copy from a 
 location specified on the command line.
 
 First of all enter the following text into a new text file named "copyfile.bb" ::
 
-    variables:
-        file_to_copy: <arg1>
-        file_to_check: <tmp>\testing_betterbatch.txt
+    - set file_to_check=<shell.temp>\testing_betterbatch.txt
 
-    Steps:
-    - if:
-        - notexists: <file_to_check>
-        - do: copy <file_to_copy> <file_to_check>
+    - if notexists <file_to_check>:
+        - copy <file_to_copy> <file_to_check>
 
 Now run it by running the following at the DOS prompt ::
 
-    bbrun.py copyfile.bb \autoexec.bat
+    bbrun.py copyfile.bb file_to_copy=autoexec.bat
 
 
 ====================================
@@ -54,38 +48,124 @@ If you have Setuptools you can use the followin command::
 
     easy_install -U pyyaml
 
-It can also be installed as a Python module (if you want to import and use
-betterbatch functionality in python scripts). Use easy_install.py or your 
+BetterBatch can also be installed as a Python module (if you want to import 
+and use BetterBatch functionality in python scripts). Use easy_install.py or your 
 favourite python package installation method.
 
+If you want to associate the BetterBatch extension ".bb" with bbrun.py then you 
+can run::
 
-======================================================
-Quick Start Example - replacing Tomcat's Catalina.bat
-======================================================
-I did a search on my hard drive for some batch file to convert that would give
-a good example of where betterbatch could be used instead of DOS Batch files.
+    associate_filetype.bb
 
-I found one example in Tomcat's catalina.bat. I don't replicate the comments
-in this quick start example.
-
-Create a new text file "catalina.yaml" ::
-
-    variables:
-     
-    Steps:
-    - exist: <CATALINA_HOME>\bin\catalina.bat
-    - if:
-        - exist: <CATALINA_HOME>\bin\catalina.bat
-        - do:
-            <CATALINA_HOME>\bin\catalina.bat
-        - else:
+This expects that python is on the path - but you can update it to your 
+python installation if python is not on the path.
 
 
 ====================================
-Config Files
+Script File Syntax
 ====================================
 
-The config file is made up of named sections:
+------------------------------------------------------
+YAML
+------------------------------------------------------
+
+Script files need to be valid YAML, but don't worry too much about that!
+The major ways that this will affect you are the following:
+
+ * Tab characters should be avoided (BetterBatch actually will replace them 
+   and print a warning when it loads a file with tab characters)
+ * avoid colon (:) followed by whitespace other than where dictated by the
+   BetterBatch syntax. The Yaml parser will treat it as the 'key' in a 'mapping'
+   and it will cause the script not to run.
+
+------------------------------------------------------
+Simple Statements
+------------------------------------------------------
+A simple statement starts with a dash (-), whitespace and then the statement.
+
+For example the typical Hello World! BetterBatch script is::
+
+    - echo Hello World!
+
+------------------------------------------------------
+Variable References
+------------------------------------------------------
+
+
+------------------------------------------------------
+Executable Statements
+------------------------------------------------------
+Unless a statement is one of the other types it is an Executable Statement
+
+If the executable statement is not a built-in command then it will be
+executed in the shell, just as if you typed it at the command line.
+
+Note - by default BetterBatch captures the output of the command 
+(output and error output) and adds it to the logfile (if set). It will
+also by default stop execution of the script if the command returns an
+error value (return code other than zero(0)). This behaviour can be modified
+by qualifiers.
+
+The following qualifiers are available:
+   **echo**
+        output will still be captured - but it will be echoed to the terminal
+        after the command has finished running
+   **nocheck**
+        an error return value from the command will not cause the script to
+        terminate. A warning will be output in this case - but the script will
+        continue.
+   **ui**
+        command output will not be captured by BetterBatch. The output will
+        go directly to the terminal. This is useful if the command requires
+        some interaction. For example dir /p requires the user to press a key
+        after each screen of output.
+
+------------------------------------------------------
+Variable Definitions
+------------------------------------------------------
+
+Example::
+   
+   - set variable_name = variable value
+
+
+------------------------------------------------------
+Include statements
+------------------------------------------------------
+Example::
+   
+   - include path\to\includefile.bb
+
+------------------------------------------------------
+Logfile specification
+------------------------------------------------------
+Example::
+
+   - logfile path\to\logfile.bb
+
+------------------------------------------------------
+IF statements
+------------------------------------------------------
+Example::
+
+   - if exists this_file:
+     and exists that_file:
+        - echo Great - both files exist
+     else:
+        - echo Oh :( one of the files does not exist
+
+
+if defined variable_name
+
+
+------------------------------------------------------
+Executable Sections
+------------------------------------------------------
+
+
+
+
+The script file is made up of named sections:
 - "Includes" section
 - "Variables" section
 - Section for each command group
