@@ -1030,7 +1030,6 @@ def ReadParamRestrictions(param_file):
     "Read the param counts from param_file"
     params = ConfigParser.RawConfigParser()
 
-
     try:
         if (not params.read(param_file) or
             not params.has_section('param_counts')):
