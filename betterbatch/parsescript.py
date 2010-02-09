@@ -912,8 +912,6 @@ class VariableDefinedCheck(Step):
             self.ret = 1
         self.output = ''
 
-        LOG.debug('Variables at logfile creation: %s'% variables)
-
 
 STATEMENT_HANDLERS = {
     'set': VariableDefinition,
