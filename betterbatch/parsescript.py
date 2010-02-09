@@ -492,7 +492,7 @@ def ParseComplexStep(step):
 
         return IfStep(step, conditions, if_steps, else_steps)
 
-    elif 'for' in statements:
+    elif 'for' in clean_keys:
         raise NotImplementedError("For steps are not implemented yet")
 
     else:
