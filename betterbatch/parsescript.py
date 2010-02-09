@@ -118,8 +118,41 @@ def ParseYAMLFile(yaml_file):
                 "         They have been replaced by spaces for "
                     "processing")
 
+
+        # the following code is quite 'hacky' it puts some
+        # text before every line (that is not the start of a block i.e. (|,>)
+        # so that it will be treated as a string
+        new_step = re.compile(r"^(\s*\-(?!\s*(\||\>)))", re.MULTILINE)
+        yaml_data = new_step.sub(r'\1 FORCE SPACE ', yaml_data)
+
         # Parse the yaml data
         script_data = yaml.load(yaml_data)
+
+        # Now that we have parsed the file and everything has been treated as
+        # a string we need to remove that text we added
+        un_force_re = re.compile(r'^\s*FORCE SPACE ')
+        def strip_string_forcers(item):
+            if isinstance(item, basestring):
+
+                return un_force_re.sub("", item, 1)
+            elif isinstance(item, list):
+                for i, elem in enumerate(item):
+                    item[i] = strip_string_forcers(elem)
+                return item
+            elif isinstance(item, dict):
+                new_dict = {}
+                for key, value in item.items():
+                    new_key = strip_string_forcers(key)
+                    new_val = strip_string_forcers(value)
+                    new_dict[new_key] = new_val
+                return new_dict
+            elif item is None:
+                return None
+            else:
+                raise RuntimeError("please blow up")
+
+        script_data = strip_string_forcers(script_data)
+
         return script_data
 
     except IOError, e:
