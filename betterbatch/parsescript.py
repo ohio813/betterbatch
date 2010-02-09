@@ -959,7 +959,10 @@ def ExecuteSteps(steps, variables):
 def PopulateVariables(script_file, cmd_line_vars):
     "Allow variables from the command line to be used also"
     variables = {}
-    vars_to_wrap = dict(os.environ)
+    vars_to_wrap = {}
+    for key, value in dict(os.environ).items():
+        vars_to_wrap["shell." + key] = value
+        
     vars_to_wrap.update(cmd_line_vars)
     for var, val in vars_to_wrap.items():
         var = var.lower()
