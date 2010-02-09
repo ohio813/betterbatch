@@ -443,7 +443,7 @@ class ParseStepTests(unittest.TestCase):
     def test_dict_step(self):
         """"""
         step = ParseStep({r"if exists c:\temp": 'here', 'else': 'there'})
-        self.assertEquals(step.condition.raw_step,  "exists c:\\temp")
+        self.assertEquals(step.conditions[0][1].raw_step,  "exists c:\\temp")
 
     def test_command_step(self):
         """"""
@@ -485,9 +485,22 @@ class ParseComplexStepTests(unittest.TestCase):
     def test_basic_if_step(self):
         """"""
         step = ParseComplexStep({r"if exists c:\temp": ["cd 1"], 'else': ["cd 2"]})
-        self.assertEquals(step.condition.raw_step,  "exists c:\\temp")
+        self.assertEquals(step.conditions[0][1].raw_step,  "exists c:\\temp")
         self.assertEquals(step.if_steps[0].raw_step, 'cd 1')
         self.assertEquals(step.else_steps[0].raw_step, 'cd 2')
+
+    def test_basic_if_and_plus_or_step(self):
+        """"""
+        step = {
+            'if  exists blah blah': None,
+            'or  exists blah blah': None,
+            'and exists blah blah': 'echo found',
+        }
+        
+        self.assertRaises(
+            RuntimeError,
+            ParseComplexStep,
+                step)
 
     def test_if_step_string_actions(self):
         """"""
@@ -711,14 +724,14 @@ class CommandStepTests(unittest.TestCase):
         c = CommandStep("")
         self.assertEquals(
             c.command_as_string_for_log('', "s" * 300),
-            "'' -> '%s'"% ("s"*97 + "..."))
+            "'' -> '%s'"% ("s"*300))
 
-    def _test_command_as_string_for_log_long_string_equal(self):
+    def test_command_as_string_for_log_long_string_equal(self):
         """"""
         c = CommandStep("s" * 300)
         self.assertEquals(
-            c.command_as_string_for_log("s" * 300),
-            "s"*197 + "...")
+            c.command_as_string_for_log("", "s" * 300),
+            "'%s'"% ("s"*300) )
 
     def test_Step_interupted_continue(self):
         """"""
