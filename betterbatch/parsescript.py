@@ -511,7 +511,7 @@ def ParseComplexStep(step):
 
             else:
                 raise RuntimeError(
-                    "If is not correclty defined expected \n"
+                    "If is not correctly defined expected \n"
                     "- if COND:\n"
                     " [and/or COND:]\n"
                     "    - DO_STEPS\n"
@@ -645,7 +645,7 @@ class CommandStep(Step):
                 re.findall(r"\{\{\{.+?\}\}\}", step_data)):
             step_data = step_data.replace(exe_section, "{{{%d}}}"% i)
             exe_sections.append(exe_section)
-        
+
         qualifier_re = re.compile("""
             \{\*
             (?P<qualifier>.+?)
@@ -717,7 +717,7 @@ class CommandStep(Step):
 
         if self.output:
             indented_output = "\n".join(
-                ["   " + line for line in 
+                ["   " + line for line in
                     self.output.strip().split("\r\n")])
         else:
             indented_output = '\n'
@@ -1008,7 +1008,7 @@ def PopulateVariables(script_file, cmd_line_vars):
     vars_to_wrap = {}
     for key, value in dict(os.environ).items():
         vars_to_wrap["shell." + key] = value
-        
+
     vars_to_wrap.update(cmd_line_vars)
     for var, val in vars_to_wrap.items():
         var = var.lower()
