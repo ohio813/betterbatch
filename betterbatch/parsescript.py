@@ -428,15 +428,18 @@ def ParseStep(step):
 
 def ParseComplexStep(step):
     "The step is not a string - so parse what kind of step it is"
-    statements_by_type = {}
+    statements = []
+    clean_keys = []
     for key in step.keys():
         clean_key, key_data = SplitStatementAndData(key)
-        statements_by_type[clean_key.lower()] = (key, key_data, step[key])
+        clean_key = clean_key.strip().lower()
+        clean_keys.append(clean_key)
+        statements.append((clean_key, key_data, step[key]))
 
     # if it iss an IF statement
-    if 'if' in statements_by_type:
+    if 'if' in clean_keys:
 
-        if 'and' in statements_by_type and 'or' in statements_by_type:
+        if 'and' in clean_keys and 'or' in clean_keys:
             raise RuntimeError(
                 "You cannot mix AND and OR statements in a single IF '%s'"%
                     step)
@@ -446,8 +449,7 @@ def ParseComplexStep(step):
         else_steps = []
         # check that there are no invalid blocks
         and_or = []
-        for key in statements_by_type:
-            type, condition, steps = statements_by_type[key]
+        for key, condition, steps in statements:
 
             if key in ("if", 'and', 'or'):
 
@@ -457,7 +459,6 @@ def ParseComplexStep(step):
                         raise RuntimeError(
                             "Only one of the if/and/or "
                             "statements can have steps: %s"% step)
-
                     if_steps = ParseSteps(steps)
 
                 conditions.append((key, ParseStep(condition)))
@@ -469,7 +470,7 @@ def ParseComplexStep(step):
                 raise RuntimeError(
                     "If is not correclty defined expected \n"
                     "- if COND:\n"
-                    "[- and/or COND:]\n"
+                    " [and/or COND:]\n"
                     "    - DO_STEPS\n"
                     "  else:\n"
                     "    - ELSE_STEPS")
@@ -481,12 +482,12 @@ def ParseComplexStep(step):
 
         return IfStep(step, conditions, if_steps, else_steps)
 
-    elif 'for' in statements_by_type:
+    elif 'for' in statements:
         raise NotImplementedError("For steps are not implemented yet")
 
     else:
         raise RuntimeError("Unknown Complex step type: '%s'"%
-            statements_by_type.keys())
+            clean_keys)
 
 
 class Step(object):
