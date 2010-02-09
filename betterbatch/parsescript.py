@@ -80,7 +80,7 @@ class ErrorCollection(RuntimeError):
             LOG.fatal("'%s'"% var)
 
             for string in strings:
-                LOG.fatal("    %s"% string)
+                LOG.debug("    %s"% string)
 
     def __repr__(self):
         return "<ERRCOL %s>"% self.errors
