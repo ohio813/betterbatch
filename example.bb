@@ -11,20 +11,20 @@
 
 # betterbatch pulls in the environment variables so that these can be used
 # by better batch
-- echo <computername>
+- echo <shell.computername>
 
 # for example this would be a good way to include machine specific 
 # configuration
-- if exist <computername>.bb:
-  - include <computername>.bb
+- if exist <shell.computername>.bb:
+  - include <shell.computername>.bb
 
 - if exist betterbatch\tests\test_files\commands.yaml:
   - include betterbatch\tests\test_files\commands.yaml
 - end 0
 
 # or user specific configuration
-- if exist <username>.bb:
-  - include <username>.bb
+- if exist <shell.username>.bb:
+  - include <shell.username>.bb
 
 # you can define your own variables
 - set project_root=<__script_dir__>
@@ -85,7 +85,7 @@
 # command or any built_in commands. There can be more than one on a line
 # But they cannot be embedded (on the same line - if you need to embed - you
 # can do that by using a temporary variable)
-- set dir_to_search = {{{echo <windir>}}}
+- set dir_to_search = {{{echo <shell.windir>}}}
 - set found = {{{dir <dir_to_search>\win.ini}}} {{{cd nowhere {*nocheck*}{*echo*}}}}
 
 
