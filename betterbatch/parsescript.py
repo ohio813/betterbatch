@@ -604,13 +604,26 @@ class CommandStep(Step):
     def _parse_qualifiers(self):
         "Find the qualifiers and replace them"
 
+        # remove the executable sections first
+        step_data = self.step_data
+        exe_sections = []
+        for i, exe_section in enumerate(
+                re.findall(r"\{\{\{.+?\}\}\}", step_data)):
+            step_data = step_data.replace(exe_section, "{{{%d}}}"% i)
+            exe_sections.append(exe_section)
+        
         qualifier_re = re.compile("""
             \{\*
             (?P<qualifier>.+?)
             \*\}""", re.VERBOSE)
 
-        qualifiers = qualifier_re.findall(self.step_data)
-        parsed_step = qualifier_re.sub("", self.step_data)
+        qualifiers = qualifier_re.findall(step_data)
+        parsed_step = qualifier_re.sub("", step_data)
+
+        # replace the executable sections
+        for i, section in enumerate(exe_sections):
+            parsed_step = parsed_step.replace("{{{%d}}}"%i, section)
+
         return qualifiers, parsed_step
 
     def command_as_string_for_log(self, cmd, params):
