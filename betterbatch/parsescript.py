@@ -596,7 +596,8 @@ class CommandStep(Step):
         If update is False - then this will only test that the variables
         can be replaced
         """
-        new_val = ReplaceExecutableSections(self.step_data, variables, execute = update)
+        new_val = ReplaceExecutableSections(
+            self.step_data, variables, execute = update)
         new_val = ReplaceVariableReferences(new_val, variables)
         if update:
             self.step_data = new_val
@@ -683,7 +684,8 @@ class CommandStep(Step):
 
         if self.output:
             indented_output = "\n".join(
-                ["   " + line for line in self.output.strip().split("\r\n")])
+                ["   " + line for line in 
+                    self.output.strip().split("\r\n")])
         else:
             indented_output = '\n'
 
@@ -955,8 +957,8 @@ def LoadScriptFile(filepath):
 
     if not isinstance(steps, list):
         raise RuntimeError(
-            "Configuration file not correctly defined (remember to start each "
-            "statement with '-')")
+            "Configuration file not correctly defined (remember to "
+            "start each statement with '-')")
 
     return ParseSteps(steps)
 
