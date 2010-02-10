@@ -129,9 +129,9 @@ def ParseYAMLFile(yaml_file):
             ^(
                 \s*
                 \-
-                \s+
+                [ ]+            # only match spaces - not \s as that matches \n
                 (?!             # not followed by
-                    (\||\>)
+                    (\||\>|\s*$) # | or > or only whitespace
                 )
             )""", re.MULTILINE | re.VERBOSE)
         yaml_data = new_step.sub(r'\1FORCE STRING ', yaml_data)
@@ -166,7 +166,7 @@ def ParseYAMLFile(yaml_file):
 
         if "FORCE STRING" in repr(script_data):
             raise RuntimeError("Forcing to 'string' failed!")
-        
+
         return script_data
 
     except IOError, e:
