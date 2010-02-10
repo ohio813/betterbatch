@@ -1,0 +1,13 @@
+************************************
+CHANGES
+************************************
+
+0.9.3 
+------------------------------------------------------------------
+10-February-2010
+
+ * Tabs characters are ignored (replaced before passing to YAML parser)
+ * All steps are forced to be strings (makes it easier to use – "app with spaces" arg1 arg2 which could otherwise gives errors)
+ * Documentation updates
+ * Shell variables are available as <shell.varname> rather than just <varname> e.g. <shell.computername> (otherwise there is a risk of an environment variable ‘left over’ from other script affect a BetterBatch script.
+ * Reduce some of the verbosity in default output (variables are not output to the log file, all references of a missing variable are not output unless you use -v/--verbose option)
