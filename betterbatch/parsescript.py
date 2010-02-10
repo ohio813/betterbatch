@@ -76,6 +76,9 @@ class ErrorCollection(RuntimeError):
 
         if undef_var_errs:
             LOG.fatal("======== UNDEFINED VARIABLES ========")
+            LOG.info(
+                '(Check scripts or pass value on '
+                'command line e.g. "var=value")')
         for var, strings in sorted(undef_var_errs.items()):
             LOG.fatal("'%s'"% var)
 
