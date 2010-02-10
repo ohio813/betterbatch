@@ -274,9 +274,9 @@ def PopulateFromToolsFolder(tools_folder, dummy = []):
 
 
 NAME_ACTION_MAPPING = {
-    'run'    : SystemCommand,
-    'execute': SystemCommand,
-    'system' : SystemCommand,
+    #'run'    : SystemCommand,
+    #'execute': SystemCommand,
+    #'system' : SystemCommand,
 
     'exists': PathExists,
     'exist' : PathExists,
