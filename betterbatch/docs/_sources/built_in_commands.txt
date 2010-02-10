@@ -2,29 +2,45 @@
 The available built-in commands are:
 ******************************************************
 ------------------------------------------------------
-run (aliases execute)
+run (aliases: execute, system). (default)
 ------------------------------------------------------
 Execute a single command on the command line shell.
 
 It can take the following qualifiers
 
 **ui**
-    output will not be captured - this allows the user to
-    interact with the command (i.e. if it may request the user
+    output will not be captured, but will be shown on the screen
+    immediately - this allows the user to
+    interact with the command. This may be necessary when the command
+    expects input from the user. For example the dos command "dir /p" 
+    will pause after each screen, without **ui** qualifier the script
+    would appear to hang (as the message to press any key would not be 
+    displayed).
 
 **nocheck**
     Do not check the return value. Default is to raise an
     exception if the return value is not 0 (success)
 
-
+**echo**
+    Output is echo'ed to the terminal window after the process
+    has finished executing.
 
 ------------------------------------------------------
 dirname
 ------------------------------------------------------
+Return the directory (or parent directory for a directory) of the 
+path passed in.
 
 ------------------------------------------------------
 filename    (aliases basename)
 ------------------------------------------------------
+Return the filename (or directory name for a directory) of the 
+path passed in.
+
+------------------------------------------------------
+abspath
+------------------------------------------------------
+Return the absolute path of the file. 
 
 ------------------------------------------------------
 count 
@@ -33,7 +49,49 @@ count
 ------------------------------------------------------
 exists  (aliases exist)
 ------------------------------------------------------
+check if the path (file or directory) exists or not. 
+If the path exists - then it returns true. 
+example::
+
+  # if there is machine specific configuration then load it
+  - if exists <shell.computername>.bb:
+      - include <shell.computername>.bb
+    
 
 ------------------------------------------------------
 notexists  (aliases notexist)
+------------------------------------------------------
+check if the path (file or directory) exists or not. 
+If the path does not exist - then it returns true. This can be useful
+if you want to raise an error becuase one or more files does not exist.
+
+------------------------------------------------------
+escapenewlines  (aliases escape_newlines)
+------------------------------------------------------
+\r and \n characters in the input will be replaced with \\r and \\n
+respectively.
+
+
+------------------------------------------------------
+replace
+------------------------------------------------------
+Allows you to replace text in a string
+
+Usage::
+
+    replace text to search in {*text to find*} {*replace with*}
+
+Example::
+
+    # get the contents of the text file
+    - ser serverlocation = http://code.google.com/p/betterbatch/
+    - set mail_contents = {{{ type email_template.txt }}}
+    
+    # replace the text 'SERVERLOCATION' in the email templaet
+    # with 'http://code.google.com/p/betterbatch/'
+    - echo {{{replace <mail_contents> {*SERVERLOCATION*} {*<serverlocation>*} }}}
+
+
+------------------------------------------------------
+add_tools_dir
 ------------------------------------------------------

@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
+        URL_ROOT:    '#',
         VERSION:     '0.5',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
@@ -19,7 +19,7 @@
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="BetterBatch v0.5 documentation" href="" />
+    <link rel="top" title="BetterBatch v0.5 documentation" href="#" />
     <link rel="next" title="BetterBatch Readme" href="readme.html" /> 
   </head>
   <body>
@@ -32,7 +32,7 @@
         <li class="right" >
           <a href="readme.html" title="BetterBatch Readme"
              accesskey="N">next</a> |</li>
-        <li><a href="">BetterBatch v0.5 documentation</a> &raquo;</li> 
+        <li><a href="#">BetterBatch v0.5 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -47,48 +47,26 @@
 <li class="toctree-l1"><a class="reference external" href="readme.html">BetterBatch Readme</a><ul>
 <li class="toctree-l2"><a class="reference external" href="readme.html#what-is-betterbatch">What is BetterBatch</a></li>
 <li class="toctree-l2"><a class="reference external" href="readme.html#instalation">Instalation</a></li>
-<li class="toctree-l2"><a class="reference external" href="readme.html#quick-start-example-replacing-tomcat-s-catalina-bat">Quick Start Example - replacing Tomcat&#8217;s Catalina.bat</a></li>
-<li class="toctree-l2"><a class="reference external" href="readme.html#config-files">Config Files</a></li>
-<li class="toctree-l2"><a class="reference external" href="readme.html#includes-section-optional">Includes Section (Optional)</a></li>
-<li class="toctree-l2"><a class="reference external" href="readme.html#variables-section-optional">Variables Section (Optional)</a><ul>
-<li class="toctree-l3"><a class="reference external" href="readme.html#variable-overriding">Variable Overriding</a></li>
-<li class="toctree-l3"><a class="reference external" href="readme.html#special-variables">Special Variables</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference external" href="readme.html#troubleshooting">Troubleshooting:</a><ul>
-<li class="toctree-l3"><a class="reference external" href="readme.html#spaces-in-paths-for-run-commands">Spaces in paths for &#8220;RUN&#8221; commands</a></li>
-<li class="toctree-l3"><a class="reference external" href="readme.html#integer-and-decimal-variables">Integer and decimal variables</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference external" href="readme.html#script-file-syntax">Script File Syntax</a></li>
+<li class="toctree-l2"><a class="reference external" href="readme.html#troubleshooting">Troubleshooting:</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference external" href="comparison.html">Comparing BetterBatch to ...</a><ul>
-<li class="toctree-l2"><a class="reference external" href="comparison.html#dos-batch-files">DOS Batch files</a><ul>
-<li class="toctree-l3"><a class="reference external" href="comparison.html#safer-error-checking">Safer (Error checking)</a></li>
-<li class="toctree-l3"><a class="reference external" href="comparison.html#assign-the-output-of-a-command-to-a-variable">Assign the output of a command to a variable</a></li>
-<li class="toctree-l3"><a class="reference external" href="comparison.html#easier-to-add-other-checks">Easier to add other checks</a></li>
-<li class="toctree-l3"><a class="reference external" href="comparison.html#verifies-variables-are-defined">Verifies variables are defined</a></li>
-<li class="toctree-l3"><a class="reference external" href="comparison.html#output-is-logged">Output is logged</a></li>
-<li class="toctree-l3"><a class="reference external" href="comparison.html#easier-to-read">Easier to read</a></li>
-<li class="toctree-l3"><a class="reference external" href="comparison.html#include-other-configuration-files">Include other configuration files</a></li>
-<li class="toctree-l3"><a class="reference external" href="comparison.html#allow-long-lines-to-be-split">Allow long lines to be split</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference external" href="comparison.html#python-perl-lua-or-other-scripting-languages">Python/Perl/LUA or other scripting languages</a><ul>
-<li class="toctree-l3"><a class="reference external" href="comparison.html#simpler">Simpler</a></li>
-<li class="toctree-l3"><a class="reference external" href="comparison.html#language-agnositc">Language Agnositc</a></li>
-<li class="toctree-l3"><a class="reference external" href="comparison.html#foster-re-use-and-modularization">Foster re-use and modularization</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference external" href="comparison.html#dos-batch-files">DOS Batch files</a></li>
+<li class="toctree-l2"><a class="reference external" href="comparison.html#python-perl-lua-or-other-scripting-languages">Python/Perl/LUA or other scripting languages</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference external" href="built_in_commands.html">The available built-in commands are:</a><ul>
-<li class="toctree-l2"><a class="reference external" href="built_in_commands.html#run-aliases-execute">run (aliases execute)</a></li>
+<li class="toctree-l2"><a class="reference external" href="built_in_commands.html#run-aliases-execute-system-default">run (aliases: execute, system). (default)</a></li>
 <li class="toctree-l2"><a class="reference external" href="built_in_commands.html#dirname">dirname</a></li>
 <li class="toctree-l2"><a class="reference external" href="built_in_commands.html#filename-aliases-basename">filename    (aliases basename)</a></li>
+<li class="toctree-l2"><a class="reference external" href="built_in_commands.html#abspath">abspath</a></li>
 <li class="toctree-l2"><a class="reference external" href="built_in_commands.html#count">count</a></li>
 <li class="toctree-l2"><a class="reference external" href="built_in_commands.html#exists-aliases-exist">exists  (aliases exist)</a></li>
 <li class="toctree-l2"><a class="reference external" href="built_in_commands.html#notexists-aliases-notexist">notexists  (aliases notexist)</a></li>
+<li class="toctree-l2"><a class="reference external" href="built_in_commands.html#escapenewlines-aliases-escape-newlines">escapenewlines  (aliases escape_newlines)</a></li>
+<li class="toctree-l2"><a class="reference external" href="built_in_commands.html#replace">replace</a></li>
+<li class="toctree-l2"><a class="reference external" href="built_in_commands.html#add-tools-dir">add_tools_dir</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference external" href="LICENSE.html">BetterBatches License - MIT</a></li>
@@ -109,9 +87,9 @@
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-            <h3><a href="">Table Of Contents</a></h3>
+            <h3><a href="#">Table Of Contents</a></h3>
             <ul>
-<li><a class="reference external" href="">Contents</a><ul>
+<li><a class="reference external" href="#">Contents</a><ul>
 </ul>
 </li>
 <li><a class="reference external" href="#indices-and-tables">Indices and tables</a></li>
@@ -151,12 +129,12 @@
         <li class="right" >
           <a href="readme.html" title="BetterBatch Readme"
              >next</a> |</li>
-        <li><a href="">BetterBatch v0.5 documentation</a> &raquo;</li> 
+        <li><a href="#">BetterBatch v0.5 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
       &copy; Copyright 2010, Mark Mc Mahon.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
     </div>
   </body>
 </html>
