@@ -125,15 +125,23 @@ def ParseYAMLFile(yaml_file):
         # the following code is quite 'hacky' it puts some
         # text before every line (that is not the start of a block i.e. (|,>)
         # so that it will be treated as a string
-        new_step = re.compile(r"^(\s*\-(?!\s*(\||\>)))", re.MULTILINE)
-        yaml_data = new_step.sub(r'\1 FORCE SPACE ', yaml_data)
+        new_step = re.compile(r"""
+            ^(
+                \s*
+                \-
+                \s+
+                (?!             # not followed by
+                    (\||\>)
+                )
+            )""", re.MULTILINE | re.VERBOSE)
+        yaml_data = new_step.sub(r'\1FORCE STRING ', yaml_data)
 
         # Parse the yaml data
         script_data = yaml.load(yaml_data)
 
         # Now that we have parsed the file and everything has been treated as
         # a string we need to remove that text we added
-        un_force_re = re.compile(r'^\s*FORCE SPACE ')
+        un_force_re = re.compile(r'^\s*FORCE STRING ')
         def strip_string_forcers(item):
             if isinstance(item, basestring):
 
@@ -156,6 +164,9 @@ def ParseYAMLFile(yaml_file):
 
         script_data = strip_string_forcers(script_data)
 
+        if "FORCE STRING" in repr(script_data):
+            raise RuntimeError("Forcing to 'string' failed!")
+        
         return script_data
 
     except IOError, e:
