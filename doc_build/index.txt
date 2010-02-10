@@ -13,6 +13,7 @@ Contents
    readme
    comparison.txt
    built_in_commands.txt
+   CHANGES.txt
    LICENSE.txt
 
 
