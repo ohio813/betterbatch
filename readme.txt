@@ -55,7 +55,7 @@ favourite python package installation method.
 If you want to associate the BetterBatch extension ".bb" with bbrun.py then you 
 can run::
 
-    associate_filetype.bb
+    bbrun associate_filetype.bb
 
 This expects that python is on the path - but you can update it to your 
 python installation if python is not on the path.
@@ -78,19 +78,19 @@ The major ways that this will affect you are the following:
    BetterBatch syntax. The Yaml parser will treat it as the 'key' in a 'mapping'
    and it will cause the script not to run.
 
+Note - while a YAML parser is being used to parse the file, some things which 
+would fail if parsing as YAML directly will pass with betterbatch. This is 
+because pre-processing is done on the contents of the file before it is passed
+to the YAML parser.
+
 ------------------------------------------------------
-Simple Statements
+Statements
 ------------------------------------------------------
 A simple statement starts with a dash (-), whitespace and then the statement.
 
 For example the typical Hello World! BetterBatch script is::
 
     - echo Hello World!
-
-------------------------------------------------------
-Variable References
-------------------------------------------------------
-
 
 ------------------------------------------------------
 Executable Statements
@@ -130,6 +130,16 @@ Example::
 
 
 ------------------------------------------------------
+Variable References
+------------------------------------------------------
+You can reference any defined variable by using <variable_reference>.
+
+The value of the variable will replace the variable reference.
+
+If you need to have < or > in your script - then you double them. e.g.
+
+
+------------------------------------------------------
 Include statements
 ------------------------------------------------------
 Example::
@@ -158,36 +168,6 @@ Example::
 if defined variable_name
 
 
-------------------------------------------------------
-Executable Sections
-------------------------------------------------------
-
-
-
-
-The script file is made up of named sections:
-- "Includes" section
-- "Variables" section
-- Section for each command group
-
-
-====================================
-Includes Section (Optional)
-====================================
-Here you specify which configuration files you would like to include. Included 
-files are read in the order they are displayed.Which means that tems defined in 
-an earlier include can be overridden in subsequent include files and the current 
-config file (the file which specifies the includes) can override information in
-included files.
-
-example::
-
-    Includes:
-     - IncludeFile_1.yaml
-     - IncludeFile_2.yaml
- 
-In this example IncludeFile_2.yaml can override any variable/command defined in 
-IncludeFile_1.yaml.
 
 
 ====================================
@@ -230,16 +210,38 @@ config files.
 ------------------------------------------------------
 Special Variables
 ------------------------------------------------------
-__config_path__ 
-    This is replace very early in the cycle of parsing the files
-    if it is in an included BetterBatch file - then it will be the directory of 
-    that particular. 
+**__script_dir__ **
+    The directory where the script file is stored. Note - these values are 
+    not changed for included scripts, included scripts use the same values
+    as the including scripts
 
-logfile
-    The path where messages and captured output will be written. 
-    **Note** if you there are multiple logfile variables (i.e. in included files)
-    then it is the last one defined (i.e. the one that includes the other files
-    or the last included file if no logfile defined in the current file)
+**__script_filename__ **
+    The filename of the script. 
+
+**__working_dir__**
+    The current directory when the script was executed. 
+
+For example if you runn the following command::
+    
+    c:\Program Files\betterbatch> bbrun.py c:\MyProject\MakeBuild.bb
+    
+then the values of the special variables will be::
+   
+   __script_dir__        c:\MyProject
+   __script_filename__   MakeBuild.bb
+   __working_dir__       c:\Program Files\betterbatch
+
+    
+**shell.* **
+    Shell environment variables are pre-fixed with 'shell.' to avoid conflicts 
+    with any internal variables. 
+    
+    For example if your script expects the user to pass a 'buildnumber' value 
+    to the script, but the environment has a 'buildnumber' variable defined. 
+    Without the pre-fix the environment variable would have been used silently
+    if no value was passed to the script. The shell prefix makes it clearer
+    that the BetterBatch script is going to use the environment value.
+    
     
 
 
@@ -247,63 +249,4 @@ logfile
 ====================================
 Troubleshooting:
 ====================================
-
-------------------------------------------------------
-Spaces in paths for "RUN" commands
-------------------------------------------------------
-
-This can be difficult but there are a number of ways around it.
-
-All of the following will work as they are all valid YAML - it's up to you 
-which you prefer.
-
-A. Wrap the whole command in single quotes (') and the path that has spaces in 
-double quotes.
-e.g. ::
-
- - Run: '"c:\program files\SDL Passolo 2009\pslcmd.exe" project.lpu /generate'
-
-B. use one of the block string processors ('|' or '>'), put the command line on
-the next line and finally surround the path with spaces in double quotes
-e.g. ::
-
- - Run: |  # > would have worked just as well
-    "c:\program files\SDL Passolo 2009\pslcmd.exe" project.lpu /generate
-
-C Split it up into separate arguments by creating a list
-e.g. ::
-
- - Run: 
-    - c:\program files\SDL Passolo 2009\pslcmd.exe
-    - project.lpu 
-    - /generate
-
-
-------------------------------------------------------
-Integer and decimal variables
-------------------------------------------------------
-These are not accepted as variable values because the representation of the 
-value may not be the same as the value, which could be confusing. For the most
-part they are also not necessary as most shells treat arguments as strings.
-
-For example if you have the following variable
-specification
-Variables::
-
-   MyVar: 0001
-
-After parsing MyVar will be the integer value 1, when in fact you probably wanted
-a string value '0001'. To resolve this wrap the value in single or double quotes.
-
-Similarly for decimals, leading and trailing 0's will be stripped off, and more
-complications due to how computers represent decimal values may also arise ::
-
-  MyVar: 0.1
-
-When you print MyVar you may well see "0.10000000000000001" -  almost certainly
-not what you want!
-
-For these reasons decimal or integer variables are not allowed.
-
-
 
