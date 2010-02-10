@@ -160,7 +160,7 @@ def ParseYAMLFile(yaml_file):
             elif item is None:
                 return None
             else:
-                raise RuntimeError("please blow up")
+                raise RuntimeError("Unknown structure type!")
 
         script_data = strip_string_forcers(script_data)
 
