@@ -156,66 +156,59 @@ Example::
 ------------------------------------------------------
 IF statements
 ------------------------------------------------------
+These statements allow you to 
+
 Example::
 
    - if exists this_file:
      and exists that_file:
         - echo Great - both files exist
      else:
-        - echo Oh :( one of the files does not exist
+        - echo OH! - one of the files does not exist
 
+"and" or "or" can be used with the "if" part of the statement. You cannot
+mix "and" and "or" in the same if statement (it should be consistently "or"
+or "and" in a single statement).
 
-if defined variable_name
+CAREFUL - the if/and/or/else all have to line up vertically - or the 
+statement will not be parsed correctly.
 
+A special case of the condition is the "defined variable_name" e.g. ::
 
+    - if defined build:
+        - echo Value for build is <build>
+      else:
+        - end 1, The BUILD variable is not set - please specify a value
 
+This can be used to require the user to set pass a value at the command
+line - and if they do not, to print an informative error message.
 
-====================================
-Variables Section (Optional)
-====================================
-Here you can specify variables that can be referenced later by putting angle
-brackets around the variable name e.g. ::
+------------------------------------------------------
+Executable Sections
+------------------------------------------------------
+Executable sections can be used in variable definition or executable 
+statements. The section will be replaced from the output from the section 
+after executing it.
 
-    Variables:
-     test_var:  test
-     test_2_var = <test_var>_more_text
+Examples::
+
+ - set file_contents = {{{type c:\autoexec.bat }}}
+ - echo {{{ replace <file_contents> {*a*} {*b*} }}}
+ - file_list {{{ dir c:\ /b }}}
  
-The resulting value of test_2_var will be "test_more_text".
-
-If a variable is defined referencing a variable that is not defined e.g. ::
-  
-  Variables:
-     using_unknown_var:  This <noun> is remarkable
-
-an error will NOT be raised unless something uses the 'using_unknown_var' variable.
-
-
-------------------------------------------------------
-Variable Overriding
-------------------------------------------------------
-Variables can be overriden at many points:
-
-1. You can force a particular value by specifying it at the command line
-If you do this - this WILL be the value of that variable!
-
-2. If the config file specified at the command line will defines that variable
-and it is not overridden at the command line it's value will be used.
-
-3. Variables will be taken from the included files if not overriden on the command
-line or in the main config file. If more than one included config file has the 
-variable then values in earlier config files will be overridden by later included
-config files.
+Executable sections can call any built-in command or external command.
+Executable sections can reference variables
 
 
 ------------------------------------------------------
 Special Variables
 ------------------------------------------------------
-**__script_dir__ **
+**__script_dir__**
     The directory where the script file is stored. Note - these values are 
     not changed for included scripts, included scripts use the same values
     as the including scripts
 
-**__script_filename__ **
+**__script_filename__**
     The filename of the script. 
 
 **__working_dir__**
@@ -232,7 +225,7 @@ then the values of the special variables will be::
    __working_dir__       c:\Program Files\betterbatch
 
     
-**shell.* **
+**shell.***
     Shell environment variables are pre-fixed with 'shell.' to avoid conflicts 
     with any internal variables. 
     
