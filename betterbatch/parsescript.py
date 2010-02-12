@@ -5,6 +5,7 @@ import logging
 import shlex
 import sys
 import ConfigParser
+import copy
 
 import yaml
 
@@ -540,7 +541,10 @@ def ParseComplexStep(step):
         return IfStep(step, conditions, if_steps, else_steps)
 
     elif 'for' in clean_keys:
-        raise NotImplementedError("For steps are not implemented yet")
+        loop_info, steps = statements[0][1:]
+        steps = ParseSteps(steps)
+
+        return ForStep(step, loop_info, steps)
 
     else:
         raise RuntimeError("Unknown Complex step type: '%s'"%
@@ -698,7 +702,7 @@ class CommandStep(Step):
         "Run this step"
         self.replace_vars(variables, update = True)
 
-        # Check if the command in the mapping
+        # Check if the command is a known command
         parts = SplitStatementAndData(self.step_data)
 
         cmd = parts[0].strip().lower()
@@ -748,6 +752,69 @@ class CommandStep(Step):
 
         elif indented_output != "\n":
             LOG.debug("Output from command:\n%s"% indented_output)
+
+
+class ForStep(Step):
+    "An IF block"
+
+    def __init__(self, raw_step, loop_condition, steps):
+        Step.__init__(self, raw_step)
+        self.steps = steps
+
+        #split on ' in '
+        self.variable, self.values = [
+            part.strip() for part in loop_condition.split(' in ', 1)]
+        self.variable = self.variable.lower()
+
+    def replace_vars(self, variables, update = False):
+
+        # replace the variables in the loop condition
+        new_vals = ReplaceVariableReferences(self.values, variables)
+        if update:
+            self.values = new_vals
+
+
+        # as we need to wait until executing to really replace the variables
+        # don't update now, only check if update == False (no point checking
+        # if update == True as we will be replacing anyway shortly afterwards)
+        if not update:
+            # make a copy of the varialbes - as we don't want to update
+            variables_copy = variables.copy()
+
+            # create and add a dummy variable to match the loop variable
+            # so the steps in the loop will see this variable defined.
+            variables_copy[self.variable] = \
+                VariableDefinition("",'%s='% self.variable)
+
+            # use the copy of the variables as they may be required
+            ReplaceVariablesInSteps(self.steps, variables_copy, update = False)
+
+    def execute(self, variables, raise_on_error = True):
+        "Run this step"
+
+        old_values = self.values
+        self.values = ReplaceExecutableSections(
+            self.values, variables, execute = True)
+        self.replace_vars(variables, update=True)
+
+        # split the variables
+        values = shlex.split(self.values)
+
+        for val in values:
+
+            var = VariableDefinition("set x=y",'%s = %s'% (self.variable, val))
+
+            variables[self.variable] = \
+                VariableDefinition("",'%s=%s'% (self.variable, val))
+
+            # replace variables in the steps to be executed
+            loop_steps = copy.deepcopy(self.steps)
+
+            ReplaceVariablesInSteps(loop_steps, variables, update = True)
+
+            for step in loop_steps:
+                #ReplaceVariablesInSteps([step], variables, update = True)
+                step.execute(variables, raise_on_error)
 
 
 class IfStep(Step):
