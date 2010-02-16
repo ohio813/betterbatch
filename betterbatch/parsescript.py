@@ -276,6 +276,7 @@ def ReplaceVariableReferences(text, variables, loop = None):
 
         # ensure that we are not in a variable loop e.g x -> y -> x
         if variable in loop:
+            # a loop of 1 is OK e.g. x = <x>_ + 1
             if len (loop) > 1:
                 errors.append("Loop found in variable definition "
                     "'%s', variable %s"% (original_text, loop))
@@ -314,7 +315,7 @@ def ReplaceVariableReferences(text, variables, loop = None):
 def ReplaceVariablesInSteps(steps, defined_variables, update = False):
     "Replace variables in all the steps"
 
-    # don't modify the variables passed in
+    # don't modify the variables passed in if not updating
     if not update:
         defined_variables = defined_variables.copy()
 
@@ -802,18 +803,17 @@ class ForStep(Step):
 
         for val in values:
 
+            # add or update the loop variable in the variables
             var = VariableDefinition("set x=y",'%s = %s'% (self.variable, val))
+            variables[self.variable] = var
 
-            variables[self.variable] = \
-                VariableDefinition("",'%s=%s'% (self.variable, val))
-
-            # replace variables in the steps to be executed
+            # loop over the steps
             loop_steps = copy.deepcopy(self.steps)
 
+            # replace variables in the steps to be executed
             ReplaceVariablesInSteps(loop_steps, variables, update = True)
 
             for step in loop_steps:
-                #ReplaceVariablesInSteps([step], variables, update = True)
                 step.execute(variables, raise_on_error)
 
 
