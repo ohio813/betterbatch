@@ -198,6 +198,47 @@ statement will not be parsed correctly.</p>
 <p>This can be used to require the user to set pass a value at the command
 line - and if they do not, to print an informative error message.</p>
 </div>
+<div class="section" id="for-statements">
+<h3>For statements<a class="headerlink" href="#for-statements" title="Permalink to this headline">¶</a></h3>
+<p>For statements are extremely basic at the moment in betterbatch and should be
+used with care.</p>
+<p>The format of the step is:</p>
+<div class="highlight-python"><pre>- for LOOP_VARIABLE in INPUT:
+    - exectute steps
+    - which can use &lt;LOOP_VARIABLE&gt;</pre>
+</div>
+<p>The block of statements is executed once per line in the input, so for example
+the general case of iterating over files in a directory that match a pattern:</p>
+<div class="highlight-python"><pre>- for file in {{{dir &lt;__working_dir__&gt;/b *.txt}}}:
+    - echo working on "&lt;file&gt;"
+    - Curl - upload &lt;file&gt; to site..</pre>
+</div>
+</div>
+<div class="section" id="parallel-statements">
+<h3>Parallel statements<a class="headerlink" href="#parallel-statements" title="Permalink to this headline">¶</a></h3>
+<p>Many steps can often take quite a bit of time to complete, and you may want
+other actions to start before it the long runnig step has finished.</p>
+<p>Obviously these steps should not depend on each other.</p>
+<p>One good example is downloading separate files, downloading can take quite a
+while and you may want to start many downloading/uploading processes at the same
+time.</p>
+<p>In batch files you can acheive this by preceding the call to the tools with &#8220;start&#8221;
+but then you will not be able to easily check return status nor retrieve the tool&#8217;s
+output, etc.</p>
+<p>In a BetterBatch script you can still use &#8220;Start&#8221; if you want - but much better is
+to put the steps you want to execute in parallel in a &#8220;parallel&#8221; block:</p>
+<div class="highlight-python"><pre>- parallel:
+    - cUrl.exe big_file....
+    - cUrl.exe another_big_file....
+    - cUrl.exe and lots of small files 1
+    - cUrl.exe and lots of small files 2
+    - cUrl.exe etc</pre>
+</div>
+<p>As the order of execution of the items in the parallel section is not defined
+you should never rely on one starting/finishing before another will start/finish.
+Also ONLY command steps are allowed (i.e. no Variable Definitions, logfile, include,
+for or if statements are allowed.</p>
+</div>
 <div class="section" id="executable-sections">
 <h3>Executable Sections<a class="headerlink" href="#executable-sections" title="Permalink to this headline">¶</a></h3>
 <p>Executable sections can be used in variable definition or executable
@@ -269,6 +310,8 @@ that the BetterBatch script is going to use the environment value.</p>
 <li><a class="reference external" href="#include-statements">Include statements</a></li>
 <li><a class="reference external" href="#logfile-specification">Logfile specification</a></li>
 <li><a class="reference external" href="#if-statements">IF statements</a></li>
+<li><a class="reference external" href="#for-statements">For statements</a></li>
+<li><a class="reference external" href="#parallel-statements">Parallel statements</a></li>
 <li><a class="reference external" href="#executable-sections">Executable Sections</a></li>
 <li><a class="reference external" href="#special-variables">Special Variables</a></li>
 </ul>

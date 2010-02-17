@@ -184,6 +184,58 @@ This can be used to require the user to set pass a value at the command
 line - and if they do not, to print an informative error message.
 
 ------------------------------------------------------
+For statements
+------------------------------------------------------
+For statements are extremely basic at the moment in betterbatch and should be 
+used with care.
+
+The format of the step is::
+
+    - for LOOP_VARIABLE in INPUT:
+        - exectute steps 
+        - which can use <LOOP_VARIABLE>
+
+The block of statements is executed once per line in the input, so for example
+the general case of iterating over files in a directory that match a pattern::
+
+    - for file in {{{dir <__working_dir__>/b *.txt}}}:
+        - echo working on "<file>"
+        - Curl - upload <file> to site..
+
+
+------------------------------------------------------
+Parallel statements
+------------------------------------------------------
+Many steps can often take quite a bit of time to complete, and you may want 
+other actions to start before it the long runnig step has finished.
+
+Obviously these steps should not depend on each other.
+
+One good example is downloading separate files, downloading can take quite a 
+while and you may want to start many downloading/uploading processes at the same
+time.
+
+In batch files you can acheive this by preceding the call to the tools with "start"
+but then you will not be able to easily check return status nor retrieve the tool's
+output, etc.
+
+In a BetterBatch script you can still use "Start" if you want - but much better is
+to put the steps you want to execute in parallel in a "parallel" block::
+
+    - parallel:
+        - cUrl.exe big_file....
+        - cUrl.exe another_big_file....
+        - cUrl.exe and lots of small files 1
+        - cUrl.exe and lots of small files 2
+        - cUrl.exe etc
+
+As the order of execution of the items in the parallel section is not defined
+you should never rely on one starting/finishing before another will start/finish.
+Also ONLY command steps are allowed (i.e. no Variable Definitions, logfile, include, 
+for or if statements are allowed.
+
+
+------------------------------------------------------
 Executable Sections
 ------------------------------------------------------
 Executable sections can be used in variable definition or executable 
