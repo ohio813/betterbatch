@@ -829,7 +829,7 @@ class ParallelSteps(Step):
 
                 # if the thread has finished, print a message and
                 # remove it
-                if not t.is_alive():
+                if not t.isAlive():
                     LOG.debug("Thread finished: '%s'"% t.step)
                     threads.remove(t)
                     if t.exception:
@@ -1213,7 +1213,8 @@ def ValidateArgumentCounts(steps, count_db):
         if not isinstance(step, CommandStep):
             continue
 
-        parts = shlex.split(step.step_data, posix = False)
+        # posix was not avilable for shlex.split in python 2.5.1
+        parts = list(shlex.shlex(step.step_data, posix = False))
 
         command = os.path.basename(parts[0].lower())
 
