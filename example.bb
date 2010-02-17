@@ -7,7 +7,7 @@
 # each step is started in it's own thread and will be run all at the same time.
 # do not depend on any one step completing before or after any other step.
 - parallel:
-    - dir "Thjs will fail - but other steps will still execute" /b
+    #- dir "Thjs would fail - other steps in parallel block would still execute" /b
     - dir <shell.tmp> /b
     - dir <shell.windir> /b
     - dir <shell.windir> /b
