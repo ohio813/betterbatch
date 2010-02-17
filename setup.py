@@ -1,4 +1,4 @@
-"""BetterBatch scripts are designed as a middle ground 
+r"""BetterBatch scripts are designed as a middle ground 
 between shell/batch scripts and more complete programming languages 
 (Python, Perl, etc.). 
 
@@ -41,7 +41,7 @@ import betterbatch
 setup(
     name='BetterBatch',
     version = betterbatch.__version__,
-    description = "Simplified script runner",
+    description = "Powerful batch file/script replacement",
     long_description = __doc__,
     keywords = 'python batch script automation',
 
