@@ -881,7 +881,7 @@ class ForStep(Step):
         self.replace_vars(variables, update=True)
 
         # split the variables
-        values = shlex.split(self.values)
+        values = self.values.split("\n")
 
         for val in values:
 
