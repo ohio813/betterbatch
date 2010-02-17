@@ -1,56 +1,62 @@
+"""BetterBatch scripts are designed as a middle ground 
+between shell/batch scripts and more complete programming languages 
+(Python, Perl, etc.). 
+
+It is designed to make it very easy to call shell commands but to also do so 
+safely, in that an error will make the script stop immediately.
+
+As such you can generally provide scripts that do not have to perform much
+error checking while still being very safe.
+
+Also scripts are validated as much as possible before executation starts, so 
+this should avoid simple errors only being found after some steps have been 
+executed.
+
+BetterBatch has been designed as a very simple process automation script (e.g.
+build script, and could be used for processes that are not required to track
+build dependencies (waf, scons are more suitable for those kinds of projects).
 
 
-VERSION = '1.0'
+Here is an example script::
 
-LONG_DESCRIPTION = """BetterBatch scripts are very basic - and most 
-functionality is in external commands. This keeps BetterBatch simple - and also 
-fosters re-use of existing components and creation of small modular components.
 
-A 'plugin' of BetterBatch is any tool that can be run at the OS shell prompt.
- Additional the command should return 0 for success and any non-zero value for
-failure.
+    # or user specific configuration
+    - if exist <shell.username>.bb:
+        - include <shell.username>.bb
 
-Simple 'BetterBatch' file example:
-
-    includes:
-        - an_include_file.yaml
-
-    Variables:
-        root: c:\here\there
-        src: <root>\source
-        dest: <root>\destination
-
-    commands:
-        # source has to exist
-        - exists: <src>
-
-        # Don't fail if the directory already exists
-        - md nocheck: <dest>
-
-        # copy the source directory to the destination directory
-        - xcopy /s /e <src> <dest>
+    # you can define your own variables
+    - set project_root=<__script_dir__>
     
+    - copy <project_root>\*.xyz <shell.tmp>\backup
+
+Tested with python 2.5.1 and 2.6.4
+
+Current test coverage: 88%
+
 """
 
 from distutils.core import setup
+import betterbatch
 
 setup(
     name='BetterBatch',
-    version = VERSION,
+    version = betterbatch.__version__,
     description = "Simplified script runner",
-    long_description = LONG_DESCRIPTION,
+    long_description = __doc__,
     keywords = 'python batch script automation',
 
     author = "Mark Mc Mahon",
     author_email =  "mark.m.mcmahon@gmail.com",
     
     packages = ["betterbatch", "betterbatch.tests"],
-    scripts = ['betterbatch/scripts/betterbatch.py'],
+    scripts = ['bbrun.py'],
     requires=['yaml'],
     
-    #download_url=(
-    #    'http://www.example.com/pypackage/dist/pkg-%s.tar.gz'% VERSION),
-    #url = '',
+    download_url=(
+        'http://betterbatch.googlecode.com/'
+        'files/betterbatch-%s.zip'% betterbatch.__version__),
+    url = 'http://code.google.com/p/betterbatch/',
+    
     license = "LGPL",
 
     classifiers=[
