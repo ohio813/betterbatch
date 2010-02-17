@@ -550,6 +550,9 @@ def ParseComplexStep(step):
         loop_info, steps = statements[0][1:]
         steps = ParseSteps(steps)
 
+        if not steps:
+            return None
+
         return ForStep(step, loop_info, steps)
 
     elif 'parallel' in clean_keys:
@@ -798,7 +801,7 @@ class ParallelSteps(Step):
         ReplaceVariablesInSteps(self.steps, variables, update = True)
 
         threads = []
-        
+
         class ThreadStepRunner(threading.Thread):
             def __init__(self, step, variables):
                 threading.Thread.__init__(self)
@@ -823,16 +826,15 @@ class ParallelSteps(Step):
         while threads:
             for t in threads:
                 t.join(.001)
-                
-                # if the thread has finished, print a message and 
+
+                # if the thread has finished, print a message and
                 # remove it
                 if not t.is_alive():
                     LOG.debug("Thread finished: '%s'"% t.step)
                     threads.remove(t)
                     if t.exception:
                         errs.append(t.exception)
-                    
-        
+
         # check if any threads
         if errs:
             raise ErrorCollection(errs)
