@@ -2,6 +2,17 @@
 CHANGES
 ************************************
 
+0.9.4 Added For loops and Parallel sections
+------------------------------------------------------------------
+17-February-2010
+
+ * Added support for basic For loops (though needs improvement)
+ * Added support for running steps in Parallel.
+ * Documentation updates
+ * Added support for python 2.5 (stop using shlex.split with posix argument, 
+   use Thread.isAlive() rather than Thread.is_alive() ).
+
+
 0.9.3 Path handling, documentation, shell references
 ------------------------------------------------------------------
 10-February-2010
