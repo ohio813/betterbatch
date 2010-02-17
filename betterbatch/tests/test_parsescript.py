@@ -526,14 +526,19 @@ class ParseComplexStepTests(unittest.TestCase):
         step = {r"if 1": "echo here", 'else': None}
         ParseComplexStep(step)
 
-
     def test_for_step(self):
         """"""
-        step = {r"for": None,}
-        self.assertRaises(
-            NotImplementedError,
-            ParseComplexStep,
-                step)
+        step = {r"for i in 1\n2\n3\n4": ["echo <i>"],}
+        step = ParseComplexStep(step)
+        self.assertEquals(isinstance(step, ForStep), True)
+        step.execute({})
+
+    def test_parallel_step(self):
+        """"""
+        step = {r"parallel": ["echo a", "echo b"],}
+        step = ParseComplexStep(step)
+        self.assertEquals(isinstance(step, ParallelSteps), True)
+        step.execute({})
 
     def test_unknown_step(self):
         """"""
