@@ -6,6 +6,7 @@ import shlex
 import sys
 import ConfigParser
 import copy
+import threading
 
 import yaml
 
@@ -542,11 +543,32 @@ def ParseComplexStep(step):
         return IfStep(step, conditions, if_steps, else_steps)
 
     elif 'for' in clean_keys:
+        if len(statements) > 1:
+            raise RuntimeError(
+                "For statements should not have more than one 'key': %s"%
+                    statements)
         loop_info, steps = statements[0][1:]
         steps = ParseSteps(steps)
 
         return ForStep(step, loop_info, steps)
 
+    elif 'parallel' in clean_keys:
+        if len(statements) > 1:
+            raise RuntimeError(
+                "For statements should not have more than one 'key': %s"%
+                    statements)
+        # just get the steps
+        steps = statements[0][-1]
+        steps = ParseSteps(steps)
+
+        for step in steps:
+            if not isinstance(step, CommandStep):
+                raise RuntimeError(
+                    "You can only have commands (no variable definitions, "
+                    "includes, logfile, etc. in Parallel blocks: %s"%
+                        statements)
+
+        return ParallelSteps(step, steps)
     else:
         raise RuntimeError("Unknown Complex step type: '%s'"%
             clean_keys)
@@ -625,6 +647,7 @@ class VariableDefinition(Step):
         #    self.value, variables, execute = True)
         self.replace_vars(variables, update = True)
 
+        LOG.debug("Setting variable '%s' to '%s'"% (self.name, self))
         # all we do at this point is to ensure that the variables
         # includes the current value.
         variables[self.name] = self
@@ -755,6 +778,66 @@ class CommandStep(Step):
             LOG.debug("Output from command:\n%s"% indented_output)
 
 
+class ParallelSteps(Step):
+    "An IF block"
+
+    def __init__(self, raw_step, steps):
+        Step.__init__(self, raw_step)
+        self.steps = steps
+
+    def replace_vars(self, variables, update = False):
+        # replace the variables in the loop condition
+
+        # use the copy of the variables as they may be required
+        ReplaceVariablesInSteps(self.steps, variables, update = False)
+
+    def execute(self, variables, raise_on_error = True):
+        "Run this step"
+
+        # replace variables in the steps to be executed
+        ReplaceVariablesInSteps(self.steps, variables, update = True)
+
+        threads = []
+        
+        class ThreadStepRunner(threading.Thread):
+            def __init__(self, step, variables):
+                threading.Thread.__init__(self)
+                self.step = step
+                self.variables = variables
+                self.exception = None
+            def run(self):
+                try:
+                    self.step.execute(self.variables)
+                except Exception, e:
+                    self.exception = e
+
+        # start all the threads
+        for step in self.steps:
+            LOG.debug("starting step in new thread: '%s'"% step)
+            t = ThreadStepRunner(step, variables)
+            t.start()
+            threads.append(t)
+
+        # wait for them to finish
+        errs = []
+        while threads:
+            for t in threads:
+                t.join(.001)
+                
+                # if the thread has finished, print a message and 
+                # remove it
+                if not t.is_alive():
+                    LOG.debug("Thread finished: '%s'"% t.step)
+                    threads.remove(t)
+                    if t.exception:
+                        errs.append(t.exception)
+                    
+        
+        # check if any threads
+        if errs:
+            raise ErrorCollection(errs)
+
+
 class ForStep(Step):
     "An IF block"
 
@@ -773,7 +856,6 @@ class ForStep(Step):
         new_vals = ReplaceVariableReferences(self.values, variables)
         if update:
             self.values = new_vals
-
 
         # as we need to wait until executing to really replace the variables
         # don't update now, only check if update == False (no point checking
