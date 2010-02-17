@@ -253,6 +253,12 @@ def Replace(input, qualifiers = None):
     return 0, replaced
     
 
+def Split(input, split_text = None):
+    if not split_text:
+        split_text = None
+    return 0, input.split(split_text)
+
+
 def PopulateFromToolsFolder(tools_folder, dummy = []):
     
     for file in os.listdir(tools_folder):
@@ -301,6 +307,7 @@ NAME_ACTION_MAPPING = {
     'escape_newlines': EscapeNewlines,
     'escapenewlines' : EscapeNewlines,
     'replace' :        Replace,
+    'split' :          Split,
 
     'add_tools_dir'   : PopulateFromToolsFolder,
 }
