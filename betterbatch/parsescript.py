@@ -375,7 +375,12 @@ def ReplaceExecutableSections(text, variables, execute = True):
             ReplaceVariableReferences(text, variables)
             step.execute(variables)
 
-            replaced.append(step.output.strip())
+            # Escape any greater/less than characters in the output of the 
+            # command
+            output = step.output.strip()
+            output = output.replace("<", "<<")
+            output = output.replace(">", ">>")
+            replaced.append(output)
             last_section_end = section.end()
         else:
             # if we are not actually executing - don't actually replace the
