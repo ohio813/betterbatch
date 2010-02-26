@@ -429,6 +429,12 @@ class ReplaceExecutableSectionsTests(unittest.TestCase):
         replaced = ReplaceExecutableSections(text, variables)
         self.assertEquals(replaced, "car-")
 
+    def test_escaping_symbols(self):
+        """"""
+        text = r"{{{ dir \ }}}"
+        replaced = ReplaceExecutableSections(text, {})
+        self.assertEquals("<<" in replaced , True)
+        self.assertEquals(">>" in replaced, True)
 
 class ParseStepTests(unittest.TestCase):
     ""
