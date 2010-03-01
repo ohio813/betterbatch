@@ -123,31 +123,24 @@ def ParseYAMLFile(yaml_file):
                 "         They have been replaced by spaces for "
                     "processing")
 
+        # only allow mapping at the end of a string
+        re_non_end_colon = re.compile(r":( *)(?!\s*$)", re.MULTILINE)
+        yaml_data = re_non_end_colon.sub(r"+++++colon+++++\1", yaml_data)
 
-        # the following code is quite 'hacky' it puts some
-        # text before every line (that is not the start of a block i.e. (|,>)
-        # so that it will be treated as a string
-        new_step = re.compile(r"""
-            ^(
-                \s*
-                \-
-                [ ]+            # only match spaces - not \s as that matches \n
-                (?!             # not followed by
-                    (\||\>|\s*$) # | or > or only whitespace
-                )
-            )""", re.MULTILINE | re.VERBOSE)
-        yaml_data = new_step.sub(r'\1FORCE STRING ', yaml_data)
+        # avoid the 'double quote parsing of YAML'
+        yaml_data = yaml_data.replace('"', '+++++dblquote+++++')
 
         # Parse the yaml data
         script_data = yaml.load(yaml_data)
 
         # Now that we have parsed the file and everything has been treated as
         # a string we need to remove that text we added
-        un_force_re = re.compile(r'^\s*FORCE STRING ')
         def strip_string_forcers(item):
+            "Replace any string forcers we added previously"
             if isinstance(item, basestring):
-
-                return un_force_re.sub("", item, 1)
+                item = item.replace("+++++colon+++++", ":")
+                item = item.replace("+++++dblquote+++++", '"')
+                return item
             elif isinstance(item, list):
                 for i, elem in enumerate(item):
                     item[i] = strip_string_forcers(elem)
@@ -165,9 +158,6 @@ def ParseYAMLFile(yaml_file):
                 raise RuntimeError("Unknown structure type!")
 
         script_data = strip_string_forcers(script_data)
-
-        if "FORCE STRING" in repr(script_data):
-            raise RuntimeError("Forcing to 'string' failed!")
 
         return script_data
 
