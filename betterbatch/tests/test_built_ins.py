@@ -70,6 +70,12 @@ class BuiltInCommandsTests(unittest.TestCase):
     def test_SystemCommand_no_ui(self):
         SystemCommand("echo here", [])
 
+    def test_SystemCommand_no_too_long(self):
+        self.assertRaises(
+            RuntimeError,
+            SystemCommand,
+                "echo here" + "888" * 4000, [])
+
     def test_dirname(self):
         self.assertEquals(dirname(r"c:\tes\temp\here.txt"), (0, r"c:\tes\temp"))
 
@@ -93,9 +99,18 @@ class BuiltInCommandsTests(unittest.TestCase):
         cur_dir = os.path.abspath(os.getcwd())
         
         ret, out = ChangeCurrentDirectory("\\non_existing_directory_somewhere")
+        
         self.assertNotEquals(ret, 0)
-
         self.assertEquals(os.getcwd(), cur_dir)
+
+    def test_ChangeCurrentDirectory_list(self):
+        """Test the "cd" command that will fail"""
+        cur_dir = os.path.abspath(os.getcwd())
+        
+        ret, out = ChangeCurrentDirectory(["\\"])
+        
+        self.assertEquals(ret, 0)
+        self.assertEquals(os.path.splitdrive(os.getcwd())[1], "\\" )
 
     def test_PushDirectory_pass(self):
         cur_dir = os.path.abspath(os.getcwd())
@@ -193,6 +208,21 @@ class BuiltInCommandsTests(unittest.TestCase):
                 tools_dir)
         
         del(built_in_commands.NAME_ACTION_MAPPING['compare'])
+
+    def test_Split_no_split_text(self):
+        self.assertEquals(Split("1 2"), (0, ["1", "2"]))
+
+    def test_Split_split_text(self):
+        self.assertEquals(Split("1\n2", "\n"), (0, ["1", "2"]))
+
+    def test_Replace_basic(self):
+        self.assertEquals(Replace("some text", ["e", "a"]), (0, "soma taxt"))
+
+    def test_EscapeNewLines_basic(self):
+        self.assertEquals(EscapeNewlines("some\ntext"), (0, r"some\\ntext"))
+
+
+
 
 
 if __name__ == "__main__":
