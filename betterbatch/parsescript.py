@@ -1281,6 +1281,33 @@ def ReadParamRestrictions(param_file):
     return counts_db
 
 
+def ExecuteScriptFile(file_path, cmd_vars, check = False):
+    "Load and execute the script file"
+    variables = PopulateVariables(file_path, cmd_vars)
+    LOG.debug("Environment:"% variables)
+
+    steps = LoadScriptFile(file_path)
+
+    LOG.debug("TESTING STEPS")
+    #steps = FinalizeSteps(steps, variables)
+
+    variables_copy = copy.deepcopy(variables)
+    steps = ExecuteSteps(steps, variables_copy, "test")
+
+    arg_counts_db = ReadParamRestrictions(PARAM_FILE)
+    ValidateArgumentCounts(steps, arg_counts_db)
+
+    # only checking - so quit before executing steps
+    if check:
+        print "No Errors"
+        sys.exit(0)
+
+    LOG.debug("RUNNING STEPS")
+    ExecuteSteps(steps, variables, 'run')
+
+    return steps
+
+
 def Main():
     "Parse command line arguments, read script and dispatch the request(s)"
 
@@ -1294,24 +1321,8 @@ def Main():
 
     LOG.debug("Run Options:"% options)
 
-    variables = PopulateVariables(options.script_file, options.variables)
-
-    LOG.debug("Environment:"% variables)
-
     try:
-        steps = LoadScriptFile(options.script_file)
-        steps = FinalizeSteps(steps, variables)
-
-        arg_counts_db = ReadParamRestrictions(PARAM_FILE)
-        ValidateArgumentCounts(steps, arg_counts_db)
-
-        # only checking - so quit before executing steps
-        if options.check:
-            print "No Errors"
-            sys.exit(0)
-
-        ExecuteSteps(steps, variables)
-
+        ExecuteScriptFile(options.script_file, options.variables, options.check)
     except ErrorCollection, e:
         e.LogErrors()
         if options.debug:
