@@ -1314,12 +1314,16 @@ def Main():
 
     except ErrorCollection, e:
         e.LogErrors()
+        if options.debug:
+            LOG.exception(e)
         sys.exit(1)
     except EndExecution, e:
         LOG.info(e.msg)
         sys.exit(e.ret)
     except RuntimeError, e:
         LOG.error(e)
+        if options.debug:
+            LOG.exception(e)
         sys.exit(1)
     except Exception, e:
         LOG.critical('Unknown Error: %s'% e)
