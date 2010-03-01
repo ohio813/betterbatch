@@ -128,6 +128,12 @@ Example::
    
    - set variable_name = variable value
 
+Variable definitions can include other variables or executable sections. For 
+example::
+
+   - set variable_name = The value of <variable> and output of {{{executable section}}}
+
+Refer to :ref:`executable-section` for more information on executable sections.
 
 ------------------------------------------------------
 Variable References
@@ -146,12 +152,18 @@ Example::
    
    - include path\to\includefile.bb
 
+The steps in the included file will be executed at the point of inclusion as
+if they were defined in the including file.
+
 ------------------------------------------------------
 Logfile specification
 ------------------------------------------------------
 Example::
 
    - logfile path\to\logfile.bb
+
+If a previous logfile statement was given then that logfile will be closed 
+(if it can be) and all logging information will be written to the new logfile.
 
 ------------------------------------------------------
 IF statements
@@ -234,6 +246,8 @@ you should never rely on one starting/finishing before another will start/finish
 Also ONLY command steps are allowed (i.e. no Variable Definitions, logfile, include, 
 for or if statements are allowed.
 
+
+.. _executable-section:
 
 ------------------------------------------------------
 Executable Sections

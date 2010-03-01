@@ -5,13 +5,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>CHANGES &mdash; BetterBatch v0.9.4 documentation</title>
+    <title>CHANGES &mdash; BetterBatch v0.9.5 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '#',
-        VERSION:     '0.9.4',
+        VERSION:     '0.9.5',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -19,7 +19,7 @@
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="BetterBatch v0.9.4 documentation" href="index.html" />
+    <link rel="top" title="BetterBatch v0.9.5 documentation" href="index.html" />
     <link rel="next" title="BetterBatches License - MIT" href="LICENSE.html" />
     <link rel="prev" title="The available built-in commands are:" href="built_in_commands.html" /> 
   </head>
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="built_in_commands.html" title="The available built-in commands are:"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">BetterBatch v0.9.4 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v0.9.5 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -48,7 +48,24 @@
   <div class="section" id="changes">
 <h1>CHANGES<a class="headerlink" href="#changes" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="added-for-loops-and-parallel-sections">
-<h2>0.9.4 Added For loops and Parallel sections<a class="headerlink" href="#added-for-loops-and-parallel-sections" title="Permalink to this headline">¶</a></h2>
+<h2>0.9.5 Added For loops and Parallel sections<a class="headerlink" href="#added-for-loops-and-parallel-sections" title="Permalink to this headline">¶</a></h2>
+<p>01-March-2011</p>
+<blockquote>
+<ul class="simple">
+<li>Huge refactoring of the code. Removed Step.replace_vars() methods and
+instead added a &#8216;phase&#8217; parameter to execute. This makes the code simpler
+and reduces some duplication. Testing is now done by using
+<tt class="docutils literal"><span class="pre">step.exectute(...,</span> <span class="pre">phase</span> <span class="pre">=</span> <span class="pre">&quot;test&quot;)</span></tt> and execution by using
+<tt class="docutils literal"><span class="pre">step.exectute(...,</span> <span class="pre">phase</span> <span class="pre">=</span> <span class="pre">&quot;run&quot;)</span></tt>.</li>
+<li>Escape &lt; and &gt; in the output of commands.</li>
+<li>Add many new tests overall coverage now 95%.</li>
+<li>Added debug option (prints tracebacks on error).</li>
+<li>Fixed <a class="reference external" href="http://code.google.com/p/betterbatch/issues/detail?id=1">issue 1</a></li>
+</ul>
+</blockquote>
+</div>
+<div class="section" id="id1">
+<h2>0.9.4 Added For loops and Parallel sections<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>17-February-2010</p>
 <blockquote>
 <ul class="simple">
@@ -84,7 +101,8 @@ use Thread.isAlive() rather than Thread.is_alive() ).</li>
             <h3><a href="index.html">Table Of Contents</a></h3>
             <ul>
 <li><a class="reference external" href="#">CHANGES</a><ul>
-<li><a class="reference external" href="#added-for-loops-and-parallel-sections">0.9.4 Added For loops and Parallel sections</a></li>
+<li><a class="reference external" href="#added-for-loops-and-parallel-sections">0.9.5 Added For loops and Parallel sections</a></li>
+<li><a class="reference external" href="#id1">0.9.4 Added For loops and Parallel sections</a></li>
 <li><a class="reference external" href="#path-handling-documentation-shell-references">0.9.3 Path handling, documentation, shell references</a></li>
 </ul>
 </li>
@@ -130,7 +148,7 @@ use Thread.isAlive() rather than Thread.is_alive() ).</li>
         <li class="right" >
           <a href="built_in_commands.html" title="The available built-in commands are:"
              >previous</a> |</li>
-        <li><a href="index.html">BetterBatch v0.9.4 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v0.9.5 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
