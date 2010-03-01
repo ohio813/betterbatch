@@ -1,3 +1,5 @@
 recursive-include betterbatch/docs *
+recursive-include betterbatch/tests *
+recursive-include betterbatch/tools *
 prune betterbatch/docs/.doctrees
 include example.bb
