@@ -266,13 +266,13 @@ def ReplaceVariableReferences(text, variables, loop = None):
             continue
 
         # ensure that we are not in a variable loop e.g x -> y -> x
-        if variable in loop:
-            # a loop of 1 is OK e.g. x = <x>_ + 1
-            if len (loop) > 1:
-                errors.append("Loop found in variable definition "
-                    "'%s', variable %s"% (original_text, loop))
+        # a loop of 1 is OK e.g. x = <x>_ + 1
+        if len(loop) > 100:
+            errors.append("Loop found in variable definition "
+                "'%s', variable %s"% (original_text, repr(loop)))
             continue
-        loop.append(variable)
+
+        loop.append(variables[variable].name)
 
         try:
             # ensure that any variables in the variable value are also
@@ -292,6 +292,7 @@ def ReplaceVariableReferences(text, variables, loop = None):
                         UndefinedVariableError(err.variable, new_string))
                 else:
                     errors.append(err)
+
         loop.pop()
 
     if errors:
@@ -303,29 +304,7 @@ def ReplaceVariableReferences(text, variables, loop = None):
     return text
 
 
-def ReplaceVariablesInSteps(steps, defined_variables, update = False):
-    "Replace variables in all the steps"
-
-    # don't modify the variables passed in if not updating
-    if not update:
-        defined_variables = defined_variables.copy()
-
-    errors = []
-    for step in steps:
-        try:
-            step.replace_vars(defined_variables, update = update)
-
-            if isinstance(step, VariableDefinition):
-                defined_variables[step.name] = step
-
-        except ErrorCollection, e:
-            errors.extend(e.errors)
-
-    if errors:
-        raise ErrorCollection(errors)
-
-
-def ReplaceExecutableSections(text, variables, execute = True):
+def ReplaceExecutableSections(text, variables, phase = "run"):
     """If variable has {{{cmd}}} - execute 'cmd' and update value with output
     """
 
@@ -356,27 +335,23 @@ def ReplaceExecutableSections(text, variables, execute = True):
 
         command = section.group('command_line').replace("--#QUAL_#--", "{*")
         command = command.replace("--#_QUAL#--", "*}")
+
         step = ParseStep(command)
 
-        if execute:
-            # text before the section
-            replaced.append(text[last_section_end:section.start()])
-            #step.replace_vars(variables, update=True)
-            ReplaceVariableReferences(text, variables)
-            step.execute(variables)
+        # text before the section
+        replaced.append(text[last_section_end:section.start()])
 
-            # Escape any greater/less than characters in the output of the 
-            # command
-            output = step.output.strip()
-            output = output.replace("<", "<<")
-            output = output.replace(">", ">>")
-            replaced.append(output)
-            last_section_end = section.end()
-        else:
-            # if we are not actually executing - don't actually replace the
-            # variables references. We still try and replace vars to ensure
-            # that they are defined
-            step.replace_vars(variables, update=False)
+        step.execute(variables, phase)
+
+        # Escape any greater/less than characters in the output of the
+        # command
+        output = step.output.strip()
+        output = output.replace("<", "<<")
+        output = output.replace(">", ">>")
+
+        replaced.append(output)
+
+        last_section_end = section.end()
 
     # if we were not exectuing - then replaced will still contain the
     # original string
@@ -428,6 +403,7 @@ def SetupLogFile(log_filename):
 
 
 def ParseSteps(steps):
+    "Parse a collection of steps"
     if steps is None:
         return []
 
@@ -464,22 +440,92 @@ def ParseStep(step):
     statement_type, step_data = SplitStatementAndData(step)
     statement_type = statement_type.lower()
 
-    parsed_step = None
-    # get the correct handler, if the handler is not a known one
-    # then treat it as a command
-    if statement_type in STATEMENT_HANDLERS:
-        handler = STATEMENT_HANDLERS[statement_type]
-        # as all known statement types have statements without spaces
-        # we can use the simple splitting used above to construct the type
-        parsed_step = handler(step, step_data)
-
-    else:
-        # more complex splitting maybe required so we let the command do
-        # the parsing
-        parsed_step = CommandStep(step)
+    # if it is a known statement type then use that - use 'CommandStep'
+    # for all others
+    handler = STATEMENT_HANDLERS.get(statement_type, CommandStep)
+    parsed_step = handler(step)
 
     return parsed_step
 
+
+def ParseIfStep(step, statements, clean_keys):
+    "Parse an if complex step"
+
+    if 'and' in clean_keys and 'or' in clean_keys:
+        raise RuntimeError(
+            "You cannot mix AND and OR statements in a single IF '%s'"%
+                step)
+
+    conditions = []
+    if_steps = []
+    else_steps = []
+    # check that there are no invalid blocks
+    for key, condition, steps in statements:
+
+        if key in ("if", 'and', 'or'):
+
+            # if there are steps they must be the 'if' steps
+            if steps:
+                # if there are already steps for the 'if' block
+                if if_steps:
+                    raise RuntimeError(
+                        "Only one of the if/and/or "
+                        "statements can have steps: %s"% step)
+                if_steps = ParseSteps(steps)
+
+            conditions.append((key, ParseStep(condition)))
+
+        elif key == 'else':
+            else_steps = ParseSteps(steps)
+
+        else:
+            raise RuntimeError(
+                "If is not correctly defined expected \n"
+                "- if COND:\n"
+                " [and/or COND:]\n"
+                "    - DO_STEPS\n"
+                "  else:\n"
+                "    - ELSE_STEPS")
+
+    if not if_steps + else_steps:
+        raise RuntimeError(
+            "IF statement has no 'if_true' or 'else' statements '%s'"%
+                conditions)
+
+    return IfStep(step, conditions, if_steps, else_steps)
+
+def ParseForStep(step, statements):
+    "Parse an for complex step"
+    if len(statements) > 1:
+        raise RuntimeError(
+            "For statements should not have more than one 'key': %s"%
+                statements)
+    loop_info, steps = statements[0][1:]
+    steps = ParseSteps(steps)
+
+    if not steps:
+        return None
+
+    return ForStep(step, loop_info, steps)
+
+def ParseParallelStep(step, statements):
+    "Parse a parallel complex step"
+    if len(statements) > 1:
+        raise RuntimeError(
+            "Parallel blocks can have more only one parent: %s"%
+                statements)
+    # just get the steps
+    steps = statements[0][-1]
+    steps = ParseSteps(steps)
+
+    for loop_step in steps:
+        if not isinstance(loop_step, CommandStep):
+            raise RuntimeError(
+                "You can only have commands (no variable definitions, "
+                "includes, logfile, etc. in Parallel blocks: %s"%
+                    statements)
+
+    return ParallelSteps(step, steps)
 
 def ParseComplexStep(step):
     "The step is not a string - so parse what kind of step it is"
@@ -493,80 +539,14 @@ def ParseComplexStep(step):
 
     # if it iss an IF statement
     if 'if' in clean_keys:
-
-        if 'and' in clean_keys and 'or' in clean_keys:
-            raise RuntimeError(
-                "You cannot mix AND and OR statements in a single IF '%s'"%
-                    step)
-
-        conditions = []
-        if_steps = []
-        else_steps = []
-        # check that there are no invalid blocks
-        and_or = []
-        for key, condition, steps in statements:
-
-            if key in ("if", 'and', 'or'):
-
-                # if there are steps they must be the 'if' steps
-                if steps:
-                    if if_steps:
-                        raise RuntimeError(
-                            "Only one of the if/and/or "
-                            "statements can have steps: %s"% step)
-                    if_steps = ParseSteps(steps)
-
-                conditions.append((key, ParseStep(condition)))
-
-            elif key == 'else':
-                else_steps = ParseSteps(steps)
-
-            else:
-                raise RuntimeError(
-                    "If is not correctly defined expected \n"
-                    "- if COND:\n"
-                    " [and/or COND:]\n"
-                    "    - DO_STEPS\n"
-                    "  else:\n"
-                    "    - ELSE_STEPS")
-
-        if not if_steps + else_steps:
-            raise RuntimeError(
-                "IF statement has no 'if_true' or 'else' statements '%s'"%
-                    conditions)
-
-        return IfStep(step, conditions, if_steps, else_steps)
+        return ParseIfStep(step, statements, clean_keys)
 
     elif 'for' in clean_keys:
-        if len(statements) > 1:
-            raise RuntimeError(
-                "For statements should not have more than one 'key': %s"%
-                    statements)
-        loop_info, steps = statements[0][1:]
-        steps = ParseSteps(steps)
-
-        if not steps:
-            return None
-
-        return ForStep(step, loop_info, steps)
+        return ParseForStep(step, statements)
 
     elif 'parallel' in clean_keys:
-        if len(statements) > 1:
-            raise RuntimeError(
-                "For statements should not have more than one 'key': %s"%
-                    statements)
-        # just get the steps
-        steps = statements[0][-1]
-        steps = ParseSteps(steps)
+        return ParseParallelStep(step, statements)
 
-        for step in steps:
-            if not isinstance(step, CommandStep):
-                raise RuntimeError(
-                    "You can only have commands (no variable definitions, "
-                    "includes, logfile, etc. in Parallel blocks: %s"%
-                        statements)
-
-        return ParallelSteps(step, steps)
     else:
         raise RuntimeError("Unknown Complex step type: '%s'"%
             clean_keys)
@@ -578,10 +558,10 @@ class Step(object):
     def __init__(self, raw_step):
         self.raw_step = raw_step
         #self.referenced_variables = FindVariableReferences(raw_step)
-        self.step_data = raw_step
+        self.step_type, self.step_data = SplitStatementAndData(raw_step)
 
     def __str__(self):
-        return str(self.raw_step)
+        return unicode(self.raw_step).encode('mbcs')
 
     def __repr__(self):
         return "<%s %s>"% (self.__class__.__name__, self.raw_step)
@@ -590,64 +570,30 @@ class Step(object):
 class VariableDefinition(Step):
     "A step in the form set varname = var value"
 
-    def __init__(self, raw_step, step_data):
+    def __init__(self, raw_step):
         Step.__init__(self, raw_step)
         try:
-            self.name, self.value = ParseVariableDefinition(step_data)
+            self.name, self.value = ParseVariableDefinition(self.step_data)
         except RuntimeError, e:
             raise RuntimeError(str(e)% self.raw_step)
 
-    def replace_vars(self, variables, update = False):
-        """Replace variables referenced in the step with the variable values
+        self.recursive = self.name in FindVariableReferences(self.value)
 
-        If update is False - then this will only test that the variables
-        can be replaced. Note that we do NOT call ReplaceVariableReferences
-        for VariableDefinition instances - ReplaceVariableReferences will do
-        that when we actually need it. The reason for this is that a variable
-        may reference a variable that is defined/changed later.
-        """
-        #if update:
-        #    self.value = ReplaceVariableReferences(self.value, variables)
-        # Replace executable sections - If execute is False - then the
-        # command will not be actually run
-        new_val = ReplaceExecutableSections(
-            self.value, variables, execute = update)
-
-        if update:
-            self.value = new_val
-
-    def execute(self, variables, raise_on_error = True):
+    def execute(self, variables, phase):
         """Set the variable
 
-        Note - we don't replace all sub variables at this point"""
+        Note - we don't replace all sub variables at this point.
 
-        # does the variable reference itself
-        refs = FindVariableReferences(self.value)
-        value = self.value
-        if self.name in refs:
+        Also if the variable references itself - we rename the current
+        variable name so that the original
+        to a new name"""
 
-            # get a new name for the old value (so we have it)
-            i = 0
-            prev_var = self.name
-            while prev_var in variables:
-                prev_var = "%s._%d_"% (self.name, i)
-                i += 1
+        if phase == "run" or self.recursive:
+            new_val = ReplaceExecutableSections(self.value, variables, 'run')
+            new_val = ReplaceVariableReferences(new_val, variables)
 
-            # keep a copy of the old value under the new name
-            variables[prev_var] = variables[self.name]
-            variables[prev_var].name = prev_var
+            self.value = new_val
 
-            # and update the current value to reference the new variable
-            for match in refs[self.name]:
-                self.value = self.value.replace(match, "<%s>"% prev_var)
-
-        #self.value = ReplaceExecutableSections(
-        #    self.value, variables, execute = True)
-        self.replace_vars(variables, update = True)
-
-        LOG.debug("Setting variable '%s' to '%s'"% (self.name, self))
-        # all we do at this point is to ensure that the variables
-        # includes the current value.
         variables[self.name] = self
 
     def __repr__(self):
@@ -659,21 +605,12 @@ class CommandStep(Step):
 
     def __init__(self, raw_step):
         Step.__init__(self, raw_step)
-        #self.output = None
-        #self.ret = None
+        self.output = ""
+        self.ret = 0
+        self.step_type = "command"
+        self.step_data = self.raw_step
+
         self.qualifiers, self.step_data = self._parse_qualifiers()
-
-    def replace_vars(self, variables, update = False):
-        """Replace variables referenced in the step with the variable values
-
-        If update is False - then this will only test that the variables
-        can be replaced
-        """
-        new_val = ReplaceExecutableSections(
-            self.step_data, variables, execute = update)
-        new_val = ReplaceVariableReferences(new_val, variables)
-        if update:
-            self.step_data = new_val
 
     def _parse_qualifiers(self):
         "Find the qualifiers and replace them"
@@ -720,12 +657,18 @@ class CommandStep(Step):
 
         return command_message
 
-    def execute(self, variables, raise_on_error = True):
+    def execute(self, variables, phase):
         "Run this step"
-        self.replace_vars(variables, update = True)
+
+        command_text = ReplaceExecutableSections(
+            self.step_data, variables, phase)
+        command_text = ReplaceVariableReferences(command_text, variables)
+
+        if phase == "test":
+            return
 
         # Check if the command is a known command
-        parts = SplitStatementAndData(self.step_data)
+        parts = SplitStatementAndData(command_text)
 
         cmd = parts[0].strip().lower()
         if cmd in built_in_commands.NAME_ACTION_MAPPING:
@@ -734,7 +677,7 @@ class CommandStep(Step):
             cmd_log_string = self.command_as_string_for_log(cmd, params)
         else:
             func = built_in_commands.SystemCommand
-            params = self.step_data
+            params = command_text
             cmd_log_string = self.command_as_string_for_log("", params)
 
         if cmd == "echo":
@@ -762,12 +705,10 @@ class CommandStep(Step):
         else:
             indented_output = '\n'
 
-        if self.ret and raise_on_error and not 'nocheck' in self.qualifiers:
-            message = (
-                'Non zero return (%d) CMD: %s \n %s'%(
-                    self.ret, cmd_log_string, indented_output))
-
-            raise RuntimeError(message)
+        if self.ret and not 'nocheck' in self.qualifiers:
+            raise RuntimeError(
+                'Non zero return (%d) CMD: %s \n %s'%
+                    (self.ret, cmd_log_string, indented_output))
 
         if 'echo' in self.qualifiers and self.output.strip():
             LOG.info(self.output.strip())
@@ -780,32 +721,30 @@ class ParallelSteps(Step):
     "An IF block"
 
     def __init__(self, raw_step, steps):
-        Step.__init__(self, raw_step)
+
+        self.raw_step = raw_step
+
         self.steps = steps
 
-    def replace_vars(self, variables, update = False):
-        # replace the variables in the loop condition
-
-        # use the copy of the variables as they may be required
-        ReplaceVariablesInSteps(self.steps, variables, update = False)
-
-    def execute(self, variables, raise_on_error = True):
+    def execute(self, variables, phase):
         "Run this step"
 
         # replace variables in the steps to be executed
-        ReplaceVariablesInSteps(self.steps, variables, update = True)
+        ExecuteSteps(self.steps, variables, "test")
 
         threads = []
 
         class ThreadStepRunner(threading.Thread):
+            "Run a step in a separate thread"
             def __init__(self, step, variables):
                 threading.Thread.__init__(self)
                 self.step = step
                 self.variables = variables
                 self.exception = None
             def run(self):
+                "Run the thread and store any exceptions for later retrieval"
                 try:
-                    self.step.execute(self.variables)
+                    self.step.execute(self.variables, phase)
                 except Exception, e:
                     self.exception = e
 
@@ -820,6 +759,7 @@ class ParallelSteps(Step):
         errs = []
         while threads:
             for t in threads:
+                # Try to joiin the thread, but timeout very quickly
                 t.join(.001)
 
                 # if the thread has finished, print a message and
@@ -836,115 +776,91 @@ class ParallelSteps(Step):
 
 
 class ForStep(Step):
-    "An IF block"
+    "One or more steps repeated"
 
     def __init__(self, raw_step, loop_condition, steps):
-        Step.__init__(self, raw_step)
+
         self.steps = steps
+        self.raw_step = raw_step
 
         #split on ' in '
-        self.variable, self.values = [
+        self.variable, self.command = [
             part.strip() for part in loop_condition.split(' in ', 1)]
         self.variable = self.variable.lower()
 
-    def replace_vars(self, variables, update = False):
-
-        # replace the variables in the loop condition
-        new_vals = ReplaceVariableReferences(self.values, variables)
-        if update:
-            self.values = new_vals
-
-        # as we need to wait until executing to really replace the variables
-        # don't update now, only check if update == False (no point checking
-        # if update == True as we will be replacing anyway shortly afterwards)
-        if not update:
-            # make a copy of the varialbes - as we don't want to update
-            variables_copy = variables.copy()
-
-            # create and add a dummy variable to match the loop variable
-            # so the steps in the loop will see this variable defined.
-            variables_copy[self.variable] = \
-                VariableDefinition("",'%s='% self.variable)
-
-            # use the copy of the variables as they may be required
-            ReplaceVariablesInSteps(self.steps, variables_copy, update = False)
-
-    def execute(self, variables, raise_on_error = True):
+    def execute(self, variables, phase):
         "Run this step"
 
-        old_values = self.values
-        self.values = ReplaceExecutableSections(
-            self.values, variables, execute = True)
-        self.replace_vars(variables, update=True)
+        cmd_output = ReplaceExecutableSections(
+            self.command, variables, phase)
 
         # split the variables
-        values = self.values.split("\n")
+        values = cmd_output.split("\n")
 
         for val in values:
 
             # add or update the loop variable in the variables
-            var = VariableDefinition("set x=y",'%s = %s'% (self.variable, val))
+            var = VariableDefinition('set %s = %s'% (self.variable, val))
             variables[self.variable] = var
 
             # loop over the steps
             loop_steps = copy.deepcopy(self.steps)
 
-            # replace variables in the steps to be executed
-            ReplaceVariablesInSteps(loop_steps, variables, update = True)
-
-            for step in loop_steps:
-                step.execute(variables, raise_on_error)
-
+            ExecuteSteps(loop_steps, variables, phase)
 
 class IfStep(Step):
     "An IF block"
 
     def __init__(self, raw_step, conditions, if_steps, else_steps):
-        Step.__init__(self, raw_step)
+
+        self.raw_step = raw_step
+
         self.conditions = conditions
         self.if_steps = if_steps
         self.else_steps = else_steps
 
-    def replace_vars(self, variables, update = False):
-        """Replace variables referenced in the step with the variable values
-
-        If update is False - then this will only test that the variables
-        can be replaced"""
-
-        for cond_type, cond in self.conditions:
-            cond.replace_vars(variables, update = update)
-
-        # only try to replace the variables when NOT executing
-        # because when executing both sides will not be exucuted
-        # and we will explictily update the one we are executing.
-        if not update:
-            # replace in the 'else' section
-            ReplaceVariablesInSteps(
-                self.else_steps, variables, update = False)
-
-            # if the condition is checking if a variable is defined
-            # then we can take it for granted that it is defined, so
-            variables_copy = variables.copy()
-            for cond_type, condition in self.conditions:
-                if (isinstance(condition, VariableDefinedCheck) and
-                    condition.variable not in variables):
-                    variables_copy[condition.variable] = \
-                        VariableDefinition("",'%s='% condition.variable)
-            # use the copy of the variables as they may be required
-            ReplaceVariablesInSteps(
-                self.if_steps, variables_copy, update = False)
-
-    def execute(self, variables, raise_on_error = True):
+    def execute(self, variables, phase):
         "Run this step"
-        self.replace_vars(variables, update=True)
 
         # check if the condition is true
         #try:
         conditions_type = 'and'
         condition_values = []
+
+        # Check the 'else' steps now. We may temporarily define variable
+        # due to a 'defined' check which would upset the 'else' checks
+        if phase != 'run':
+            ExecuteSteps(self.else_steps, variables, 'test')
+
+            temp_defined_vars = []
+            for cond_type, condition in self.conditions:
+                condition.execute(variables, phase)
+
+                if isinstance(condition, VariableDefinedCheck):
+                    if condition.variable not in variables:
+                    # add a dummy value so that checking works correctly
+                        variables[condition.variable] = \
+                            VariableDefinition('set %s='% condition.variable)
+                        temp_defined_vars.append(condition.variable)
+            # now that we have temporarily defined any definitions
+            # needed - check the 'if' steps
+            ExecuteSteps(self.if_steps, variables, 'test')
+
+            # remove the temporary variables so we don't polute the
+            # namespace
+            for var in temp_defined_vars:
+                del variables[var]
+
+            return
+
         for cond_type, condition in self.conditions:
             LOG.debug("Testing Condition: '%s'"% condition)
-            condition.execute(variables, raise_on_error = False)
+            try:
+                condition.execute(variables, phase)
+            except Exception, e:
+                # swallow exceptions - it just means that the check failed
+                pass
+
             condition_values.append(condition.ret)
 
             if cond_type == "or":
@@ -955,20 +871,15 @@ class IfStep(Step):
         if ((conditions_type == "and" and not any(condition_values)) or
             (conditions_type == "or" and 0 in condition_values)):
             LOG.debug("Condition evaluated to true: %s"% condition.output)
-            steps_to_exec = self.if_steps
+            self.steps_to_exec = self.if_steps
+
         else:
             LOG.debug(
                 "Condition evaluated to false: %s"% condition.output)
-            steps_to_exec = self.else_steps
-
-        steps_to_exec = FinalizeSteps(steps_to_exec, variables)
-
-        # replace variables in the steps to be executed
-        ReplaceVariablesInSteps(steps_to_exec, variables, update = True)
+            self.steps_to_exec = self.else_steps
 
         # Execute the steps
-        for step in steps_to_exec:
-            step.execute(variables)
+        ExecuteSteps(self.steps_to_exec, variables, phase)
 
     def __repr__(self):
         return "<IF %s...>"% self.conditions
@@ -977,11 +888,12 @@ class IfStep(Step):
 class ExecutionEndStep(Step):
     "Request end execution of the script"
 
-    def __init__(self, raw_step, ret_message = None):
+    def __init__(self, raw_step):
         Step.__init__(self, raw_step)
         self.ret = 0
         self.message = ''
 
+        ret_message = SplitStatementAndData(raw_step)[1]
         parts = ret_message.split(',', 1)
         try:
             self.ret = int(parts[0])
@@ -993,53 +905,45 @@ class ExecutionEndStep(Step):
         if len(parts) == 2:
             self.message = parts[1].strip()
 
-    def replace_vars(self, variables, update = False):
-        """Replace variables referenced in the step with the variable values
-
-        If update is False - then this will only test that the variables
-        can be replaced
-        """
-        message = ReplaceVariableReferences(self.message, variables)
-        if update:
-            self.message = message
-
-    def execute(self, variables, raise_on_error = True):
+    def execute(self, variables, phase):
         "Run this step"
-        self.replace_vars(variables, update = True)
-        raise EndExecution(self.ret, self.message)
+        message = ReplaceVariableReferences(self.message, variables)
+        if phase == "run":
+            raise EndExecution(self.ret, message)
 
 
 class IncludeStep(Step):
     "Include steps from elsewhere"
 
-    def __init__(self, raw_step, filename):
+    def __init__(self, raw_step):
         Step.__init__(self, raw_step)
-        if not filename:
+        dummy, self.filename = SplitStatementAndData(raw_step)
+        if not self.filename:
             raise RuntimeError("Include with no filename.")
-        self.filename = filename
+        self.steps = []
 
-    def replace_vars(self, variables, update = False):
-        """Replace variables referenced in the step with the variable values
-
-        If update is False - then this will only test that the variables
-        can be replaced
-        """
-        new_val = ReplaceVariableReferences(self.filename, variables)
-        if update:
-            self.filename = new_val
-
-    def execute(self, variables, raise_on_error = True):
+    def execute(self, variables, phase):
         "Run this step"
         # todo: should the __script_dir__ be updated to the include
         # directory? if yes- then don't forget to set it back afterwards
         # in a safe try finally!
 
-        self.replace_vars(variables, update = True)
+        filename = ReplaceVariableReferences(self.filename, variables)
 
         self.filename = os.path.join(
-            variables['__script_dir__'].value, self.filename)
+            variables['__script_dir__'].value, filename)
 
-        self.steps = LoadScriptFile(self.filename)
+        # load the steps no matter
+        try:
+            self.steps = LoadScriptFile(self.filename)
+            if phase == "run":
+                LOG.debug(
+                    "Included steps from: %s"% self.filename)
+            self.steps = ExecuteSteps(self.steps, variables, phase)
+        except Exception, e:
+            if phase == "run":
+                raise
+
         # we may not be abel to do this at this stage
         # as execute for includes will be done before the variables are
         # added!, so steps inside the includes will not have the all
@@ -1050,51 +954,31 @@ class IncludeStep(Step):
 class LogFileStep(Step):
     "Specify the log file"
 
-    def __init__(self, raw_step, filename):
+    def __init__(self, raw_step):
         Step.__init__(self, raw_step)
-        if not filename:
+        dummy, self.filename = SplitStatementAndData(raw_step)
+        if not self.filename:
             raise RuntimeError("logfile with no filename.")
-        self.filename = filename
 
-    def replace_vars(self, variables, update = False):
-        """Replace variables referenced in the step with the variable values
-
-        If update is False - then this will only test that the variables
-        can be replaced
-        """
-        new_val = ReplaceVariableReferences(self.filename, variables)
-        if update:
-            self.filename = new_val
-
-    def execute(self, variables, raise_on_error = True):
+    def execute(self, variables, phase):
         "Run this step"
-        self.replace_vars(variables, update = True)
-        SetupLogFile(self.filename)
-        LOG.debug('Variables at logfile creation: %s'% variables)
+        filename = ReplaceVariableReferences(self.filename, variables)
+
+        if phase == "run":
+            SetupLogFile(filename)
+            LOG.debug('Variables at logfile creation: %s'% variables)
 
 
 class VariableDefinedCheck(Step):
     "Check if a variable is defined"
 
-    def __init__(self, raw_step, variable_name):
+    def __init__(self, raw_step):
         Step.__init__(self, raw_step)
-        if not variable_name:
+        dummy, self.variable = SplitStatementAndData(raw_step)
+        if not self.variable:
             raise RuntimeError("Cannot check if null variable is defined")
-        self.variable = variable_name
 
-    def replace_vars(self, variables, update = False):
-        """Replace variables referenced in the step with the variable values
-
-        If update is False - then this will only test that the variables
-        can be replaced
-        """
-        new_val = ReplaceVariableReferences(self.variable, variables)
-        if new_val != self.variable:
-            raise RuntimeError(
-                "Checking a variable cannot use a variable reference, "
-                    "remove the angle brackets: '%s'"% self.variable)
-
-    def execute(self, variables, raise_on_error = True):
+    def execute(self, variables, phase):
         "Run this step"
 
         key = self.variable.strip().lower()
@@ -1119,27 +1003,6 @@ STATEMENT_HANDLERS = {
     'end': ExecutionEndStep, }
 
 
-
-def FinalizeSteps(steps, variables):
-    finalized_steps = []
-    for i, step in enumerate(steps):
-
-        if isinstance(step, IncludeStep):
-            step.execute(variables)
-            finalized_steps.extend(step.steps)
-
-        else:
-            #if isinstance(step, IfStep):
-            #    step.if_steps = FinalizeSteps(step.if_steps, variables)
-            #    step.else_steps = FinalizeSteps(step.else_steps)
-
-            finalized_steps.append(step)
-
-    ReplaceVariablesInSteps(finalized_steps, variables, update = False)
-
-    return finalized_steps
-
-
 def LoadScriptFile(filepath):
     "Load the script file and check that variable references work"
 
@@ -1156,10 +1019,28 @@ def LoadScriptFile(filepath):
     return ParseSteps(steps)
 
 
-def ExecuteSteps(steps, variables):
+def ExecuteSteps(steps, variables, phase):
     "Execute the steps"
+
+    errors = []
+
     for step in steps:
-        step.execute(variables)
+        try:
+            step.execute(variables, phase)
+
+        except ErrorCollection, e:
+            if phase == "run":
+                raise
+            errors.extend(e.errors)
+        except RuntimeError, e:
+            if phase == "run":
+                raise
+            errors.append(e)
+
+    if errors:
+        raise ErrorCollection(errors)
+
+    return steps
 
 
 def PopulateVariables(script_file, cmd_line_vars):
