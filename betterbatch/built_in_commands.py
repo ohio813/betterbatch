@@ -91,6 +91,8 @@ def PathNotExists(path, dummy = None):
     """Check if the file exists returns 0 if the file doesn't exist and raises
     RuntimeError otherwise"""
 
+    #strip leading and trailing quote characters
+    path = path.strip('"')
     if os.path.exists(path):
         message = "Path found: '%s'"% path
         return RESULT_FAILURE, message
@@ -311,8 +313,6 @@ NAME_ACTION_MAPPING = {
 
     'add_tools_dir'   : PopulateFromToolsFolder,
 }
-
-
 
 
 # the following commands will not require to use the command syntax
