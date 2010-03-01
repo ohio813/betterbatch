@@ -30,6 +30,12 @@ def ParseArguments():
         action = "store_true",
         help='do not execute any commands, read and validate script file')
 
+    parser.add_option(
+        "-d", '--debug', 
+        action = "store_true",
+        default = False,
+        help='do not execute any commands, read and validate script file')
+
     #parser.add_option(
     #    '-e', '--execute',
     #    metavar = "cmd1,cmd2,cmd3", help='Run the commands')
