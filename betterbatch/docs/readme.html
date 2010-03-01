@@ -5,13 +5,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>BetterBatch Readme &mdash; BetterBatch v0.9.4 documentation</title>
+    <title>BetterBatch Readme &mdash; BetterBatch v0.9.5 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '#',
-        VERSION:     '0.9.4',
+        VERSION:     '0.9.5',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -19,7 +19,7 @@
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="BetterBatch v0.9.4 documentation" href="index.html" />
+    <link rel="top" title="BetterBatch v0.9.5 documentation" href="index.html" />
     <link rel="next" title="Comparing BetterBatch to ..." href="comparison.html" />
     <link rel="prev" title="Contents" href="index.html" /> 
   </head>
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="index.html" title="Contents"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">BetterBatch v0.9.4 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v0.9.5 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -155,6 +155,11 @@ after each screen of output.</dd>
 <p>Example:</p>
 <div class="highlight-python"><pre>- set variable_name = variable value</pre>
 </div>
+<p>Variable definitions can include other variables or executable sections. For
+example:</p>
+<div class="highlight-python"><pre>- set variable_name = The value of &lt;variable&gt; and output of {{{executable section}}}</pre>
+</div>
+<p>Refer to <a class="reference internal" href="#executable-section"><em>Executable Sections</em></a> for more information on executable sections.</p>
 </div>
 <div class="section" id="variable-references">
 <h3>Variable References<a class="headerlink" href="#variable-references" title="Permalink to this headline">¶</a></h3>
@@ -167,12 +172,16 @@ after each screen of output.</dd>
 <p>Example:</p>
 <div class="highlight-python"><pre>- include path\to\includefile.bb</pre>
 </div>
+<p>The steps in the included file will be executed at the point of inclusion as
+if they were defined in the including file.</p>
 </div>
 <div class="section" id="logfile-specification">
 <h3>Logfile specification<a class="headerlink" href="#logfile-specification" title="Permalink to this headline">¶</a></h3>
 <p>Example:</p>
 <div class="highlight-python"><pre>- logfile path\to\logfile.bb</pre>
 </div>
+<p>If a previous logfile statement was given then that logfile will be closed
+(if it can be) and all logging information will be written to the new logfile.</p>
 </div>
 <div class="section" id="if-statements">
 <h3>IF statements<a class="headerlink" href="#if-statements" title="Permalink to this headline">¶</a></h3>
@@ -240,7 +249,7 @@ Also ONLY command steps are allowed (i.e. no Variable Definitions, logfile, incl
 for or if statements are allowed.</p>
 </div>
 <div class="section" id="executable-sections">
-<h3>Executable Sections<a class="headerlink" href="#executable-sections" title="Permalink to this headline">¶</a></h3>
+<span id="executable-section"></span><h3>Executable Sections<a class="headerlink" href="#executable-sections" title="Permalink to this headline">¶</a></h3>
 <p>Executable sections can be used in variable definition or executable
 statements. The section will be replaced from the output from the section
 after executing it.</p>
@@ -361,7 +370,7 @@ that the BetterBatch script is going to use the environment value.</p>
         <li class="right" >
           <a href="index.html" title="Contents"
              >previous</a> |</li>
-        <li><a href="index.html">BetterBatch v0.9.4 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v0.9.5 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

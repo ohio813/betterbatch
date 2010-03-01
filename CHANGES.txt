@@ -2,6 +2,21 @@
 CHANGES
 ************************************
 
+0.9.5 Added For loops and Parallel sections
+------------------------------------------------------------------
+01-March-2011
+ 
+ * Huge refactoring of the code. Removed Step.replace_vars() methods and 
+   instead added a 'phase' parameter to execute. This makes the code simpler
+   and reduces some duplication. Testing is now done by using 
+   ``step.exectute(..., phase = "test")`` and execution by using 
+   ``step.exectute(..., phase = "run")``.
+ * Escape < and > in the output of commands.
+ * Add many new tests overall coverage now 95%.
+ * Added debug option (prints tracebacks on error).
+ * Fixed `issue 1 <http://code.google.com/p/betterbatch/issues/detail?id=1>`_
+   
+
 0.9.4 Added For loops and Parallel sections
 ------------------------------------------------------------------
 17-February-2010
