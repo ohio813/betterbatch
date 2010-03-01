@@ -8,35 +8,35 @@
 # do not depend on any one step completing before or after any other step.
 - parallel:
     #- dir "Thjs would fail - other steps in parallel block would still execute" /b
-    - dir <shell.tmp> /b
-    - dir <shell.windir> /b
-    - dir <shell.windir> /b
+    - dir <shell.tmp>\*.tmp /b
+    - dir <shell.windir>\*.exe /b
+    - dir <shell.windir>\*.exe /b
 
 # the following two 'pseudo' variables allow you to 
 # get directory where the script is and the directory
 # from which the script was executed.
-- echo __script_dir__ pseudo variable-  <__script_dir__>
-- echo __working_dir__ pseudo variable- <__working_dir__>
+- echo __script_dir__ pseudo variable:  <__script_dir__>
+- echo __working_dir__ pseudo variable: <__working_dir__>
 
 # betterbatch pulls in the environment variables so that these can be used
 # by better batch
 - echo <shell.computername>
+
 
 # for example this would be a good way to include machine specific 
 # configuration
 - if exist <shell.computername>.bb:
   - include <shell.computername>.bb
 
-- if exist betterbatch\tests\test_files\commands.yaml:
-  - include betterbatch\tests\test_files\commands.yaml
-- end 0
-
 # or user specific configuration
 - if exist <shell.username>.bb:
   - include <shell.username>.bb
 
+- if exist betterbatch\tests\test_files\commands.yaml:
+  - include betterbatch\tests\test_files\commands.yaml
+
 # you can define your own variables
-- set project_root=<__script_dir__>
+- set project_root = <__script_dir__>
 
 
 # Note - include statements cannot use variables defined in the script (because 
