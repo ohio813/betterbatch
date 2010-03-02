@@ -31,7 +31,7 @@ Here is an example script::
 
 Tested with python 2.5.1 and 2.6.4
 
-Current test coverage: 88%
+Current test coverage: 93%
 
 """
 
