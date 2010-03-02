@@ -2,6 +2,15 @@
 CHANGES
 ************************************
 
+0.9.6 Fixed Some critical issues with variable references
+------------------------------------------------------------------
+02-March-2011
+ 
+ * Fixed an issue with how variables are dealt with. I was finding that during
+   the run phase variables would still have values laeft over from the test 
+   phase.
+
+
 0.9.5 Added For loops and Parallel sections
 ------------------------------------------------------------------
 01-March-2011
