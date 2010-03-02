@@ -659,7 +659,7 @@ class VariableDefinitionTests(unittest.TestCase):
     def test_replace_vars(self):
         s = VariableDefinition("set here=<there>")
         s.execute({'there': DummyVar('there', 'value')}, phase = "test")
-        self.assertEquals(s.value, '<there>')
+        self.assertEquals(s.value, 'value')
 
         #s.replace_vars({'there': DummyVar('value')}, update = True)
         #self.assertEquals(s.value, 'value')

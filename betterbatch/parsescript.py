@@ -577,8 +577,6 @@ class VariableDefinition(Step):
         except RuntimeError, e:
             raise RuntimeError(str(e)% self.raw_step)
 
-        self.recursive = self.name in FindVariableReferences(self.value)
-
     def execute(self, variables, phase):
         """Set the variable
 
@@ -588,11 +586,15 @@ class VariableDefinition(Step):
         variable name so that the original
         to a new name"""
 
-        if phase == "run" or self.recursive:
-            new_val = ReplaceExecutableSections(self.value, variables, 'run')
-            new_val = ReplaceVariableReferences(new_val, variables)
+        new_val = ReplaceExecutableSections(self.value, variables, phase)
 
-            self.value = new_val
+        new_val = ReplaceVariableReferences(new_val, variables)
+
+        if self.value != new_val and phase == "run":
+            LOG.debug("Updated variable '%s' to '%s'"% (
+                self.name, new_val))
+
+        self.value = new_val
 
         variables[self.name] = self
 
