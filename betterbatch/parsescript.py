@@ -272,13 +272,13 @@ def ReplaceVariableReferences(text, variables, loop = None):
                 "'%s', variable %s"% (original_text, repr(loop)))
             continue
 
-        loop.append(variables[variable].name)
+        loop.append(variable)
 
         try:
             # ensure that any variables in the variable value are also
             # replaced
             var_value = ReplaceVariableReferences(
-                variables[variable].value, variables, loop)
+                variables[variable], variables, loop)
 
             for ref_to_replace in refs_to_replace:
                 text = text.replace(ref_to_replace, var_value)
@@ -594,9 +594,7 @@ class VariableDefinition(Step):
             LOG.debug("Updated variable '%s' to '%s'"% (
                 self.name, new_val))
 
-        self.value = new_val
-
-        variables[self.name] = self
+        variables[self.name] = new_val
 
     def __repr__(self):
         return '"%s"'% self.value
@@ -802,8 +800,8 @@ class ForStep(Step):
         for val in values:
 
             # add or update the loop variable in the variables
-            var = VariableDefinition('set %s = %s'% (self.variable, val))
-            variables[self.variable] = var
+            #var = VariableDefinition('set %s = %s'% (self.variable, val))
+            variables[self.variable] = val
 
             # loop over the steps
             loop_steps = copy.deepcopy(self.steps)
@@ -841,8 +839,8 @@ class IfStep(Step):
                 if isinstance(condition, VariableDefinedCheck):
                     if condition.variable not in variables:
                     # add a dummy value so that checking works correctly
-                        variables[condition.variable] = \
-                            VariableDefinition('set %s='% condition.variable)
+                        variables[condition.variable] = ''
+                            #VariableDefinition('set %s='% condition.variable)
                         temp_defined_vars.append(condition.variable)
             # now that we have temporarily defined any definitions
             # needed - check the 'if' steps
@@ -933,7 +931,7 @@ class IncludeStep(Step):
         filename = ReplaceVariableReferences(self.filename, variables)
 
         self.filename = os.path.join(
-            variables['__script_dir__'].value, filename)
+            variables['__script_dir__'], filename)
 
         # load the steps no matter
         try:
@@ -1060,19 +1058,12 @@ def PopulateVariables(script_file, cmd_line_vars):
     vars_to_wrap.update(cmd_line_vars)
     for var, val in vars_to_wrap.items():
         var = var.lower()
-        variables[var] = ParseStep(
-            "set %s=%s"%(var, val))
+        variables[var] = val
 
     variables.update({
-        '__script_dir__':
-            ParseStep('set __script_dir__ = %s'%
-                os.path.abspath(os.path.dirname(script_file))),
-        '__script_filename__':
-            ParseStep('set __script_dir__ = %s'%
-                os.path.basename(script_file)),
-        '__working_dir__':
-            ParseStep('set __working_dir__ = %s'%
-                os.path.abspath(os.getcwd()))})
+        '__script_dir__': os.path.abspath(os.path.dirname(script_file)),
+        '__script_filename__': os.path.basename(script_file),
+        '__working_dir__': os.path.abspath(os.getcwd())})
 
     return variables
 
