@@ -143,9 +143,10 @@ class ParseVariableDefinitionTests(unittest.TestCase):
 
     def test_with_executable_section(self):
         v = VariableDefinition("set x = {{{abspath .}}}")
-        v.execute({}, "run")
+        vars = {}
+        v.execute(vars, "run")
         
-        self.assertEquals(v.value, os.path.abspath('.'))
+        self.assertEquals(vars['x'], os.path.abspath('.'))
     
 
 class FindVariableReferencesTests(unittest.TestCase):
@@ -175,10 +176,10 @@ class FindVariableReferencesTests(unittest.TestCase):
             {"this": ["<   this >", "<   this >"], "dir": ["<dir>"]})
 
 
-class DummyVar(object):
-    def __init__(self, name, val):
-        self.value = val
-        self.name = name
+#class DummyVar(object):
+#    def __init__(self, name, val):
+#        self.value = val
+#        self.name = name
 
 
 class ReplaceVariableReferencesTests(unittest.TestCase):
@@ -191,25 +192,25 @@ class ReplaceVariableReferencesTests(unittest.TestCase):
     def test_exact_match(self):
         """"""
         new = ReplaceVariableReferences(
-            "<here>", {'here': DummyVar('here', 'there')})
+            "<here>", {'here': 'there'})
         self.assertEquals("there", new)
 
     def test_with_spaces(self):
         """"""
         new = ReplaceVariableReferences(
-            " < here   >", {'here': DummyVar('here', 'there')})
+            " < here   >", {'here': 'there'})
         self.assertEquals(" there", new)
 
     def test_gt_escaping(self):
         """"""
         new = ReplaceVariableReferences(
-            ">> <here>>>", {'here': DummyVar('here', 'there')})
+            ">> <here>>>", {'here': 'there'})
         self.assertEquals("> there>", new)
 
     def test_lt_escaping(self):
         """"""
         new = ReplaceVariableReferences(
-            "<< <<<here>>>", {'here': DummyVar('here', 'there')})
+            "<< <<<here>>>", {'here': 'there'})
         self.assertEquals("< <there>", new)
 
     def test_missing_var(self):
@@ -217,7 +218,7 @@ class ReplaceVariableReferencesTests(unittest.TestCase):
         self.assertRaises(
             ErrorCollection,
             ReplaceVariableReferences,
-                "<not_here>", {'here': DummyVar('here', 'there')})
+                "<not_here>", {'here': 'there'})
 
     def test_recursive_var_err(self):
         """"""
@@ -225,14 +226,14 @@ class ReplaceVariableReferencesTests(unittest.TestCase):
             ErrorCollection,
             ReplaceVariableReferences,
                 "<here>", {
-                    'here': DummyVar('here', '<there>'),
-                    'there': DummyVar('there', '<here>')})
+                    'here': '<there>',
+                    'there': '<here>'})
 
     def test_recursive_var_good(self):
         """"""
         new_val = ReplaceVariableReferences("x<here>x", {
-                'here': DummyVar('here', '-<there>-'),
-                'there': DummyVar('there', 'my value')})
+                'here': '-<there>-',
+                'there': 'my value'})
 
         self.assertEquals(new_val, "x-my value-x")
 
@@ -242,19 +243,19 @@ class ReplaceVariableReferencesTests(unittest.TestCase):
             ErrorCollection,
             ReplaceVariableReferences,
                 "<here>", {
-                    'here': DummyVar('here', '<not_there>'),
-                    'there': DummyVar('there', '<here>')})
+                    'here': '<not_there>',
+                    'there': '<here>'})
 
     def test_2nd_level_single_var_loop(self):
         """"""
-        variables = {'x': DummyVar('x', "uses <x>")}
+        variables = {'x': "uses <x>"}
         #ReplaceVariableReferences("using <x> again", variables)
 
     def test_2nd_level_multiple_var_loop(self):
         """"""
         variables = {
-            'x': DummyVar('x', "uses <y>"),
-            'y': DummyVar('y', "uses <x>"),
+            'x': "uses <y>",
+            'y': "uses <x>",
             }
         self.assertRaises(
             ErrorCollection,
@@ -269,7 +270,7 @@ class ReplaceVariableReferencesTests(unittest.TestCase):
 #            ParseStep("cd <var1>"),
 #            ParseStep("echo <var1>")]
 #        ReplaceVariablesInSteps(
-#            steps, {'var1': DummyVar('var1', 'here')}, phase = 'test')
+#            steps, {'var1': 'here'}, phase = 'test')
 #
 #        self.assertEquals(steps[0].step_data, "cd <var1>")
 #        self.assertEquals(steps[1].step_data, "echo <var1>")
@@ -279,7 +280,7 @@ class ReplaceVariableReferencesTests(unittest.TestCase):
 #            ParseStep("cd <var1>"),
 #            ParseStep("echo <var1>")]
 #        ReplaceVariablesInSteps(
-#            steps, {'var1': DummyVar('var1', 'here')}, phase = 'test')
+#            steps, {'var1': 'here'}, phase = 'test')
 #
 #        self.assertEquals(steps[0].step_data, "cd here")
 #        self.assertEquals(steps[1].step_data, "echo here")
@@ -384,7 +385,7 @@ class ReplaceExecutableSectionsTests(unittest.TestCase):
         self.assertEquals(
             ReplaceExecutableSections(
                 "here <value>",
-                {'value': DummyVar('value', 'car')}),
+                {'value': 'car'}),
             "here <value>")
 
     def test_simple_exec(self):
@@ -405,7 +406,7 @@ class ReplaceExecutableSectionsTests(unittest.TestCase):
         self.assertEquals(
             ReplaceExecutableSections(
                 "here {{{echo This <value>}}} <value>",
-                {'value': DummyVar('value', 'car')}),
+                {'value': 'car'}),
             "here This car <value>")
 
     def test_simple_with_var_no_execute(self):
@@ -413,13 +414,13 @@ class ReplaceExecutableSectionsTests(unittest.TestCase):
         self.assertEquals(
             ReplaceExecutableSections(
                 "here {{{echo This <value>}}} <value>",
-                {'value': DummyVar('value', 'car')}, phase = "test"),
+                {'value': 'car'}, phase = "test"),
             "here  <value>")
 
     def test_not_a_command(self):
         """"""
         text = "{{{cd here}}} echo This <var>"
-        variables = {'var': DummyVar('var', 'car')}
+        variables = {'var': 'car'}
         self.assertRaises(
             RuntimeError,
             ReplaceExecutableSections,
@@ -428,7 +429,7 @@ class ReplaceExecutableSectionsTests(unittest.TestCase):
     def test_with_embedded_braces(self):
         """"""
         text = "{{{cd {{{ echo hi echo This <var>}}}"
-        variables = {'var': DummyVar('var', 'car')}
+        variables = {'var': 'car'}
         self.assertRaises(
             RuntimeError,
             ReplaceExecutableSections,
@@ -437,7 +438,7 @@ class ReplaceExecutableSectionsTests(unittest.TestCase):
     def test_command_fails(self):
         """"""
         text = "{{{ _bad_command_or_filename_ }}}"
-        variables = {'var': DummyVar('var', 'car')}
+        variables = {'var': 'car'}
         self.assertRaises(
             RuntimeError,
             ReplaceExecutableSections,
@@ -446,7 +447,7 @@ class ReplaceExecutableSectionsTests(unittest.TestCase):
     def test_trailing_braces(self):
         """"""
         text = "{{{ echo <var> {*nocheck*}}}}-"
-        variables = {'var': DummyVar('var', 'car')}
+        variables = {'var': 'car'}
         replaced = ReplaceExecutableSections(text, variables)
         self.assertEquals(replaced, "car-")
 
@@ -658,24 +659,25 @@ class VariableDefinitionTests(unittest.TestCase):
 
     def test_replace_vars(self):
         s = VariableDefinition("set here=<there>")
-        s.execute({'there': DummyVar('there', 'value')}, phase = "test")
-        self.assertEquals(s.value, 'value')
+        vars = {'there': 'value'}
+        s.execute(vars, phase = "test")
+        self.assertEquals(vars['here'], 'value')
 
-        #s.replace_vars({'there': DummyVar('value')}, update = True)
+        #s.replace_vars({'there': 'value'}, update = True)
         #self.assertEquals(s.value, 'value')
 
     #def test_replace_vars_missing(self):
     #    s = VariableDefinition("set here=<not_there>")
     #    # even though it is missing it should NOT raise an error
     #    # as the variable may be defined later
-    #    s.execute({'there': DummyVar('there', 'value')}, phase = "run")
+    #    s.execute({'there': 'value'}, phase = "run")
     #    self.assertEquals(s.value, "<not_there>")
 
     def test_execute_good(self):
         s = VariableDefinition("set here=test_value")
         variables = {}
         s.execute(variables, phase = 'run')
-        self.assertEquals(variables['here'].value, 'test_value')
+        self.assertEquals(variables['here'], 'test_value')
 
     def test_execute_bad(self):
         s = VariableDefinition("set here={{{<not_there>}}}")
@@ -751,7 +753,7 @@ class ExecutionEndStepTests(unittest.TestCase):
 
     def test_replace_vars_update_false(self):
         """"""
-        variables = {'hi': DummyVar('hi', "there")}
+        variables = {'hi': "there"}
         e = ExecutionEndStep("end  123 , <hi>")
 
         e.execute(variables, phase = "test")
@@ -759,7 +761,7 @@ class ExecutionEndStepTests(unittest.TestCase):
 
     def test_replace_vars_update_true(self):
         """"""
-        variables = {'hi': DummyVar('hi', "there")}
+        variables = {'hi': "there"}
         e = ExecutionEndStep("end 123, <hi>")
 
         try:
@@ -849,7 +851,7 @@ class IncludeStepTests(unittest.TestCase):
     class_under_test = IncludeStep
     def test_file_not_existing(self):
         step = self.__class__.class_under_test("include file_doesn't_exist.bb")
-        variables =  {"__script_dir__": DummyVar('__script_dir__', "a")}
+        variables =  {"__script_dir__": "a"}
         step.execute(variables, 'test')
         
         self.assertRaises(
@@ -865,8 +867,8 @@ class IncludeStepTests(unittest.TestCase):
     
     def test_include_variable_in_filename(self):
         variables =  {
-            "__script_dir__": DummyVar('__script_dir__', TEST_FILES_PATH),
-            'file_to_include': DummyVar('file_to_include', "basic.yaml"),}
+            "__script_dir__": TEST_FILES_PATH,
+            'file_to_include': "basic.yaml",}
 
         step = self.__class__.class_under_test("include <file_to_include>")
         step.execute(variables, "test")
@@ -884,14 +886,14 @@ class VariableDefinedCheckTests(unittest.TestCase):
                 "defined")
 
     def test_variable_defined(self):
-        variables = {'test': DummyVar('test', "abc")}
+        variables = {'test': "abc"}
         s = VariableDefinedCheck('defined test')
         
         s.execute(variables, 'test')
         s.execute(variables, 'run')
 
     def test_variable_not_defined(self):
-        variables = {'test': DummyVar('test', "abc")}
+        variables = {'test': "abc"}
         s = VariableDefinedCheck('defined test234')
         
         s.execute(variables, 'test')
@@ -903,7 +905,7 @@ class VariableDefinedCheckTests(unittest.TestCase):
 #
 #    def test_include_not_existing(self):
 #        step = IncludeStep("include file_doesn't_exist.bb")
-#        variables =  {"__script_dir__": DummyVar('__script_dir__', "a")}
+#        variables =  {"__script_dir__": "a"}
 #        step.execute(variables, 'test')
 #        
 #        self.assertRaises(
@@ -919,8 +921,8 @@ class VariableDefinedCheckTests(unittest.TestCase):
 #    
 #    def test_include_variable_in_filename(self):
 #        variables =  {
-#            "__script_dir__": DummyVar('__script_dir__', TEST_FILES_PATH),
-#            'file_to_include': DummyVar('file_to_include', "basic.yaml"),}
+#            "__script_dir__": TEST_FILES_PATH,
+#            'file_to_include': "basic.yaml",}
 #
 #        step = IncludeStep("include <file_to_include>")
 #        step.execute(variables, "test")
