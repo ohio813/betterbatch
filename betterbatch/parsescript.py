@@ -1019,10 +1019,15 @@ def LoadScriptFile(filepath):
     return ParseSteps(steps)
 
 
-def ExecuteSteps(steps, variables, phase):
+def ExecuteSteps(steps_, variables, phase):
     "Execute the steps"
 
     errors = []
+
+    if phase == "test":
+        steps = copy.deepcopy(steps_)
+    else:
+        steps = steps_
 
     for step in steps:
         try:
@@ -1170,10 +1175,10 @@ def ExecuteScriptFile(file_path, cmd_vars, check = False):
     steps = LoadScriptFile(file_path)
 
     LOG.debug("TESTING STEPS")
-    #steps = FinalizeSteps(steps, variables)
 
     variables_copy = copy.deepcopy(variables)
-    steps = ExecuteSteps(steps, variables_copy, "test")
+    steps_copy = copy.deepcopy(steps)
+    steps = ExecuteSteps(steps_copy, variables_copy, "test")
 
     arg_counts_db = ReadParamRestrictions(PARAM_FILE)
     ValidateArgumentCounts(steps, arg_counts_db)
