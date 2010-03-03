@@ -1000,7 +1000,15 @@ class VariableDefinedCheck(Step):
     def execute(self, variables, phase):
         "Run this step"
 
-        key = self.variable.strip().lower()
+        key = self.variable.lower()
+       
+        # remove leading and trailing brackets
+        if key.startswith("<"):
+            key = key[1:]
+        if key.endswith(">"):
+            key = key[:-1]
+        key = key.strip()
+        
         if key in variables:
             LOG.debug("Variable is defined: %s : '%s'"%
                 (self.variable, variables[key]))
