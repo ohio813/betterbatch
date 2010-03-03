@@ -26,12 +26,12 @@ def ParseArguments():
     #    help='YAML scripturation file')
 
     parser.add_option(
-        "-c", '--check', 
+        "-c", '--check',
         action = "store_true",
         help='do not execute any commands, read and validate script file')
 
     parser.add_option(
-        "-d", '--debug', 
+        "-d", '--debug',
         action = "store_true",
         default = False,
         help='do not execute any commands, read and validate script file')
@@ -52,9 +52,14 @@ def ParseArguments():
     #    '-l', '--list', action = "store_true",
     #    help='List available commands')
 
+    parser.add_option(
+        "-t", '--timed',
+        action = "store_true",
+        help='output how long the script took to execute')
+
     #parser.add_option(
-    #    "-t", '--timing', 
-    #    action = "store_true"
+    #    '--log-times',
+    #    action = "store_true",
     #    help='include execution time in the log file')
 
     parser.add_option(
@@ -67,7 +72,7 @@ def ParseArguments():
         print USAGE
         sys.exit()
     return options, args
-    
+
 
 
 def ParseVariableOverrides(variable_overrides):
@@ -89,7 +94,7 @@ def ParseVariableOverrides(variable_overrides):
 
 def ValidateOptions(options, args):
     # validate that at least one script file was passed and that it exists
-    
+
 
     #elif len(args) > 1:
     #    raise RuntimeError(
@@ -99,10 +104,10 @@ def ValidateOptions(options, args):
     if not os.path.exists(options.script_file):
         raise RuntimeError(
             "The script file does not exist: '%s'"% options.script_file)
-    
+
     override_vars = ParseVariableOverrides(args[1:])
     options.variables = override_vars
-    
+
     return options
 
 
