@@ -751,7 +751,8 @@ class ParallelSteps(Step):
 
         # start all the threads
         for step in self.steps:
-            LOG.debug("starting step in new thread: '%s'"% step)
+            if phase == "run":
+                LOG.debug("starting step in new thread: '%s'"% step)
             t = ThreadStepRunner(step, variables)
             t.start()
             threads.append(t)
@@ -766,7 +767,8 @@ class ParallelSteps(Step):
                 # if the thread has finished, print a message and
                 # remove it
                 if not t.isAlive():
-                    LOG.debug("Thread finished: '%s'"% t.step)
+                    if phase == "run":
+                        LOG.debug("Thread finished: '%s'"% t.step)
                     threads.remove(t)
                     if t.exception:
                         errs.append(t.exception)
@@ -988,7 +990,8 @@ class VariableDefinedCheck(Step):
                 (self.variable, variables[key]))
             self.ret = 0
         else:
-            LOG.debug("Variable is not defined: '%s'"% self.variable)
+            if phase == "run":
+                LOG.debug("Variable is not defined: '%s'"% self.variable)
             self.ret = 1
         self.output = ''
 
