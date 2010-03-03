@@ -1,2 +1,1 @@
-Variables:
-    LogFile: testing.log
+- LogFile testing.log

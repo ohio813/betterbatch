@@ -16,8 +16,10 @@ COMMANDS_YAML = os.path.join(TEST_FILES_PATH, "commands.yaml")
 class MainTests(unittest.TestCase):
     "Unit tests for the loadconfig function"
 
+    
     def test_Main_none(self):
         """"""
+        #ogging.shutdown()
         sys.argv = ['main.py']
         self.assertRaises(SystemExit, Main)
 
@@ -28,24 +30,26 @@ class MainTests(unittest.TestCase):
 
     def test_Main_execute(self):
         """"""
+        #logging.shutdown()
         sys.argv = ['main.py', COMMANDS_YAML]
         Main()
 
     def test_Main_execute_fail(self):
         """"""
+        #logging.shutdown()
         sys.argv = [
-            'main.py', os.path.join(TEST_FILES_PATH, "commands_broken.yaml")]
+            'main.py', os.path.join(TEST_FILES_PATH, "commands_broken.yaml"), "-d"]
         self.assertRaises(
-            ErrorCollection,
+            SystemExit,
             Main)
 
     def test_Main_execute_fail2(self):
         """"""
         sys.argv = [
-            'main.py', os.path.join(TEST_FILES_PATH, "commands_broken2.yaml")]
+            'main.py', os.path.join(TEST_FILES_PATH, "commands_broken2.yaml"), "-d"]
 
         self.assertRaises(
-            ErrorCollection,
+            SystemExit,
             Main)
 
     def test_Main_execute_fail_more_than_one(self):
@@ -53,40 +57,47 @@ class MainTests(unittest.TestCase):
         sys.argv = [
             'main.py', 
             os.path.join(
-                TEST_FILES_PATH, "commands_broken_more_than_one.yaml")
+                TEST_FILES_PATH, "commands_broken_more_than_one.yaml"),
+            "-d"
             ]
 
         self.assertRaises(
-            RuntimeError,
+            SystemExit,
             Main)
 
     def test_Main_LogFile(self):
         """"""
-        sys.argv = ['main.py', os.path.join(TEST_FILES_PATH, "logfile.yaml")]
+        sys.argv = ['main.py', os.path.join(TEST_FILES_PATH, "logfile.yaml"), "-d"]
+        Main()
+           
+
+    def test_Main_LogFile(self):
+        """"""
+        sys.argv = ['main.py', os.path.join(TEST_FILES_PATH, "logfile.yaml"), "-c"]
         Main()
 
     def test_Main_verbose(self):
         """"""
         sys.argv = [
-            'main.py', os.path.join(TEST_FILES_PATH, "logfile.yaml"), "-v"]
+            'main.py', os.path.join(TEST_FILES_PATH, "logfile.yaml"), "-v", "-d"]
         Main()
 
-    def test_CreateLogger(self):
+    def test_ConfigLogging(self):
         """"""
-        log = CreateLogger()
+        log = ConfigLogging()
 
-    def test_SetUpLogFile_exists_cannot_del(self):
-        """"""
-        import tempfile
-        handle, filename = tempfile.mkstemp()
-        os.write(handle ,'sdf')
-        self.assertRaises(
-            OSError,
-            SetupLogFile,
-                {'logfile': filename})
-                
-        os.close(handle)
-        os.remove(filename)
+    #def test_SetUpLogFile_exists_cannot_del(self):
+    #    """"""
+    #    import tempfile
+    #    handle, filename = tempfile.mkstemp()
+    #    os.write(handle ,'sdf')
+    #    self.assertRaises(
+    #        OSError,
+    #        SetupLogFile,
+    #            filename)
+    #            
+    #    os.close(handle)
+    #    os.remove(filename)
 
     #def test_SetUpLogFile_exists(self):
     #    """"""
