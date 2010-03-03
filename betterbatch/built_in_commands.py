@@ -20,13 +20,13 @@ PUSH_DIRECTORY_LIST = []
 
 # the following commands are defined in the shell - so they won't work
 # unless executed in the shell
-# they raise an error when executed 
+# they raise an error when executed
 COMMANDS_REQUIRING_SHELL = [
-    'assoc', 'break', 'call', 'cd', 'chcp', 'chdir', 'cls', 'color', 'copy', 
-    'date', 'del', 'dir', 'diskcomp', 'diskcopy', 'echo', 'endlocal', 'erase', 
+    'assoc', 'break', 'call', 'cd', 'chcp', 'chdir', 'cls', 'color', 'copy',
+    'date', 'del', 'dir', 'diskcomp', 'diskcopy', 'echo', 'endlocal', 'erase',
     'exit', 'for', 'format', 'ftype', 'goto', 'graftabl', 'if', 'md', 'mkdir',
     'mode', 'more', 'move', 'path', 'pause', 'popd', 'prompt', 'pushd', 'rd',
-    'rem', 'ren', 'rename', 'rmdir', 'set', 'setlocal', 'shift', 'start', 
+    'rem', 'ren', 'rename', 'rmdir', 'set', 'setlocal', 'shift', 'start',
     'time', 'title', 'tree', 'type','ver', 'verify', 'vol']
 
 
@@ -84,7 +84,7 @@ def VerifyFileCount(file_pattern, count = None):
     else:
         message = "Check Failed. Counted: %d  expected count: %s"% (
             num_files, desc)
-        return RESULT_FAILURE, message 
+        return RESULT_FAILURE, message
 
 
 def PathNotExists(path, dummy = None):
@@ -126,7 +126,7 @@ def SystemCommand(command, qualifiers = None):
     # in the function body
     if qualifiers is None:
         qualifiers = []
-    
+
     #for shell_cmd in COMMANDS_REQUIRING_SHELL:
     #    if command.lower().startswith(shell_cmd):
     #        shell = True
@@ -142,14 +142,14 @@ def SystemCommand(command, qualifiers = None):
         command_len = len(command)
     else:
         command_len = len(" ".join(command))
-    
+
     subprocess_safe_command_limit = 2000
     if command_len > subprocess_safe_command_limit:
         raise RuntimeError(
             "The command is %d characters long. "
             "It cannot be longer than %d characters. '%s...'"% (
                 command_len, subprocess_safe_command_limit, str(command)[:80]))
-    
+
     # if we can turn shell off for some/all of the commands then it will
     # allow us to better handle catastrophic issues (e.g. command not found)
     #try:
@@ -216,11 +216,11 @@ class ExternalCommand(object):
             raise RuntimeError(
                 "External command does not exist: '%s'"% full_path)
         self.full_path = full_path
-    
+
     def __call__(self, params, qualifiers = None):
         if qualifiers is None:
             qualifiers = []
-            
+
         if isinstance(params, list):
             params.extend(qualifiers)
             params.insert(0, self.full_path)
@@ -235,7 +235,7 @@ class ExternalCommand(object):
 def EscapeNewlines(input, qualifiers = ''):
         text = input.replace("\r", "\\\\r")
         text = text.replace("\n", "\\\\n")
-        return 0, text    
+        return 0, text
 
 def unescape_text(input):
     input = input.replace("\\t", "\t")
@@ -243,15 +243,15 @@ def unescape_text(input):
     input = input.replace("\\r", "\r")
     input = input.replace("\\n", "\n")
     return input
-   
+
 
 def Replace(input, qualifiers = None):
     to_find = unescape_text(qualifiers[0])
     replace_with = unescape_text(qualifiers[1])
     replaced = input.replace(to_find, replace_with)
-    
+
     return 0, replaced
-    
+
 
 def Split(input, split_text = None):
     if not split_text:
@@ -260,15 +260,15 @@ def Split(input, split_text = None):
 
 
 def PopulateFromToolsFolder(tools_folder, dummy = []):
-    
+
     for file in os.listdir(tools_folder):
         name, ext = os.path.splitext(file)
         name = name.lower()
         ext = ext.upper()
-        
+
         if ext in (
             os.environ["pathext"].split(";") + [".PY", ".PL", ".PYW"]):
-            
+
             full_path = os.path.join(tools_folder, file)
             if name not in NAME_ACTION_MAPPING:
                 NAME_ACTION_MAPPING[name] = ExternalCommand(full_path)
@@ -322,4 +322,6 @@ DOS_REPLACE = [
     'popd',
 ]
 
-PopulateFromToolsFolder(os.path.join(os.path.dirname(__file__), "tools"))
+BETTER_BATCH_TOOLS_DIR = os.path.join(os.path.dirname(__file__), "tools")
+if os.path.exists(BETTER_BATCH_TOOLS_DIR):
+    PopulateFromToolsFolder(BETTER_BATCH_TOOLS_DIR)
