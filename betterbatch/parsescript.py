@@ -822,6 +822,32 @@ class IfStep(Step):
         self.if_steps = if_steps
         self.else_steps = else_steps
 
+    def __test_step(self, variables):
+        """Test that there are no problems with the step
+
+        As the If step has more complex checking it has been broken out to a 
+        separate method"""
+        ExecuteSteps(self.else_steps, variables, 'test')
+
+        temp_defined_vars = []
+        for cond_type, condition in self.conditions:
+            condition.execute(variables, 'test')
+
+            if isinstance(condition, VariableDefinedCheck):
+                if condition.variable not in variables:
+                    # add a dummy value so that checking works correctly
+                    variables[condition.variable] = ''
+                    temp_defined_vars.append(condition.variable)
+
+        # now that we have temporarily defined any definitions
+        # needed - check the 'if' steps
+        ExecuteSteps(self.if_steps, variables, 'test')
+
+        # remove the temporary variables so we don't polute the
+        # namespace
+        for var in temp_defined_vars:
+            del variables[var]
+
     def execute(self, variables, phase):
         "Run this step"
 
@@ -833,27 +859,7 @@ class IfStep(Step):
         # Check the 'else' steps now. We may temporarily define variable
         # due to a 'defined' check which would upset the 'else' checks
         if phase != 'run':
-            ExecuteSteps(self.else_steps, variables, 'test')
-
-            temp_defined_vars = []
-            for cond_type, condition in self.conditions:
-                condition.execute(variables, phase)
-
-                if isinstance(condition, VariableDefinedCheck):
-                    if condition.variable not in variables:
-                    # add a dummy value so that checking works correctly
-                        variables[condition.variable] = ''
-                            #VariableDefinition('set %s='% condition.variable)
-                        temp_defined_vars.append(condition.variable)
-            # now that we have temporarily defined any definitions
-            # needed - check the 'if' steps
-            ExecuteSteps(self.if_steps, variables, 'test')
-
-            # remove the temporary variables so we don't polute the
-            # namespace
-            for var in temp_defined_vars:
-                del variables[var]
-
+            self.__test_step(variables)
             return
 
         for cond_type, condition in self.conditions:
