@@ -7,3 +7,4 @@ glob:jquery.tablesorter.min.js
 glob:Coverage_report/*
 glob:sandbox/*
 glob:doc_build/*.txt
+glob:*.doctree
