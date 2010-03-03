@@ -474,7 +474,13 @@ def ParseIfStep(step, statements, clean_keys):
                         "statements can have steps: %s"% step)
                 if_steps = ParseSteps(steps)
 
+            # check if NOT is applied to the condition
+            negative_condition = False
+            if condition.lower().startswith("not "):
+                condition = condition[4:].strip()
+                negative_condition = True
             conditions.append((key, ParseStep(condition)))
+            conditions[-1][1].negative_condition = negative_condition
 
         elif key == 'else':
             else_steps = ParseSteps(steps)
@@ -869,8 +875,12 @@ class IfStep(Step):
             except Exception, e:
                 # swallow exceptions - it just means that the check failed
                 pass
+            
+            ret = condition.ret
+            if condition.negative_condition:
+                ret = not ret
 
-            condition_values.append(condition.ret)
+            condition_values.append(ret)
 
             if cond_type == "or":
                 conditions_type = "or"
