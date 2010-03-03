@@ -7,6 +7,7 @@ import sys
 import ConfigParser
 import copy
 import threading
+import time
 
 import yaml
 
@@ -1179,16 +1180,18 @@ def ExecuteScriptFile(file_path, cmd_vars, check = False):
     # only checking - so quit before executing steps
     if check:
         print "No Errors"
-        sys.exit(0)
+        return steps, variables
 
     LOG.debug("RUNNING STEPS")
     ExecuteSteps(steps, variables, 'run')
 
-    return steps
+    return steps, variables
 
 
 def Main():
     "Parse command line arguments, read script and dispatch the request(s)"
+
+    start_time = time.time()
 
     options = cmd_line.GetValidatedOptions()
 
@@ -1220,10 +1223,13 @@ def Main():
         LOG.exception(e)
         sys.exit(99)
     finally:
-        logging.shutdown()
-
-    sys.exit(0)
+        if options.timed:
+            LOG.info("Execution took %0.2f seconds"%
+                (time.time() - start_time))
 
 
 if __name__ == "__main__":
-    Main()
+    try:
+        Main()
+    finally:
+        logging.shutdown()
