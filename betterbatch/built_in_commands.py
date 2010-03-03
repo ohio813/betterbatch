@@ -79,11 +79,11 @@ def VerifyFileCount(file_pattern, count = None):
     count = int(count)
 
     if op(num_files, count):
-        message = "Check Passed - num files %d is %s %d"
+        message = "Files counted: %d  %s %d (TRUE)"
         return RESULT_SUCCESS, message % (num_files, desc, count)
     else:
-        message = "Check Failed. Counted: %d  expected count: %s"% (
-            num_files, desc)
+        message = "Files counted: %d  %s %d (FALSE)"% (
+            num_files, desc, count)
         return RESULT_FAILURE, message
 
 
@@ -94,21 +94,21 @@ def PathNotExists(path, dummy = None):
     #strip leading and trailing quote characters
     path = path.strip('"')
     if os.path.exists(path):
-        message = "Path found: '%s'"% path
-        return RESULT_FAILURE, message
+        return RESULT_FAILURE, "Path exists: '%s'"% path
     else:
-        return RESULT_SUCCESS, 'SUCCESS: Path does not exist'
+        return RESULT_SUCCESS, "Path does not exist: '%s'"% path
 
 
 def PathExists(path, dummy = None):
     """Check if the path exists returns 0 if the path exists and raises
     RuntimeError otherwise"""
 
+    #strip leading and trailing quote characters
+    path = path.strip('"')
     if os.path.exists(path):
-        return RESULT_SUCCESS, 'SUCCESS: Path exists'
+        return RESULT_SUCCESS, "Path exists: '%s'"% path
     else:
-        message = "Path not found: '%s'"% path
-        return RESULT_FAILURE, message
+        return RESULT_FAILURE, "Path does not exist: '%s'"% path
 
 
 def SystemCommand(command, qualifiers = None):
