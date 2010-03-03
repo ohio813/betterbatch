@@ -116,27 +116,27 @@ class StepTests(unittest.TestCase):
 
     def test_Stepexecute_no_ret(self):
         """"""
-        CommandStep("dir").execute({})
+        CommandStep("dir").execute({}, 'run')
 
     def test_Step_output(self):
         """"""
-        CommandStep('echo my message').execute({})
+        CommandStep('echo my message').execute({}, 'run')
 
     def test_Stepexecute_ret(self):
         """Test that 'nocheck' doesn't raise on error"""
-        CommandStep("dirsad {*nocheck*}").execute({})
+        CommandStep("dirsad {*nocheck*}").execute({}, 'run')
 
     def test_Stepexecute_with_echo(self):
         """"""
-        CommandStep("echo Hi Tester").execute({})
+        CommandStep("echo Hi Tester").execute({}, 'run')
 
     def test_Stepexecute_with_echo(self):
         """"""
-        CommandStep("echo Hi Tester {*echo*}").execute({})
+        CommandStep("echo Hi Tester {*echo*}").execute({}, 'run')
 
     def test_Stepexecute_(self):
         """"""
-        CommandStep("echo Hi Tester").execute({})
+        CommandStep("echo Hi Tester").execute({}, 'run')
 
     def test_Step_repr(self):
         """"""
