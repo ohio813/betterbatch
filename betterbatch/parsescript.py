@@ -178,11 +178,11 @@ def ParseVariableDefinition(var_def):
     try:
         name, value = [p.strip() for p in var_def.split("=", 1)]
     except ValueError, e:
-        raise RuntimeError("Variable not defined correctly: '%s'")
+        raise RuntimeError("Variable not defined correctly: '%s'"% var_def)
 
     if len(name.split()) > 1:
         raise RuntimeError(
-            "Variable names cannot have spaces: '%s'")
+            "Variable names cannot have spaces: '%s'"% var_def)
 
     if not name:
         raise RuntimeError(
