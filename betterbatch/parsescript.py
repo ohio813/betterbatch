@@ -833,26 +833,39 @@ class IfStep(Step):
 
         As the If step has more complex checking it has been broken out to a 
         separate method"""
-        ExecuteSteps(self.else_steps, variables, 'test')
 
-        temp_defined_vars = []
+        if_defined_vars = []
+        else_defined_vars = []
         for cond_type, condition in self.conditions:
             condition.execute(variables, 'test')
 
             if isinstance(condition, VariableDefinedCheck):
                 if condition.variable not in variables:
-                    # add a dummy value so that checking works correctly
-                    variables[condition.variable] = ''
-                    temp_defined_vars.append(condition.variable)
+                    # so it's not defined - we will need to add it for 
+                    # complete checking. If it is a negative condtions
+                    # e.g. if not defined test: then we will need to add it
+                    # to for the else steps, otherwise we will need to add it
+                    # for the if steps
+                    if condition.negative_condition:
+                        else_defined_vars.append(condition.variable)
+                    else:
+                        if_defined_vars.append(condition.variable)
 
-        # now that we have temporarily defined any definitions
-        # needed - check the 'if' steps
-        ExecuteSteps(self.if_steps, variables, 'test')
+        def CheckStepsWithExtraVars(steps, variables, extra_vars):
+            "Check the steps with the extra vars defined"
+            # add a dummy value so that IF Block checking works correctly
+            for var in extra_vars:
+                variables[var] = ''
+            
+            # now that we have temporarily defined any definitions
+            # needed - check the 'if' steps
+            ExecuteSteps(steps, variables, 'test')
 
-        # remove the temporary variables so we don't polute the
-        # namespace
-        for var in temp_defined_vars:
-            del variables[var]
+            for var in extra_vars:
+                del variables[var]
+            
+        CheckStepsWithExtraVars(self.if_steps, variables, if_defined_vars)
+        CheckStepsWithExtraVars(self.else_steps, variables, else_defined_vars)
 
     def execute(self, variables, phase):
         "Run this step"
