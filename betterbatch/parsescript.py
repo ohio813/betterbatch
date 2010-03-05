@@ -186,7 +186,7 @@ def ParseVariableDefinition(var_def):
 
     if not name:
         raise RuntimeError(
-            "Variable name missing in variable definition: '%s'")
+            "Variable name missing in variable definition: '%s'"% var_def)
 
     return name.lower(), value
 
