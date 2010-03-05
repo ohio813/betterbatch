@@ -1,0 +1,2 @@
+- assoc .bb=BetterBatchScriptFile
+- ftype BetterBatchScriptFile=<python_exe> <__script_dir__>\bbrun.py "%1" %*
