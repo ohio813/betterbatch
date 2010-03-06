@@ -172,8 +172,15 @@ def ParseYAMLFile(yaml_file):
         raise RuntimeError("%s - %s"% (yaml_file, e))
 
 
-def ParseVariableDefinition(var_def):
+def ParseVariableDefinition(var_def, allow_no_value = False):
     """Return the variable name and variable value of a variable definition"""
+
+    # NOTE: do not add %var_def after the errors - this will be added by the 
+    # the code that calls this method!!
+
+    if allow_no_value:
+        if '=' not in var_def:
+            return var_def.strip(), None
 
     try:
         name, value = [p.strip() for p in var_def.split("=", 1)]
