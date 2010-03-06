@@ -603,17 +603,11 @@ class VariableDefinition(Step):
         if 'delayed' not in self.qualifiers:
             new_val = ReplaceExecutableSections(new_val, variables, phase)
 
-        Also if the variable references itself - we rename the current
-        variable name so that the original
-        to a new name"""
+            new_val = ReplaceVariableReferences(new_val, variables)
 
-        new_val = ReplaceExecutableSections(self.value, variables, phase)
-
-        new_val = ReplaceVariableReferences(new_val, variables)
-
-        if self.value != new_val and phase == "run":
-            LOG.debug("Updated variable '%s' to '%s'"% (
-                self.name, new_val))
+            if self.value != new_val and phase == "run":
+                LOG.debug("Updated variable '%s' to '%s'"% (
+                    self.name, new_val))
 
         variables[self.name] = new_val
 
