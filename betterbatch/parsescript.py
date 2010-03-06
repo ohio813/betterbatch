@@ -607,6 +607,36 @@ class VariableDefinition(Step):
         return '"%s"'% self.value
 
 
+def ParseQualifiers(text):
+    "Find the qualifiers and replace them"
+
+    # remove the executable sections first becuase we don't 
+    # need or want to parse the qualifiers in these sections yet
+
+    exe_sections = []
+    for i, exe_section in enumerate(
+            re.findall(r"\{\{\{.+?\}\}\}", text)):
+        text = text.replace(exe_section, "{{{%d}}}"% i)
+        exe_sections.append(exe_section)
+
+    qualifier_re = re.compile("""
+        \{\*
+        (?P<qualifier>.+?)
+        \*\}""", re.VERBOSE)
+
+    qualifiers = qualifier_re.findall(text)
+    text = qualifier_re.sub("", text)
+
+    # replace the executable sections
+    for i, section in enumerate(exe_sections):
+        text = text.replace("{{{%d}}}"%i, section)
+
+    # ensure that the qualifiers are lower case and no extra spaces
+    qualifiers = [q.lower().strip() for q in qualifiers]
+
+    return text, qualifiers
+
+
 class CommandStep(Step):
     "Any general command"
 
@@ -617,32 +647,7 @@ class CommandStep(Step):
         self.step_type = "command"
         self.step_data = self.raw_step
 
-        self.qualifiers, self.step_data = self._parse_qualifiers()
-
-    def _parse_qualifiers(self):
-        "Find the qualifiers and replace them"
-
-        # remove the executable sections first
-        step_data = self.step_data
-        exe_sections = []
-        for i, exe_section in enumerate(
-                re.findall(r"\{\{\{.+?\}\}\}", step_data)):
-            step_data = step_data.replace(exe_section, "{{{%d}}}"% i)
-            exe_sections.append(exe_section)
-
-        qualifier_re = re.compile("""
-            \{\*
-            (?P<qualifier>.+?)
-            \*\}""", re.VERBOSE)
-
-        qualifiers = qualifier_re.findall(step_data)
-        parsed_step = qualifier_re.sub("", step_data)
-
-        # replace the executable sections
-        for i, section in enumerate(exe_sections):
-            parsed_step = parsed_step.replace("{{{%d}}}"%i, section)
-
-        return qualifiers, parsed_step
+        self.step_data, self.qualifiers = ParseQualifiers(self.step_data)
 
     def command_as_string_for_log(self, cmd, params):
         "return the command as a string for logging"
