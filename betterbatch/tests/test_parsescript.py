@@ -64,6 +64,11 @@ class ParseYAMLFileTests(unittest.TestCase):
             steps,
             ["set  Hello  =  .", "cd  <hello>"])
 
+    def test_empty_file(self):
+        """"""
+        full_path = os.path.join(TEST_FILES_PATH, 'empty_file.bb')
+        steps = ParseYAMLFile(full_path)
+        self.assertEquals(steps, None)
 
 
 class ErrorCollectionTests(unittest.TestCase):
@@ -141,6 +146,16 @@ class ParseVariableDefinitionTests(unittest.TestCase):
             ParseVariableDefinition,
                 'blah')
 
+    def test_no_equals_allowed(self):
+        self.assertEquals(
+            ('blah', None),
+            ParseVariableDefinition('blah', allow_no_value = True))
+
+    def test_no_value_equals_allowed(self):
+        self.assertEquals(
+            ('blah', ''),
+            ParseVariableDefinition('blah=', allow_no_value = True))
+                
     def test_with_executable_section(self):
         v = VariableDefinition("set x = {{{abspath .}}}")
         vars = {}
@@ -958,7 +973,6 @@ class IfStepTests(unittest.TestCase):
                 e.LogErrors()
                 raise
 
-
     def test_broken_not_list(self):
         script_filepath = os.path.join(TEST_FILES_PATH,   "if_else_broken_not_list.yaml")
 
@@ -1046,6 +1060,50 @@ class IfStepTests(unittest.TestCase):
         self.assertEquals(
             steps[0].steps_to_exec[0].output.strip(),
             "no")
+
+    def test_parse_with_not(self):
+        step = ParseComplexStep({'if not exists': ["echo 1",]})
+        self.assertEquals(step.conditions[0][1].negative_condition, True)
+        self.assertEquals(step.conditions[0][1].step_data, "exists")
+
+    def test_not_defined_undefined(self):
+        steps = [
+            #'set test = 1',
+            {'if not defined test': 
+                ["set test = if_block"],
+             'else': 
+                ["set test = else_block",]}
+            ]
+        
+        vars = {}
+        ExecuteSteps(ParseSteps(steps), vars, "test")
+        self.assertEquals('test' in vars, False)
+        ExecuteSteps(ParseSteps(steps), vars, "run")
+        self.assertEquals(vars['test'], 'if_block')
+        
+    def test_not_defined_defined(self):
+        steps = [
+            'set test = 1',
+            {'if not defined test': 
+                ["set test = if_block"],
+             'else': 
+                ["set test = else_block",]}
+            ]
+        
+        vars = {}
+        ExecuteSteps(ParseSteps(steps), vars, "test")
+        self.assertEquals(vars['test'], 'else_block')
+        ExecuteSteps(ParseSteps(steps), vars, "run")
+        self.assertEquals(vars['test'], 'else_block')
+        
+    def test_repr(self):
+        step = {'if test': "echo hello"}
+        
+        if_step = ParseStep(step)
+        
+        self.assertEquals(
+            repr(if_step), 
+            "<IF [('if', <CommandStep test>)]...>")
 
 
 
