@@ -725,7 +725,7 @@ class CommandStep(Step):
 
 
 class ParallelSteps(Step):
-    "An IF block"
+    "An set of command steps to be executed in parallel"
 
     def __init__(self, raw_step, steps):
 
