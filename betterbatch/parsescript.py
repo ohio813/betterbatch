@@ -579,6 +579,10 @@ class VariableDefinition(Step):
 
     def __init__(self, raw_step):
         Step.__init__(self, raw_step)
+        
+        # check if there are any qualifiers
+        self.step_data, self.qualifiers = ParseQualifiers(self.step_data)
+        
         try:
             self.name, self.value = ParseVariableDefinition(self.step_data)
         except RuntimeError, e:
@@ -587,7 +591,10 @@ class VariableDefinition(Step):
     def execute(self, variables, phase):
         """Set the variable
 
-        Note - we don't replace all sub variables at this point.
+        Note - we don't replace all sub variables at this point."""
+        new_val = self.value
+        if 'delayed' not in self.qualifiers:
+            new_val = ReplaceExecutableSections(new_val, variables, phase)
 
         Also if the variable references itself - we rename the current
         variable name so that the original
