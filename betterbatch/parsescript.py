@@ -1054,8 +1054,8 @@ def LoadScriptFile(filepath):
 
     if not isinstance(steps, list):
         raise RuntimeError(
-            "Configuration file not correctly defined (remember to "
-            "start each statement with '-')")
+            "Error parsing script file. Expected list of steps got "
+            "'%s'. file: '%s'"% (type(steps).__name__, filepath))
 
     return ParseSteps(steps)
 
