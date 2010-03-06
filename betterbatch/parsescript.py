@@ -541,6 +541,57 @@ def ParseParallelStep(step, statements):
 
     return ParallelSteps(step, steps)
 
+def ParseFunctionNameAndArgs(name_args):
+
+    # we need to parse out the name_args which should be something like:
+    # function_name (arg, arg = default, arg = default)
+    found = re.search("(.+)\((.*)\)(.*)", name_args)
+    
+    if not found:
+        raise RuntimeError ("Function defintion seems to be incorrect: '%s'"% 
+            name_args)
+
+    name = found.group(1).strip()
+    args = found.group(2).split(",")
+    
+    parsed_args = []
+    for arg in args:
+        parsed_args.append(ParseVariableDefinition(arg, allow_no_value = True))
+
+    # check that no item defined with a default is defined before an 
+    # item without a default e.g. just like python :)
+    default_found = False
+    for arg_name, arg_value in parsed_args:
+        # None when no default
+        if arg_value is None:
+            # and we have already passed one with a default
+            if default_found:
+                raise RuntimeError(
+                    "In a function defintion or function call you cannot "
+                    "define an argument without a default after an argument "
+                    "that has a default.")
+        else:
+            default_found = True
+
+    return name, parsed_args
+
+
+def ParseFunctionDefinition(step, statements):
+    "Parse a parallel complex step"
+    if len(statements) > 1:
+        raise RuntimeError(
+            "Function blocks can have more only one header: %s"%
+                statements)
+
+    # Extract out the various bits of the function header
+    dummy, name_args, steps = statements[0]
+    name, args = ParseFunctionNameAndArgs(name_args)
+    
+    steps = ParseSteps(steps)
+    
+    return FunctionDefinition(step, name, args, steps)
+
+
 def ParseComplexStep(step):
     "The step is not a string - so parse what kind of step it is"
     statements = []
@@ -561,6 +612,8 @@ def ParseComplexStep(step):
     elif 'parallel' in clean_keys:
         return ParseParallelStep(step, statements)
 
+    elif 'function' in clean_keys:
+        return ParseFunctionDefinition(step, statements)
     else:
         raise RuntimeError("Unknown Complex step type: '%s'"%
             clean_keys)
@@ -735,6 +788,46 @@ class CommandStep(Step):
 
         elif indented_output != "\n":
             LOG.debug("Output from command:\n%s"% indented_output)
+
+
+class FunctionDefinition(Step):
+    "An set of command steps to be executed in parallel"
+    
+    all_functions = {}
+
+    def __init__(self, raw_step, name, args, steps):
+
+        self.raw_step = raw_step
+
+        self.name = name
+        self.args = args
+        self.steps = steps
+        
+        # arg has a default if the arg value is not None
+        self.non_default_args = [
+            arg[0] for arg in self.args if arg[1] == None]
+        
+        # keep a record of the function so that we can reference it
+        FunctionDefinition.all_functions[name] = self
+
+    def execute(self, variables, phase):
+        
+        if phase == "test":
+            vars_copy = copy.deepcopy(variables)
+            for arg_name, arg_val in self.args:
+                vars_copy[arg_name] = arg_val or 'dummy val'
+            
+            ExecuteSteps(self.steps, vars_copy, phase)
+
+    def call_function(self, arg_values, variables, phase):
+        LOG.info("FUNCTION BEING CALLED: '%s' with args %s"% (self.name, arg_values))
+        
+        # make a copy of the variables 
+        vars_copy = copy.deepcopy(variables)
+        vars_copy.update(arg_values)
+        
+        ExecuteSteps(self.steps, vars_copy, phase)
+        
 
 
 class ParallelSteps(Step):
@@ -930,6 +1023,73 @@ class IfStep(Step):
         return "<IF %s...>"% self.conditions
 
 
+class FunctionCall(Step):
+    "A request to call a function"
+
+    def __init__(self, raw_step):
+        Step.__init__(self, raw_step)
+        
+        name_argvals = SplitStatementAndData(raw_step)[1]
+        
+        self.name, self.arg_vals = ParseFunctionNameAndArgs(name_argvals)
+        self.positional_args = [
+            arg for (arg, val) in self.arg_vals if val == None]
+            
+        self.keyword_args = dict([
+            (arg.lower(), val) for (arg, val) in self.arg_vals 
+                if val != None])
+        
+    def execute(self, variables, phase):
+        # ensure that the function name exists
+        
+        if not self.name in FunctionDefinition.all_functions:
+            raise RuntimeError(
+                "Attempt to call an unknown function '%s' in call '%s'"% 
+                    (self.name, self.raw_step))
+        
+        function = FunctionDefinition.all_functions[self.name]
+        
+        if len(self.arg_vals) > len(function.args):
+            raise RuntimeError("Too many arguments passed in function "% 
+                self.raw_step)
+
+        LOG.info("===CALLING FUNCTION %s==="% self.name)
+        
+        # if the arg is a simple value (i.e. not arg = val) then it will
+        # be simply passed in the order in the call
+        args_to_pass = {}
+
+        # for each of the remaining function definition arguments
+        # match passed arguments against function arguments
+        for i, (arg_name, arg_value) in enumerate(function.args):
+            arg_name = arg_name.lower()
+            
+            # this will populate arguments from the positional args in the 
+            # function call
+            if len(self.positional_args) > i:
+                args_to_pass[arg_name] = self.positional_args[i]
+                continue
+            
+            # If it is one of the passed our keyword arguments
+            if arg_name.lower() in self.keyword_args:
+                if arg_name in args_to_pass:
+                    raise RuntimeError(
+                        "Value for parameter '%s' already supplied"% arg_name)
+                        
+                args_to_pass[arg_name] = self.keyword_args[arg_name]
+            
+            # otherwise just use the default value
+            else:
+                args_to_pass[arg_name] = arg_value
+            #elif arg_value is None:
+            #    raise RuntimeError((
+            #        "No Value passed for function parameter %d '%s' in "
+            #        "function call:\n\t%s")% 
+            #            (i + len(arg_values_to_pass), arg_name, self.raw_step))
+        
+        function.call_function(args_to_pass, variables, phase)
+
+
 class ExecutionEndStep(Step):
     "Request end execution of the script"
 
@@ -1051,10 +1211,8 @@ STATEMENT_HANDLERS = {
     'include': IncludeStep,
     'logfile': LogFileStep,
     'defined': VariableDefinedCheck,
-    #'if':   ,
-    #'usage':   ,
-    # 'for'
-    'end': ExecutionEndStep, }
+    'call'   : FunctionCall,
+    'end'    : ExecutionEndStep, }
 
 
 def LoadScriptFile(filepath):
