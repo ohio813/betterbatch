@@ -811,7 +811,8 @@ class FunctionDefinition(Step):
         FunctionDefinition.all_functions[name] = self
 
     def execute(self, variables, phase):
-        
+        """Only run the steps in test mode - they are not 
+        executed in run mode - because they should only run when called"""
         if phase == "test":
             vars_copy = copy.deepcopy(variables)
             for arg_name, arg_val in self.args:
@@ -820,14 +821,16 @@ class FunctionDefinition(Step):
             ExecuteSteps(self.steps, vars_copy, phase)
 
     def call_function(self, arg_values, variables, phase):
-        LOG.info("FUNCTION BEING CALLED: '%s' with args %s"% (self.name, arg_values))
+        
+        if phase != "test":
+            LOG.debug(
+                "Function call: '%s' with args %s"% (self.name, arg_values))
         
         # make a copy of the variables 
         vars_copy = copy.deepcopy(variables)
         vars_copy.update(arg_values)
         
         ExecuteSteps(self.steps, vars_copy, phase)
-        
 
 
 class ParallelSteps(Step):
@@ -1053,8 +1056,6 @@ class FunctionCall(Step):
             raise RuntimeError("Too many arguments passed in function "% 
                 self.raw_step)
 
-        LOG.info("===CALLING FUNCTION %s==="% self.name)
-        
         # if the arg is a simple value (i.e. not arg = val) then it will
         # be simply passed in the order in the call
         args_to_pass = {}
