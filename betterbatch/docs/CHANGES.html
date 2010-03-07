@@ -5,13 +5,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>CHANGES &mdash; BetterBatch v0.9.6 documentation</title>
+    <title>CHANGES &mdash; BetterBatch v0.9.7 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '#',
-        VERSION:     '0.9.6',
+        VERSION:     '0.9.7',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -19,7 +19,7 @@
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="BetterBatch v0.9.6 documentation" href="index.html" />
+    <link rel="top" title="BetterBatch v0.9.7 documentation" href="index.html" />
     <link rel="next" title="BetterBatches License - MIT" href="LICENSE.html" />
     <link rel="prev" title="The available built-in commands are:" href="built_in_commands.html" /> 
   </head>
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="built_in_commands.html" title="The available built-in commands are:"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">BetterBatch v0.9.6 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v0.9.7 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -47,6 +47,37 @@
             
   <div class="section" id="changes">
 <h1>CHANGES<a class="headerlink" href="#changes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="functions-negative-conditions-setup-installer-and-test-fixes">
+<h2>0.9.7 Functions, negative conditions, Setup/Installer and test fixes<a class="headerlink" href="#functions-negative-conditions-setup-installer-and-test-fixes" title="Permalink to this headline">¶</a></h2>
+<p>07-March-2011</p>
+<blockquote>
+<ul class="simple">
+<li>Add preliminary support for Functions, give it a try and let me know.</li>
+<li>Add support for negative conditions for IfSteps.  (e.g. if not exists,
+if not defined, etc)</li>
+<li>Add a supported qualifier to VariableDefinition Steps to allow delayed
+resolution for Variable references.</li>
+<li>Allow defined to use &lt;var_name&gt; as well as var_name. (usability)</li>
+<li>Due to a case issues (tools/Tools) the betterbatchtools folder
+was left out of the distribution. There was also a bug that
+meant when this folder wasn&#8217;t found BetterBatch would not run. (fixed in 0.9.6b)</li>
+<li>Fix the old tests (change what could be changed and comment
+out the rest)</li>
+<li>Change setup.py so that Setuptools will be used if it is
+available - otherwise docutils. (fixed in 0.9.6b)</li>
+<li>Add a -t/&#8211;timed option to print how long the script took
+to execute.</li>
+<li>Fix manifest.in to include/exclude more files. (fixed in 0.9.6b)</li>
+<li>Cleaned up the the output messages of PathExists(), PathNotExists() and
+VerifyFileCount()</li>
+<li>Ensured that the Testing phase is more silent (some messages that should
+only be displayed during execution phase were being logged)</li>
+<li>Some other small fixes.</li>
+<li>Many thanks to Yuhui for pointing out many of these issues on the
+mail list.</li>
+</ul>
+</blockquote>
+</div>
 <div class="section" id="fixed-some-critical-issues-with-variable-references">
 <h2>0.9.6 Fixed Some critical issues with variable references<a class="headerlink" href="#fixed-some-critical-issues-with-variable-references" title="Permalink to this headline">¶</a></h2>
 <p>02-March-2011</p>
@@ -112,6 +143,7 @@ use Thread.isAlive() rather than Thread.is_alive() ).</li>
             <h3><a href="index.html">Table Of Contents</a></h3>
             <ul>
 <li><a class="reference external" href="#">CHANGES</a><ul>
+<li><a class="reference external" href="#functions-negative-conditions-setup-installer-and-test-fixes">0.9.7 Functions, negative conditions, Setup/Installer and test fixes</a></li>
 <li><a class="reference external" href="#fixed-some-critical-issues-with-variable-references">0.9.6 Fixed Some critical issues with variable references</a></li>
 <li><a class="reference external" href="#added-for-loops-and-parallel-sections">0.9.5 Added For loops and Parallel sections</a></li>
 <li><a class="reference external" href="#id1">0.9.4 Added For loops and Parallel sections</a></li>
@@ -160,7 +192,7 @@ use Thread.isAlive() rather than Thread.is_alive() ).</li>
         <li class="right" >
           <a href="built_in_commands.html" title="The available built-in commands are:"
              >previous</a> |</li>
-        <li><a href="index.html">BetterBatch v0.9.6 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v0.9.7 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
