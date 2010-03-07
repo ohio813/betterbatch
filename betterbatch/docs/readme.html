@@ -5,13 +5,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>BetterBatch Readme &mdash; BetterBatch v0.9.6 documentation</title>
+    <title>BetterBatch Readme &mdash; BetterBatch v0.9.7 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '#',
-        VERSION:     '0.9.6',
+        VERSION:     '0.9.7',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -19,7 +19,7 @@
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="BetterBatch v0.9.6 documentation" href="index.html" />
+    <link rel="top" title="BetterBatch v0.9.7 documentation" href="index.html" />
     <link rel="next" title="Comparing BetterBatch to ..." href="comparison.html" />
     <link rel="prev" title="Contents" href="index.html" /> 
   </head>
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="index.html" title="Contents"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">BetterBatch v0.9.6 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v0.9.7 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -69,7 +69,7 @@ location specified on the command line.</p>
 <p>First of all enter the following text into a new text file named &#8220;copyfile.bb&#8221;</p>
 <div class="highlight-python"><pre>- set file_to_check=&lt;shell.temp&gt;\testing_betterbatch.txt
 
-- if notexists &lt;file_to_check&gt;:
+- if not exists &lt;file_to_check&gt;:
     - copy &lt;file_to_copy&gt; &lt;file_to_check&gt;</pre>
 </div>
 <p>Now run it by running the following at the DOS prompt</p>
@@ -98,15 +98,12 @@ python installation if python is not on the path.</p>
 <h2>Script File Syntax<a class="headerlink" href="#script-file-syntax" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="yaml">
 <h3>YAML<a class="headerlink" href="#yaml" title="Permalink to this headline">¶</a></h3>
-<p>Script files need to be valid YAML, but don&#8217;t worry too much about that!
+<p>Script files are based on YAML, but don&#8217;t worry too much about that!
 The major ways that this will affect you are the following:</p>
 <blockquote>
 <ul class="simple">
 <li>Tab characters should be avoided (BetterBatch actually will replace them
 and print a warning when it loads a file with tab characters)</li>
-<li>avoid colon (:) followed by whitespace other than where dictated by the
-BetterBatch syntax. The Yaml parser will treat it as the &#8216;key&#8217; in a &#8216;mapping&#8217;
-and it will cause the script not to run.</li>
 </ul>
 </blockquote>
 <p>Note - while a YAML parser is being used to parse the file, some things which
@@ -116,13 +113,14 @@ to the YAML parser.</p>
 </div>
 <div class="section" id="statements">
 <h3>Statements<a class="headerlink" href="#statements" title="Permalink to this headline">¶</a></h3>
+<p>Script files are made up of statements.</p>
 <p>A simple statement starts with a dash (-), whitespace and then the statement.</p>
 <p>For example the typical Hello World! BetterBatch script is:</p>
 <div class="highlight-python"><pre>- echo Hello World!</pre>
 </div>
 </div>
-<div class="section" id="executable-statements">
-<h3>Executable Statements<a class="headerlink" href="#executable-statements" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="command-statements">
+<h3>Command Statements<a class="headerlink" href="#command-statements" title="Permalink to this headline">¶</a></h3>
 <p>Unless a statement is one of the other types it is an Executable Statement</p>
 <p>If the executable statement is not a built-in command then it will be
 executed in the shell, just as if you typed it at the command line.</p>
@@ -150,8 +148,8 @@ after each screen of output.</dd>
 </dd>
 </dl>
 </div>
-<div class="section" id="variable-definitions">
-<h3>Variable Definitions<a class="headerlink" href="#variable-definitions" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="variable-definitions-statements">
+<h3>Variable Definitions Statements<a class="headerlink" href="#variable-definitions-statements" title="Permalink to this headline">¶</a></h3>
 <p>Example:</p>
 <div class="highlight-python"><pre>- set variable_name = variable value</pre>
 </div>
@@ -159,13 +157,18 @@ after each screen of output.</dd>
 example:</p>
 <div class="highlight-python"><pre>- set variable_name = The value of &lt;variable&gt; and output of {{{executable section}}}</pre>
 </div>
-<p>Refer to <a class="reference internal" href="#executable-section"><em>Executable Sections</em></a> for more information on executable sections.</p>
+<p>By default any variable you reference and any executable sections will be
+executed when the variable definition is encountered in the script.
+You can specify that variables and executable sections should not be replaced
+until the variable is used by spedifing the {<em>delayed</em>} qualifier for example:</p>
+<div class="highlight-python"><pre>- set later_var = This &lt;variable&gt; and {{{executable section}}} will be replaced only when used</pre>
 </div>
-<div class="section" id="variable-references">
-<h3>Variable References<a class="headerlink" href="#variable-references" title="Permalink to this headline">¶</a></h3>
-<p>You can reference any defined variable by using &lt;variable_reference&gt;.</p>
-<p>The value of the variable will replace the variable reference.</p>
-<p>If you need to have &lt; or &gt; in your script - then you double them. e.g.</p>
+<p>If you need to include &#8216;&lt;&#8217; or &#8216;&gt;&#8217; characters in the variable value - you need to
+escape them. This is done by doubling them.</p>
+<p>See Also</p>
+<blockquote>
+<a class="reference internal" href="#executable-sections"><em>Executable Sections</em></a> - more information on executable sections
+<a class="reference internal" href="#variable-references"><em>Variable References</em></a> - more information on referring to variables</blockquote>
 </div>
 <div class="section" id="include-statements">
 <h3>Include statements<a class="headerlink" href="#include-statements" title="Permalink to this headline">¶</a></h3>
@@ -185,10 +188,10 @@ if they were defined in the including file.</p>
 </div>
 <div class="section" id="if-statements">
 <h3>IF statements<a class="headerlink" href="#if-statements" title="Permalink to this headline">¶</a></h3>
-<p>These statements allow you to</p>
+<p>These statements allow you to branch based on conditions that you specify.</p>
 <p>Example:</p>
-<div class="highlight-python"><pre>- if exists this_file:
-  and exists that_file:
+<div class="highlight-python"><pre>- if exists required_files\file.abc:
+  and exists required_files\file.zxy:
      - echo Great - both files exist
   else:
      - echo OH! - one of the files does not exist</pre>
@@ -198,14 +201,22 @@ mix &#8220;and&#8221; and &#8220;or&#8221; in the same if statement (it should b
 or &#8220;and&#8221; in a single statement).</p>
 <p>CAREFUL - the if/and/or/else all have to line up vertically - or the
 statement will not be parsed correctly.</p>
-<p>A special case of the condition is the &#8220;defined variable_name&#8221; e.g.</p>
+<p>For example the following will actually be wrong:</p>
+<div class="highlight-python"><pre>- if not defined &lt;var&gt;:
+ or not exists required_files\file.zxy:
+     - end 1, Requirements not met - please fix
+   else:
+     - echo Lets continue then</pre>
+</div>
+<p>The &#8220;or&#8221; and the &#8220;else&#8221; are not lined up with the &#8220;if&#8221; statement.</p>
+<p>The &#8220;defined variable_name&#8221; is a condition worth mentioning in more detail e.g.</p>
 <div class="highlight-python"><pre>- if defined build:
     - echo Value for build is &lt;build&gt;
   else:
     - end 1, The BUILD variable is not set - please specify a value</pre>
 </div>
-<p>This can be used to require the user to set pass a value at the command
-line - and if they do not, to print an informative error message.</p>
+<p>This is the best way of using optional variables. (often passed on the command
+line by passing <tt class="docutils literal"><span class="pre">var_name=var_value</span></tt>.</p>
 </div>
 <div class="section" id="for-statements">
 <h3>For statements<a class="headerlink" href="#for-statements" title="Permalink to this headline">¶</a></h3>
@@ -248,8 +259,41 @@ you should never rely on one starting/finishing before another will start/finish
 Also ONLY command steps are allowed (i.e. no Variable Definitions, logfile, include,
 for or if statements are allowed.</p>
 </div>
+<div class="section" id="function-definitions">
+<h3>Function Definitions<a class="headerlink" href="#function-definitions" title="Permalink to this headline">¶</a></h3>
+<p>You can define a function that you can call later at anytime. Here is a an
+example:</p>
+<div class="highlight-python"><pre>- function PrintArgs (arg1, arg2, arg3=123, arg4=This arg):
+    - echo &lt;arg1&gt;, &lt;arg2&gt;, &lt;arg3&gt;, &lt;arg4&gt;</pre>
+</div>
+<p>In the above function definition the function name is <tt class="docutils literal"><span class="pre">PrintArgs</span></tt>, it takes
+4 arguments <tt class="docutils literal"><span class="pre">arg1</span></tt>, <tt class="docutils literal"><span class="pre">arg2</span></tt>, <tt class="docutils literal"><span class="pre">arg3</span></tt> and <tt class="docutils literal"><span class="pre">arg4</span></tt>. Arguments <tt class="docutils literal"><span class="pre">arg3</span></tt> and
+<tt class="docutils literal"><span class="pre">arg4</span></tt> have default arguments &#8220;123&#8221; and &#8220;This arg&#8221; respectively. The function
+call will have to pass values for <tt class="docutils literal"><span class="pre">arg1</span></tt>, <tt class="docutils literal"><span class="pre">arg2</span></tt> but passing values for
+arguments <tt class="docutils literal"><span class="pre">arg3</span></tt> and <tt class="docutils literal"><span class="pre">arg4</span></tt> is optional. If no option is passed then the
+default values will be used.</p>
+<p>The current implementation has no way to return a value - this will likely be
+added at a later stage.</p>
+</div>
+<div class="section" id="function-calls">
+<h3>Function Calls<a class="headerlink" href="#function-calls" title="Permalink to this headline">¶</a></h3>
+<p>You can call functions in the following way:</p>
+<div class="highlight-python"><pre>- call PrintArgs (here, there, arg4 = some value)</pre>
+</div>
+<p>Matching this against the example function defintion above
+<tt class="docutils literal"><span class="pre">arg1</span></tt> will have value <tt class="docutils literal"><span class="pre">here</span></tt>,
+<tt class="docutils literal"><span class="pre">arg2</span></tt> will have value <tt class="docutils literal"><span class="pre">there</span></tt>,
+<tt class="docutils literal"><span class="pre">arg3</span></tt> will have value <tt class="docutils literal"><span class="pre">123</span></tt> (the default value),
+<tt class="docutils literal"><span class="pre">arg4</span></tt> will have value <tt class="docutils literal"><span class="pre">some</span> <span class="pre">value</span></tt>.</p>
+</div>
+<div class="section" id="variable-references">
+<span id="id1"></span><h3>Variable References<a class="headerlink" href="#variable-references" title="Permalink to this headline">¶</a></h3>
+<p>You can reference any defined variable by using &lt;variable_reference&gt;.</p>
+<p>The value of the variable will replace the variable reference.</p>
+<p>If you need to have &lt; or &gt; in your script - then you double them. e.g.</p>
+</div>
 <div class="section" id="executable-sections">
-<span id="executable-section"></span><h3>Executable Sections<a class="headerlink" href="#executable-sections" title="Permalink to this headline">¶</a></h3>
+<span id="id2"></span><h3>Executable Sections<a class="headerlink" href="#executable-sections" title="Permalink to this headline">¶</a></h3>
 <p>Executable sections can be used in variable definition or executable
 statements. The section will be replaced from the output from the section
 after executing it.</p>
@@ -313,14 +357,16 @@ that the BetterBatch script is going to use the environment value.</p>
 <li><a class="reference external" href="#script-file-syntax">Script File Syntax</a><ul>
 <li><a class="reference external" href="#yaml">YAML</a></li>
 <li><a class="reference external" href="#statements">Statements</a></li>
-<li><a class="reference external" href="#executable-statements">Executable Statements</a></li>
-<li><a class="reference external" href="#variable-definitions">Variable Definitions</a></li>
-<li><a class="reference external" href="#variable-references">Variable References</a></li>
+<li><a class="reference external" href="#command-statements">Command Statements</a></li>
+<li><a class="reference external" href="#variable-definitions-statements">Variable Definitions Statements</a></li>
 <li><a class="reference external" href="#include-statements">Include statements</a></li>
 <li><a class="reference external" href="#logfile-specification">Logfile specification</a></li>
 <li><a class="reference external" href="#if-statements">IF statements</a></li>
 <li><a class="reference external" href="#for-statements">For statements</a></li>
 <li><a class="reference external" href="#parallel-statements">Parallel statements</a></li>
+<li><a class="reference external" href="#function-definitions">Function Definitions</a></li>
+<li><a class="reference external" href="#function-calls">Function Calls</a></li>
+<li><a class="reference external" href="#variable-references">Variable References</a></li>
 <li><a class="reference external" href="#executable-sections">Executable Sections</a></li>
 <li><a class="reference external" href="#special-variables">Special Variables</a></li>
 </ul>
@@ -370,7 +416,7 @@ that the BetterBatch script is going to use the environment value.</p>
         <li class="right" >
           <a href="index.html" title="Contents"
              >previous</a> |</li>
-        <li><a href="index.html">BetterBatch v0.9.6 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v0.9.7 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

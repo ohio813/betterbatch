@@ -2,6 +2,35 @@
 CHANGES
 ************************************
 
+0.9.7 Functions, negative conditions, Setup/Installer and test fixes
+------------------------------------------------------------------
+07-March-2011
+ 
+ * Add preliminary support for Functions, give it a try and let me know.
+ * Add support for negative conditions for IfSteps.  (e.g. if not exists, 
+   if not defined, etc)
+ * Add a supported qualifier to VariableDefinition Steps to allow delayed
+   resolution for Variable references.
+ * Allow defined to use <var_name> as well as var_name. (usability)
+ * Due to a case issues (tools/Tools) the betterbatch\tools folder
+   was left out of the distribution. There was also a bug that
+   meant when this folder wasn't found BetterBatch would not run. (fixed in 0.9.6b)
+ * Fix the old tests (change what could be changed and comment
+   out the rest)
+ * Change setup.py so that Setuptools will be used if it is 
+   available - otherwise docutils. (fixed in 0.9.6b)
+ * Add a -t/--timed option to print how long the script took
+   to execute.
+ * Fix manifest.in to include/exclude more files. (fixed in 0.9.6b)
+ * Cleaned up the the output messages of PathExists(), PathNotExists() and 
+   VerifyFileCount()
+ * Ensured that the Testing phase is more silent (some messages that should 
+   only be displayed during execution phase were being logged)
+ * Some other small fixes.
+ * Many thanks to Yuhui for pointing out many of these issues on the 
+   mail list.
+
+
 0.9.6 Fixed Some critical issues with variable references
 ------------------------------------------------------------------
 02-March-2011
