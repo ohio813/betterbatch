@@ -1405,7 +1405,11 @@ def Main():
 
     start_time = time.time()
 
-    options = cmd_line.GetValidatedOptions()
+    try:
+        options = cmd_line.GetValidatedOptions()
+    except RuntimeError, e:
+        LOG.info(e)
+        sys.exit(1)
 
     # make sure that all handlers print debug messages if verbose has been
     # requested
