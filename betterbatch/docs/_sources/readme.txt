@@ -137,7 +137,7 @@ executed when the variable definition is encountered in the script.
 You can specify that variables and executable sections should not be replaced
 until the variable is used by spedifing the {*delayed*} qualifier for example::
 
-   - set later_var = This <variable> and {{{executable section}}} will be replaced only when used
+   - set later_var = This <variable> and {{{executable section}}} will be replaced only when used {*delayed*}
 
 If you need to include '<' or '>' characters in the variable value - you need to
 escape them. This is done by doubling them.
