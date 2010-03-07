@@ -74,7 +74,6 @@ def ParseArguments():
     return options, args
 
 
-
 def ParseVariableOverrides(variable_overrides):
     "Parse variable overrides passed on the command line"
     overrides = {}
@@ -82,7 +81,8 @@ def ParseVariableOverrides(variable_overrides):
         parsed = override.split("=")
         if len(parsed) != 2:
             raise RuntimeError(
-                "overrides need to be var=value: '%s'"% override)
+                "Error: Variable Overrides need to be var=value: "
+                "e.g. 'var_name=%s'"% override)
 
         name, value = parsed
         name = name.strip().lower()
