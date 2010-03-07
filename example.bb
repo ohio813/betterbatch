@@ -3,6 +3,15 @@
 # as opposed to includes)
 - logfile <__script_dir__>\test_bb.log
 
+- function name (arg1, arg2, arg3=hi, arg4=yo):
+    - echo a
+    - echo <arg1>, <arg2>, <arg3>, <arg4>
+    - echo b
+    
+- call name (here, there, arg4=elsewhere)
+
+- end 0, 987
+
 # Parallel sections allow all steps to be run in parallel
 # each step is started in it's own thread and will be run all at the same time.
 # do not depend on any one step completing before or after any other step.

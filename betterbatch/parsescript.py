@@ -658,7 +658,7 @@ class VariableDefinition(Step):
 
             new_val = ReplaceVariableReferences(new_val, variables)
 
-            if self.value != new_val and phase == "run":
+            if self.value != new_val and phase != "test":
                 LOG.debug("Updated variable '%s' to '%s'"% (
                     self.name, new_val))
 
@@ -863,7 +863,7 @@ class ParallelSteps(Step):
 
         # start all the threads
         for step in self.steps:
-            if phase == "run":
+            if phase != "test":
                 LOG.debug("starting step in new thread: '%s'"% step)
             t = ThreadStepRunner(step, variables)
             t.start()
@@ -879,7 +879,7 @@ class ParallelSteps(Step):
                 # if the thread has finished, print a message and
                 # remove it
                 if not t.isAlive():
-                    if phase == "run":
+                    if phase != "test":
                         LOG.debug("Thread finished: '%s'"% t.step)
                     threads.remove(t)
                     if t.exception:
@@ -983,7 +983,7 @@ class IfStep(Step):
 
         # Check the 'else' steps now. We may temporarily define variable
         # due to a 'defined' check which would upset the 'else' checks
-        if phase != 'run':
+        if phase == 'test':
             self.__test_step(variables)
             return
 
@@ -1113,7 +1113,7 @@ class ExecutionEndStep(Step):
     def execute(self, variables, phase):
         "Run this step"
         message = ReplaceVariableReferences(self.message, variables)
-        if phase == "run":
+        if phase != "test":
             raise EndExecution(self.ret, message)
 
 
@@ -1141,12 +1141,12 @@ class IncludeStep(Step):
         # load the steps no matter
         try:
             self.steps = LoadScriptFile(self.filename)
-            if phase == "run":
+            if phase != "test":
                 LOG.debug(
                     "Included steps from: %s"% self.filename)
             self.steps = ExecuteSteps(self.steps, variables, phase)
         except Exception, e:
-            if phase == "run":
+            if phase != "test":
                 raise
 
         # we may not be abel to do this at this stage
@@ -1169,7 +1169,7 @@ class LogFileStep(Step):
         "Run this step"
         filename = ReplaceVariableReferences(self.filename, variables)
 
-        if phase == "run":
+        if phase != "test":
             SetupLogFile(filename)
             LOG.debug('Variables at logfile creation: %s'% variables)
 
@@ -1200,7 +1200,7 @@ class VariableDefinedCheck(Step):
                 (self.variable, variables[key]))
             self.ret = 0
         else:
-            if phase == "run":
+            if phase != "test":
                 LOG.debug("Variable is not defined: '%s'"% self.variable)
             self.ret = 1
         self.output = ''
@@ -1246,11 +1246,11 @@ def ExecuteSteps(steps_, variables, phase):
             step.execute(variables, phase)
 
         except ErrorCollection, e:
-            if phase == "run":
+            if phase != "test":
                 raise
             errors.extend(e.errors)
         except RuntimeError, e:
-            if phase == "run":
+            if phase != "test":
                 raise
             errors.append(e)
 
