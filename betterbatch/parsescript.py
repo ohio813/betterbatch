@@ -1142,16 +1142,20 @@ class IncludeStep(Step):
         # load the steps no matter
         try:
             self.steps = LoadScriptFile(self.filename)
-            if phase != "test":
-                LOG.debug(
-                    "Included steps from: %s"% self.filename)
-            self.steps = ExecuteSteps(self.steps, variables, phase)
         except Exception, e:
             if phase == "test":
                 LOG.debug(
                     "Could not open include file during testing: %s"%
                         self.filename)
             else:
+                raise
+        try:
+            if phase != "test":
+                LOG.debug(
+                    "Included steps from: %s"% self.filename)
+            self.steps = ExecuteSteps(self.steps, variables, phase)
+        except Exception, e:
+            if phase != "test":
                 raise
 
         # we may not be abel to do this at this stage
