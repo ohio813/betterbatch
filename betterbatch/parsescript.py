@@ -175,7 +175,7 @@ def ParseYAMLFile(yaml_file):
 def ParseVariableDefinition(var_def, allow_no_value = False):
     """Return the variable name and variable value of a variable definition"""
 
-    # NOTE: do not add %var_def after the errors - this will be added by the 
+    # NOTE: do not add %var_def after the errors - this will be added by the
     # the code that calls this method!!
 
     if allow_no_value:
@@ -546,19 +546,19 @@ def ParseFunctionNameAndArgs(name_args):
     # we need to parse out the name_args which should be something like:
     # function_name (arg, arg = default, arg = default)
     found = re.search("(.+)\((.*)\)(.*)", name_args)
-    
+
     if not found:
-        raise RuntimeError ("Function defintion seems to be incorrect: '%s'"% 
+        raise RuntimeError ("Function defintion seems to be incorrect: '%s'"%
             name_args)
 
     name = found.group(1).strip()
     args = found.group(2).split(",")
-    
+
     parsed_args = []
     for arg in args:
         parsed_args.append(ParseVariableDefinition(arg, allow_no_value = True))
 
-    # check that no item defined with a default is defined before an 
+    # check that no item defined with a default is defined before an
     # item without a default e.g. just like python :)
     default_found = False
     for arg_name, arg_value in parsed_args:
@@ -586,9 +586,9 @@ def ParseFunctionDefinition(step, statements):
     # Extract out the various bits of the function header
     dummy, name_args, steps = statements[0]
     name, args = ParseFunctionNameAndArgs(name_args)
-    
+
     steps = ParseSteps(steps)
-    
+
     return FunctionDefinition(step, name, args, steps)
 
 
@@ -639,10 +639,10 @@ class VariableDefinition(Step):
 
     def __init__(self, raw_step):
         Step.__init__(self, raw_step)
-        
+
         # check if there are any qualifiers
         self.step_data, self.qualifiers = ParseQualifiers(self.step_data)
-        
+
         try:
             self.name, self.value = ParseVariableDefinition(self.step_data)
         except RuntimeError, e:
@@ -671,7 +671,7 @@ class VariableDefinition(Step):
 def ParseQualifiers(text):
     "Find the qualifiers and replace them"
 
-    # remove the executable sections first becuase we don't 
+    # remove the executable sections first becuase we don't
     # need or want to parse the qualifiers in these sections yet
 
     exe_sections = []
@@ -792,7 +792,7 @@ class CommandStep(Step):
 
 class FunctionDefinition(Step):
     "An set of command steps to be executed in parallel"
-    
+
     all_functions = {}
 
     def __init__(self, raw_step, name, args, steps):
@@ -802,34 +802,34 @@ class FunctionDefinition(Step):
         self.name = name
         self.args = args
         self.steps = steps
-        
+
         # arg has a default if the arg value is not None
         self.non_default_args = [
             arg[0] for arg in self.args if arg[1] == None]
-        
+
         # keep a record of the function so that we can reference it
         FunctionDefinition.all_functions[name] = self
 
     def execute(self, variables, phase):
-        """Only run the steps in test mode - they are not 
+        """Only run the steps in test mode - they are not
         executed in run mode - because they should only run when called"""
         if phase == "test":
             vars_copy = copy.deepcopy(variables)
             for arg_name, arg_val in self.args:
                 vars_copy[arg_name] = arg_val or 'dummy val'
-            
+
             ExecuteSteps(self.steps, vars_copy, phase)
 
     def call_function(self, arg_values, variables, phase):
-        
+
         if phase != "test":
             LOG.debug(
                 "Function call: '%s' with args %s"% (self.name, arg_values))
-        
-        # make a copy of the variables 
+
+        # make a copy of the variables
         vars_copy = copy.deepcopy(variables)
         vars_copy.update(arg_values)
-        
+
         ExecuteSteps(self.steps, vars_copy, phase)
 
 
@@ -940,7 +940,7 @@ class IfStep(Step):
     def __test_step(self, variables):
         """Test that there are no problems with the step
 
-        As the If step has more complex checking it has been broken out to a 
+        As the If step has more complex checking it has been broken out to a
         separate method"""
 
         if_defined_vars = []
@@ -950,7 +950,7 @@ class IfStep(Step):
 
             if isinstance(condition, VariableDefinedCheck):
                 if condition.variable not in variables:
-                    # so it's not defined - we will need to add it for 
+                    # so it's not defined - we will need to add it for
                     # complete checking. If it is a negative condtions
                     # e.g. if not defined test: then we will need to add it
                     # to for the else steps, otherwise we will need to add it
@@ -965,14 +965,14 @@ class IfStep(Step):
             # add a dummy value so that IF Block checking works correctly
             for var in extra_vars:
                 variables[var] = ''
-            
+
             # now that we have temporarily defined any definitions
             # needed - check the 'if' steps
             ExecuteSteps(steps, variables, 'test')
 
             for var in extra_vars:
                 del variables[var]
-            
+
         CheckStepsWithExtraVars(self.if_steps, variables, if_defined_vars)
         CheckStepsWithExtraVars(self.else_steps, variables, else_defined_vars)
 
@@ -997,7 +997,7 @@ class IfStep(Step):
             except Exception, e:
                 # swallow exceptions - it just means that the check failed
                 pass
-            
+
             ret = condition.ret
             if condition.negative_condition:
                 ret = not ret
@@ -1031,29 +1031,29 @@ class FunctionCall(Step):
 
     def __init__(self, raw_step):
         Step.__init__(self, raw_step)
-        
+
         name_argvals = SplitStatementAndData(raw_step)[1]
-        
+
         self.name, self.arg_vals = ParseFunctionNameAndArgs(name_argvals)
         self.positional_args = [
             arg for (arg, val) in self.arg_vals if val == None]
-            
+
         self.keyword_args = dict([
-            (arg.lower(), val) for (arg, val) in self.arg_vals 
+            (arg.lower(), val) for (arg, val) in self.arg_vals
                 if val != None])
-        
+
     def execute(self, variables, phase):
         # ensure that the function name exists
-        
+
         if not self.name in FunctionDefinition.all_functions:
             raise RuntimeError(
-                "Attempt to call an unknown function '%s' in call '%s'"% 
+                "Attempt to call an unknown function '%s' in call '%s'"%
                     (self.name, self.raw_step))
-        
+
         function = FunctionDefinition.all_functions[self.name]
-        
+
         if len(self.arg_vals) > len(function.args):
-            raise RuntimeError("Too many arguments passed in function "% 
+            raise RuntimeError("Too many arguments passed in function "%
                 self.raw_step)
 
         # if the arg is a simple value (i.e. not arg = val) then it will
@@ -1064,30 +1064,30 @@ class FunctionCall(Step):
         # match passed arguments against function arguments
         for i, (arg_name, arg_value) in enumerate(function.args):
             arg_name = arg_name.lower()
-            
-            # this will populate arguments from the positional args in the 
+
+            # this will populate arguments from the positional args in the
             # function call
             if len(self.positional_args) > i:
                 args_to_pass[arg_name] = self.positional_args[i]
                 continue
-            
+
             # If it is one of the passed our keyword arguments
             if arg_name.lower() in self.keyword_args:
                 if arg_name in args_to_pass:
                     raise RuntimeError(
                         "Value for parameter '%s' already supplied"% arg_name)
-                        
+
                 args_to_pass[arg_name] = self.keyword_args[arg_name]
-            
+
             # otherwise just use the default value
             else:
                 args_to_pass[arg_name] = arg_value
             #elif arg_value is None:
             #    raise RuntimeError((
             #        "No Value passed for function parameter %d '%s' in "
-            #        "function call:\n\t%s")% 
+            #        "function call:\n\t%s")%
             #            (i + len(arg_values_to_pass), arg_name, self.raw_step))
-        
+
         function.call_function(args_to_pass, variables, phase)
 
 
@@ -1192,14 +1192,14 @@ class VariableDefinedCheck(Step):
         "Run this step"
 
         key = self.variable.lower()
-       
+
         # remove leading and trailing brackets
         if key.startswith("<"):
             key = key[1:]
         if key.endswith(">"):
             key = key[:-1]
         key = key.strip()
-        
+
         if key in variables:
             LOG.debug("Variable is defined: %s : '%s'"%
                 (self.variable, variables[key]))
