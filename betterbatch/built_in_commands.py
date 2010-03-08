@@ -256,7 +256,10 @@ def Replace(input, qualifiers = None):
 def Split(input, split_text = None):
     if not split_text:
         split_text = None
-    return 0, input.split(split_text)
+    else:
+        split_text = split_text[0]
+    bits = [b.strip() for b in input.split(split_text)]
+    return 0, "\n".join(bits)
 
 
 def PopulateFromToolsFolder(tools_folder, dummy = []):
