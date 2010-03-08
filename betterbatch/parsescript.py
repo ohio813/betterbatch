@@ -659,7 +659,7 @@ class VariableDefinition(Step):
             new_val = ReplaceVariableReferences(new_val, variables)
 
             if self.value != new_val and phase != "test":
-                LOG.debug("Updated variable '%s' to '%s'"% (
+                LOG.debug("Set variable '%s' to value '%s'"% (
                     self.name, new_val))
 
         variables[self.name] = new_val
@@ -1147,7 +1147,11 @@ class IncludeStep(Step):
                     "Included steps from: %s"% self.filename)
             self.steps = ExecuteSteps(self.steps, variables, phase)
         except Exception, e:
-            if phase != "test":
+            if phase == "test":
+                LOG.debug(
+                    "Could not open include file during testing: %s"%
+                        self.filename)
+            else:
                 raise
 
         # we may not be abel to do this at this stage
