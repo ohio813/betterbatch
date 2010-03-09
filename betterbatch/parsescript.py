@@ -1036,8 +1036,12 @@ class FunctionCall(Step):
         name_argvals = SplitStatementAndData(raw_step)[1]
 
         self.name, self.arg_vals = ParseFunctionNameAndArgs(name_argvals)
+        
+        # a positional arg is any that has a None value and the
+        # arg name (which is actually the value) is not empty
         self.positional_args = [
-            arg for (arg, val) in self.arg_vals if val == None]
+            arg for (arg, val) in self.arg_vals 
+                if (val == None and arg)]
 
         self.keyword_args = dict([
             (arg.lower(), val) for (arg, val) in self.arg_vals
