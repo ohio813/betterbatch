@@ -562,8 +562,9 @@ def ParseFunctionNameAndArgs(name_args):
     # item without a default e.g. just like python :)
     default_found = False
     for arg_name, arg_value in parsed_args:
-        # None when no default
-        if arg_value is None:
+        # None when no default (check arg_name too as it will be
+        # empty if there is a trailing comma)
+        if arg_value is None and arg_name:
             # and we have already passed one with a default
             if default_found:
                 raise RuntimeError(
