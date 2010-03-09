@@ -570,7 +570,7 @@ def ParseFunctionNameAndArgs(name_args):
                 raise RuntimeError(
                     "In a function defintion or function call you cannot "
                     "define an argument without a default after an argument "
-                    "that has a default.")
+                    "that has a default. '%s'"% arg_name)
         else:
             default_found = True
 
