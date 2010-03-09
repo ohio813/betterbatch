@@ -1209,8 +1209,9 @@ class VariableDefinedCheck(Step):
         key = key.strip()
 
         if key in variables:
-            LOG.debug("Variable is defined: %s : '%s'"%
-                (self.variable, variables[key]))
+            if phase != "test":
+                LOG.debug("Variable is defined: %s : '%s'"%
+                    (self.variable, variables[key]))
             self.ret = 0
         else:
             if phase != "test":
