@@ -578,7 +578,7 @@ def ParseFunctionNameAndArgs(name_args):
 
 
 def ParseFunctionDefinition(step, statements):
-    "Parse a parallel complex step"
+    "Parse a function definition complex step"
     if len(statements) > 1:
         raise RuntimeError(
             "Function blocks can have more only one header: %s"%
@@ -878,7 +878,7 @@ class ParallelSteps(Step):
         while threads:
             for t in threads:
                 # Try to joiin the thread, but timeout very quickly
-                t.join(.001)
+                t.join(.01)
 
                 # if the thread has finished, print a message and
                 # remove it
