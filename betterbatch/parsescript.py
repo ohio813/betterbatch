@@ -808,7 +808,7 @@ class FunctionDefinition(Step):
             arg[0] for arg in self.args if arg[1] == None]
 
         # keep a record of the function so that we can reference it
-        FunctionDefinition.all_functions[name] = self
+        FunctionDefinition.all_functions[name.lower()] = self
 
     def execute(self, variables, phase):
         """Only run the steps in test mode - they are not
@@ -1044,13 +1044,12 @@ class FunctionCall(Step):
 
     def execute(self, variables, phase):
         # ensure that the function name exists
-
-        if not self.name in FunctionDefinition.all_functions:
+        if not self.name.lower() in FunctionDefinition.all_functions:
             raise RuntimeError(
                 "Attempt to call an unknown function '%s' in call '%s'"%
                     (self.name, self.raw_step))
 
-        function = FunctionDefinition.all_functions[self.name]
+        function = FunctionDefinition.all_functions[self.name.lower()]
 
         if len(self.arg_vals) > len(function.args):
             raise RuntimeError("Too many arguments passed in function "%
