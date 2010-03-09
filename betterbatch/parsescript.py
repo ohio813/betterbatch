@@ -1452,8 +1452,11 @@ def Main():
         sys.exit(99)
     finally:
         if options.timed:
-            LOG.info("Execution took %0.2f seconds"%
-                (time.time() - start_time))
+            time_taken = time.time() - start_time
+            minutes = time_taken // 60
+            secs = time_taken % 60
+            LOG.info("Execution took %d minute(s) and %0.2f seconds"%
+                (minutes, secs))
 
 
 if __name__ == "__main__":
