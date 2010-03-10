@@ -791,6 +791,22 @@ class CommandStep(Step):
             LOG.debug("Output from command:\n%s"% indented_output)
 
 
+class EchoStep(Step):
+    "Request end execution of the script"
+
+    def __init__(self, raw_step):
+        Step.__init__(self, raw_step)
+        self.message= SplitStatementAndData(raw_step)[1]
+    
+    def execute(self, variables, phase):
+        message = ReplaceExecutableSections(
+            self.message, variables, phase)
+        message = ReplaceVariableReferences(message, variables)
+        
+        if phase != "test":
+            LOG.info(message)
+
+
 class FunctionDefinition(Step):
     "An set of command steps to be executed in parallel"
 
@@ -1226,6 +1242,7 @@ STATEMENT_HANDLERS = {
     'logfile': LogFileStep,
     'defined': VariableDefinedCheck,
     'call'   : FunctionCall,
+    'echo'   : EchoStep,
     'end'    : ExecutionEndStep, }
 
 
