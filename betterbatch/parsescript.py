@@ -1173,10 +1173,20 @@ class IncludeStep(Step):
             if phase != "test":
                 LOG.debug(
                     "Included steps from: %s"% self.filename)
+
+            prev_script_dir  = variables["__script_dir__"]
+            prev_script_file = variables["__script_filename__"] 
+            variables["__script_dir__"], variables["__script_filename__"] = \
+                os.path.split(self.filename)
+                
             self.steps = ExecuteSteps(self.steps, variables, phase)
         except Exception, e:
             if phase != "test":
                 raise
+        finally:
+            variables["__script_dir__"], variables["__script_filename__"] = \
+                prev_script_dir, prev_script_file
+        
 
         # we may not be abel to do this at this stage
         # as execute for includes will be done before the variables are
