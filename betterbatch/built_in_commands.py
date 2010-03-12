@@ -127,12 +127,12 @@ def SystemCommand(command, qualifiers = None):
     if qualifiers is None:
         qualifiers = []
 
-    #for shell_cmd in COMMANDS_REQUIRING_SHELL:
-    #    if command.lower().startswith(shell_cmd):
-    #        shell = True
-    #        break
+    use_shell = False
+    if command.strip().lower().split()[0] in COMMANDS_REQUIRING_SHELL:
+        use_shell = True
 
-    # if the
+    # if the 'ui' qualifier has not been specified then
+    # capture the output 
     new_stdout = sys.stdout
     if 'ui' not in qualifiers:
         new_stdout = tempfile.TemporaryFile()
@@ -153,10 +153,9 @@ def SystemCommand(command, qualifiers = None):
     # if we can turn shell off for some/all of the commands then it will
     # allow us to better handle catastrophic issues (e.g. command not found)
     #try:
-    shell = True
     ret_value = subprocess.call(
         command,
-        shell = shell,
+        shell = use_shell,
         stdout = new_stdout,
         stderr = new_stdout)
     #except OSError, e:
@@ -314,16 +313,6 @@ NAME_ACTION_MAPPING = {
 
     'add_tools_dir'   : PopulateFromToolsFolder,
 }
-
-
-# the following commands will not require to use the command syntax
-# e.g.  " cd: <dir>"  to work correctly
-DOS_REPLACE = [
-    'cd',
-    'chdir',
-    'pushd',
-    'popd',
-]
 
 BETTER_BATCH_TOOLS_DIR = os.path.join(os.path.dirname(__file__), "tools")
 if os.path.exists(BETTER_BATCH_TOOLS_DIR):
