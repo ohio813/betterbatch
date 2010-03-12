@@ -1156,8 +1156,8 @@ class IncludeStep(Step):
 
         filename = ReplaceVariableReferences(self.filename, variables)
 
-        self.filename = os.path.join(
-            variables['__script_dir__'], filename)
+        self.filename = os.path.abspath(os.path.join(
+            variables['__script_dir__'], filename))
 
         # load the steps no matter
         try:
