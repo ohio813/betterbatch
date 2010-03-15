@@ -533,7 +533,7 @@ def ParseParallelStep(step, statements):
     steps = ParseSteps(steps)
 
     for loop_step in steps:
-        if not isinstance(loop_step, (CommandStep, FunctionCall)):
+        if not isinstance(loop_step, (CommandStep, FunctionCall, EchoStep)):
             raise RuntimeError(
                 "You can only have commands (no variable definitions, "
                 "includes, logfile, etc. in Parallel blocks: %s"%
