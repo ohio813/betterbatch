@@ -127,12 +127,12 @@ def SystemCommand(command, qualifiers = None):
     if qualifiers is None:
         qualifiers = []
 
-    use_shell = False
-    if command.strip().lower().split()[0] in COMMANDS_REQUIRING_SHELL:
-        use_shell = True
+    #use_shell = False
+    #if command.strip().lower().split()[0] in COMMANDS_REQUIRING_SHELL:
+    #    use_shell = True
 
     # if the 'ui' qualifier has not been specified then
-    # capture the output 
+    # capture the output
     new_stdout = sys.stdout
     if 'ui' not in qualifiers:
         new_stdout = tempfile.TemporaryFile()
@@ -153,9 +153,13 @@ def SystemCommand(command, qualifiers = None):
     # if we can turn shell off for some/all of the commands then it will
     # allow us to better handle catastrophic issues (e.g. command not found)
     #try:
+
+    # for some reason when passing to the shell - we need to quote the WHOLE command
+    # with ""
+    command = '"%s"'% command
     ret_value = subprocess.call(
         command,
-        shell = use_shell,
+        shell = True,
         stdout = new_stdout,
         stderr = new_stdout)
     #except OSError, e:
