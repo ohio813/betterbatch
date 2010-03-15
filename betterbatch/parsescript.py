@@ -1473,10 +1473,12 @@ def Main():
         LOG.error(e)
         if options.debug:
             LOG.exception(e)
+        LOG.fatal("Script Error!")
         sys.exit(1)
     except Exception, e:
         LOG.critical('Unknown Error: %s'% e)
         LOG.exception(e)
+        LOG.fatal("Script Error!")
         sys.exit(99)
     finally:
         if options.timed:
