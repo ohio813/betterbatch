@@ -341,7 +341,8 @@ def ReplaceExecutableSections(text, variables, phase = "run"):
                 "Do not embed executable section {{{...}}} in another "
                 "executable section: '%s'"% text)
 
-        command = section.group('command_line').replace("--#QUAL_#--", "{*")
+        command = section.group('command_line')
+        command = command.replace("--#QUAL_#--", "{*")
         command = command.replace("--#_QUAL#--", "*}")
 
         step = ParseStep(command)
