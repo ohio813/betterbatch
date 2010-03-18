@@ -142,21 +142,20 @@ def ParseYAMLFile(yaml_file):
                 item = item.replace("+++++colon+++++", ":")
                 item = item.replace("+++++dblquote+++++", '"')
                 return item
-            elif isinstance(item, list):
+            if isinstance(item, list):
                 for i, elem in enumerate(item):
                     item[i] = strip_string_forcers(elem)
                 return item
-            elif isinstance(item, dict):
+            if isinstance(item, dict):
                 new_dict = {}
                 for key, value in item.items():
                     new_key = strip_string_forcers(key)
                     new_val = strip_string_forcers(value)
                     new_dict[new_key] = new_val
                 return new_dict
-            elif item is None:
+            if item is None:
                 return None
-            else:
-                raise RuntimeError("Unknown structure type! '%s'"% item)
+            raise RuntimeError("Unknown structure type! '%s'"% item)
 
         script_data = strip_string_forcers(script_data)
 
