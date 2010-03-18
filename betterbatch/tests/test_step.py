@@ -34,11 +34,11 @@ class StepTests(unittest.TestCase):
     def test_StepFromString(self):
         """"""
 
-        s = ParseStep("echo this step")
+        s = ParseStep("dir this step")
         self.assertEquals(isinstance(s, CommandStep), True)
         self.assertEquals(s.qualifiers, [])
-        self.assertEquals(s.raw_step, "echo this step")
-        self.assertEquals(s.step_data, "echo this step")
+        self.assertEquals(s.raw_step, "dir this step")
+        self.assertEquals(s.step_data, "dir this step")
 
     #def test_StepFromDict(self):
     #    """"""
