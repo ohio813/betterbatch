@@ -1,0 +1,10 @@
+glob:*.pyc
+glob:*.log
+glob:dist/*
+glob:betterbatch/profile_stats
+glob:jquery-1.3.2.min.js
+glob:jquery.tablesorter.min.js
+glob:Coverage_report/*
+glob:sandbox/*
+glob:doc_build/*.txt
+glob:*.doctree

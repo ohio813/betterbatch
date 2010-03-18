@@ -1,0 +1,203 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CHANGES &mdash; BetterBatch v0.9.7 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '0.9.7',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="BetterBatch v0.9.7 documentation" href="index.html" />
+    <link rel="next" title="BetterBatches License - MIT" href="LICENSE.html" />
+    <link rel="prev" title="The available built-in commands are:" href="built_in_commands.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="LICENSE.html" title="BetterBatches License - MIT"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="built_in_commands.html" title="The available built-in commands are:"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">BetterBatch v0.9.7 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="changes">
+<h1>CHANGES<a class="headerlink" href="#changes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="functions-negative-conditions-setup-installer-and-test-fixes">
+<h2>0.9.7 Functions, negative conditions, Setup/Installer and test fixes<a class="headerlink" href="#functions-negative-conditions-setup-installer-and-test-fixes" title="Permalink to this headline">¶</a></h2>
+<p>07-March-2011</p>
+<blockquote>
+<ul class="simple">
+<li>Add preliminary support for Functions, give it a try and let me know.</li>
+<li>Add support for negative conditions for IfSteps.  (e.g. if not exists,
+if not defined, etc)</li>
+<li>Add a supported qualifier to VariableDefinition Steps to allow delayed
+resolution for Variable references.</li>
+<li>Allow defined to use &lt;var_name&gt; as well as var_name. (usability)</li>
+<li>Due to a case issues (tools/Tools) the betterbatchtools folder
+was left out of the distribution. There was also a bug that
+meant when this folder wasn&#8217;t found BetterBatch would not run. (fixed in 0.9.6b)</li>
+<li>Fix the old tests (change what could be changed and comment
+out the rest)</li>
+<li>Change setup.py so that Setuptools will be used if it is
+available - otherwise docutils. (fixed in 0.9.6b)</li>
+<li>Add a -t/&#8211;timed option to print how long the script took
+to execute.</li>
+<li>Fix manifest.in to include/exclude more files. (fixed in 0.9.6b)</li>
+<li>Cleaned up the the output messages of PathExists(), PathNotExists() and
+VerifyFileCount()</li>
+<li>Ensured that the Testing phase is more silent (some messages that should
+only be displayed during execution phase were being logged)</li>
+<li>Some other small fixes.</li>
+<li>Many thanks to Yuhui for pointing out many of these issues on the
+mail list.</li>
+</ul>
+</blockquote>
+</div>
+<div class="section" id="fixed-some-critical-issues-with-variable-references">
+<h2>0.9.6 Fixed Some critical issues with variable references<a class="headerlink" href="#fixed-some-critical-issues-with-variable-references" title="Permalink to this headline">¶</a></h2>
+<p>02-March-2011</p>
+<blockquote>
+<ul class="simple">
+<li>Fixed an issue with how variables are dealt with. I was finding that during
+the run phase variables would still have values laeft over from the test
+phase.</li>
+</ul>
+</blockquote>
+</div>
+<div class="section" id="added-for-loops-and-parallel-sections">
+<h2>0.9.5 Added For loops and Parallel sections<a class="headerlink" href="#added-for-loops-and-parallel-sections" title="Permalink to this headline">¶</a></h2>
+<p>01-March-2011</p>
+<blockquote>
+<ul class="simple">
+<li>Huge refactoring of the code. Removed Step.replace_vars() methods and
+instead added a &#8216;phase&#8217; parameter to execute. This makes the code simpler
+and reduces some duplication. Testing is now done by using
+<tt class="docutils literal"><span class="pre">step.exectute(...,</span> <span class="pre">phase</span> <span class="pre">=</span> <span class="pre">&quot;test&quot;)</span></tt> and execution by using
+<tt class="docutils literal"><span class="pre">step.exectute(...,</span> <span class="pre">phase</span> <span class="pre">=</span> <span class="pre">&quot;run&quot;)</span></tt>.</li>
+<li>Escape &lt; and &gt; in the output of commands.</li>
+<li>Add many new tests overall coverage now 95%.</li>
+<li>Added debug option (prints tracebacks on error).</li>
+<li>Fixed <a class="reference external" href="http://code.google.com/p/betterbatch/issues/detail?id=1">issue 1</a></li>
+</ul>
+</blockquote>
+</div>
+<div class="section" id="id1">
+<h2>0.9.4 Added For loops and Parallel sections<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>17-February-2010</p>
+<blockquote>
+<ul class="simple">
+<li>Added support for basic For loops (though needs improvement)</li>
+<li>Added support for running steps in Parallel.</li>
+<li>Documentation updates</li>
+<li>Added support for python 2.5 (stop using shlex.split with posix argument,
+use Thread.isAlive() rather than Thread.is_alive() ).</li>
+</ul>
+</blockquote>
+</div>
+<div class="section" id="path-handling-documentation-shell-references">
+<h2>0.9.3 Path handling, documentation, shell references<a class="headerlink" href="#path-handling-documentation-shell-references" title="Permalink to this headline">¶</a></h2>
+<p>10-February-2010</p>
+<blockquote>
+<ul class="simple">
+<li>Tabs characters are ignored (replaced before passing to YAML parser)</li>
+<li>All steps are forced to be strings (makes it easier to use - &#8220;app with spaces&#8221; arg1 arg2 which could otherwise gives errors)</li>
+<li>Documentation updates</li>
+<li>Shell variables are available as &lt;shell.varname&gt; rather than just &lt;varname&gt; e.g. &lt;shell.computername&gt; (otherwise there is a risk of an environment variable &#8216;left over&#8217; from other script affect a BetterBatch script.</li>
+<li>Reduce some of the verbosity in default output (variables are not output to the log file, all references of a missing variable are not output unless you use -v/&#8211;verbose option)</li>
+</ul>
+</blockquote>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">CHANGES</a><ul>
+<li><a class="reference external" href="#functions-negative-conditions-setup-installer-and-test-fixes">0.9.7 Functions, negative conditions, Setup/Installer and test fixes</a></li>
+<li><a class="reference external" href="#fixed-some-critical-issues-with-variable-references">0.9.6 Fixed Some critical issues with variable references</a></li>
+<li><a class="reference external" href="#added-for-loops-and-parallel-sections">0.9.5 Added For loops and Parallel sections</a></li>
+<li><a class="reference external" href="#id1">0.9.4 Added For loops and Parallel sections</a></li>
+<li><a class="reference external" href="#path-handling-documentation-shell-references">0.9.3 Path handling, documentation, shell references</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="built_in_commands.html"
+                                  title="previous chapter">The available built-in commands are:</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="LICENSE.html"
+                                  title="next chapter">BetterBatches License - MIT</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/CHANGES.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="LICENSE.html" title="BetterBatches License - MIT"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="built_in_commands.html" title="The available built-in commands are:"
+             >previous</a> |</li>
+        <li><a href="index.html">BetterBatch v0.9.7 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Mark Mc Mahon.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+    </div>
+  </body>
+</html>

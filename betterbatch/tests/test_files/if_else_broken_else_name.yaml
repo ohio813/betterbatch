@@ -1,0 +1,7 @@
+- set my_file= <__script_dir__>\if_else_checks.yaml
+
+- If Exists <my_file>_:
+    echo "BROKEN exists <my_file>
+  Elsesd:
+    echo string_else
+
