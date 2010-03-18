@@ -156,7 +156,7 @@ def ParseYAMLFile(yaml_file):
             elif item is None:
                 return None
             else:
-                raise RuntimeError("Unknown structure type!")
+                raise RuntimeError("Unknown structure type! '%s'"% item)
 
         script_data = strip_string_forcers(script_data)
 
