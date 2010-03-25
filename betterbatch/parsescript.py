@@ -796,7 +796,7 @@ class EchoStep(Step):
 
     def __init__(self, raw_step):
         Step.__init__(self, raw_step)
-        self.message= SplitStatementAndData(raw_step)[1]
+        self.message = SplitStatementAndData(raw_step)[1]
     
     def execute(self, variables, phase):
         message = ReplaceExecutableSections(
