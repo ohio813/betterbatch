@@ -106,19 +106,24 @@
 - set found = {{{dir <dir_to_search>\win.ini}}} {{{cd nowhere {*nocheck*}{*echo*}}}}
 
 
-# commands can be split over many lines in two ways
-# using either > or | characters
+# commands can be split over many lines very easily
+# either implicitely or by using > or | characters
 
-# > character will result in all text being on one line
+# implicit or by using > character will result in all text being on one line
+- set long_greater=different
+    values here
+      and here
+# equivalent to 
 - >
     set long_greater=different
     values here
       and here
-      
+
+
 - echo <long_greater>
 
-# | character will result in all text being on many lines (i.e. it is only
-# it is kept as is with leading space stripped
+# | character will result in all text being on many lines (i.e. 
+#   it is kept as is with leading space stripped)
 - |
     set long_pipe=different
     values here
