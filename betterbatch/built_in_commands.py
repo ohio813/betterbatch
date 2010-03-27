@@ -150,8 +150,8 @@ def SystemCommand(command, qualifiers = None):
     # if we can turn shell off for some/all of the commands then it will
     # allow us to better handle catastrophic issues (e.g. command not found)
 
-    # for some reason when passing to the shell - we need to quote the WHOLE command
-    # with ""
+    # for some reason when passing to the shell - we need to quote the 
+    # WHOLE command with ""
     command = '"%s"'% command
     ret_value = subprocess.call(
         command,
@@ -168,15 +168,22 @@ def SystemCommand(command, qualifiers = None):
 
 
 def dirname(path, dummy = None):
+    "Wrap os.path.dirname"
     return 0, os.path.dirname(path)
 
 def basename(path, dummy = None):
+    "Wrap os.path.basename"
     return 0, os.path.basename(path)
 
 def abspath(path, dummy = None):
+    "Wrap os.path.abspath"
     return 0, os.path.normpath(os.path.abspath(path))
 
 def ChangeCurrentDirectory(path, dummy = None):
+    """Try to change to the directory
+    
+    Replaces 'cd' command which would not achieve anything as the shell that
+    it executes in would dissapear immediately"""
     try:
         if isinstance(path, list):
             path = path[0]
@@ -187,6 +194,7 @@ def ChangeCurrentDirectory(path, dummy = None):
 
 
 def PushDirectory(path, dummy = None):
+    "Change into the directory and store the previous current directory"
     try:
         PUSH_DIRECTORY_LIST.append(os.getcwd())
         os.chdir(path)
@@ -197,6 +205,7 @@ def PushDirectory(path, dummy = None):
 
 
 def PopDirectory(path = '', dummy = None):
+    "Change into the 'previous' directory on the stack pushed by PushDirectory"
     try:
         last_dir = PUSH_DIRECTORY_LIST.pop()
         os.chdir(last_dir)
@@ -208,6 +217,7 @@ def PopDirectory(path = '', dummy = None):
 
 
 class ExternalCommand(object):
+    "Wrap the a call to a system command or program"
     def __init__(self, full_path):
         if not os.path.exists(full_path):
             raise RuntimeError(
@@ -226,47 +236,58 @@ class ExternalCommand(object):
         return SystemCommand(params)
 
 
-def EscapeNewlines(input, qualifiers = ''):
-        text = input.replace("\r", "\\\\r")
-        text = text.replace("\n", "\\\\n")
-        return 0, text
+def EscapeNewlines(text, qualifiers = ''):
+    "Return the input with newlines replaced"
+    text = text.replace("\r", "\\\\r")
+    text = text.replace("\n", "\\\\n")
+    return 0, text
 
-def unescape_text(input):
-    input = input.replace("\\t", "\t")
-    input = input.replace("\\\\", "\\")
-    input = input.replace("\\r", "\r")
-    input = input.replace("\\n", "\n")
-    return input
+def unescape_text(text):
+    "Return the input wiht newlines replaced"
+    text = text.replace("\\t", "\t")
+    text = text.replace("\\\\", "\\")
+    text = text.replace("\\r", "\r")
+    text = text.replace("\\n", "\n")
+    return text
 
 
-def Replace(input, qualifiers = None):
+def Replace(text, qualifiers = None):
+    "Replace a string in the input"
     to_find = unescape_text(qualifiers[0])
     replace_with = unescape_text(qualifiers[1])
-    replaced = input.replace(to_find, replace_with)
+    replaced = text.replace(to_find, replace_with)
 
     return 0, replaced
 
 
-def Split(input, split_text = None):
+def Split(text, split_text = None):
+    """Split the input on the split_text text
+    
+    if split_text is not defined then it will split on all whitespace"""
     if not split_text:
         split_text = None
     else:
         split_text = split_text[0]
-    bits = [b.strip() for b in input.split(split_text)]
+    bits = [b.strip() for b in text.split(split_text)]
     return 0, "\n".join(bits)
 
 
-def PopulateFromToolsFolder(tools_folder, dummy = []):
+def PopulateFromToolsFolder(tools_folder, dummy = None):
+    """Make the commands in the specified tools_folder easy to call
+    
+    All executable programs will be added to the list of available tools
+    they can be called without specifying the path to the tool
+    """
 
-    for file in os.listdir(tools_folder):
-        name, ext = os.path.splitext(file)
+    for tool_file in os.listdir(tools_folder):
+        name, ext = os.path.splitext(tool_file)
         name = name.lower()
         ext = ext.upper()
 
         if ext in (
             os.environ["pathext"].split(";") + [".PY", ".PL", ".PYW"]):
 
-            full_path = os.path.join(tools_folder, file)
+            full_path = os.path.join(tools_folder, tool_file)
             if name not in NAME_ACTION_MAPPING:
                 NAME_ACTION_MAPPING[name] = ExternalCommand(full_path)
             else:
