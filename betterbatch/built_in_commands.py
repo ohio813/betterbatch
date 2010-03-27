@@ -149,7 +149,6 @@ def SystemCommand(command, qualifiers = None):
 
     # if we can turn shell off for some/all of the commands then it will
     # allow us to better handle catastrophic issues (e.g. command not found)
-    #try:
 
     # for some reason when passing to the shell - we need to quote the WHOLE command
     # with ""
@@ -159,8 +158,6 @@ def SystemCommand(command, qualifiers = None):
         shell = True,
         stdout = new_stdout,
         stderr = new_stdout)
-    #except OSError, e:
-    #    return e.errno, str(e)
 
     output = ''
     if 'ui' not in qualifiers:
