@@ -137,11 +137,8 @@ def SystemCommand(command, qualifiers = None):
     if 'ui' not in qualifiers:
         new_stdout = tempfile.TemporaryFile()
 
-    if isinstance(command, basestring):
-        command = command.strip()
-        command_len = len(command)
-    else:
-        command_len = len(" ".join(command))
+    command = command.strip()
+    command_len = len(command)
 
     subprocess_safe_command_limit = 2000
     if command_len > subprocess_safe_command_limit:
@@ -224,14 +221,11 @@ class ExternalCommand(object):
         if qualifiers is None:
             qualifiers = []
 
-        if isinstance(params, list):
-            params.extend(qualifiers)
-            params.insert(0, self.full_path)
-        elif isinstance(params, basestring):
+        if isinstance(params, basestring):
             params = " ".join([self.full_path, params] + qualifiers)
         else:
             raise RuntimeError(
-                "ExternalCommand.__call__ only accepts strings or lists")
+                "ExternalCommand.__call__ only accepts strings")
         return SystemCommand(params)
 
 

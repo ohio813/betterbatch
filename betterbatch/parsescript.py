@@ -1288,6 +1288,59 @@ def LoadScriptFile(filepath):
     return ParseSteps(steps)
 
 
+#import cmd
+#class Debugger(cmd.Cmd):
+#    prompt = "{%s} "% os.getcwd()
+#    intro = "Simple command processor example."
+#
+#    def __init__(self, steps, variables):
+#        cmd.Cmd.__init__(self)
+#        self.steps = iter(steps)
+#        self.variables = variables
+#
+#        self.cur_step = self.steps.next()
+#        print "next:", self.cur_step
+#
+#    def do_next(self, arg):
+#        "Execute the next step"
+#        self.cur_step.execute(self.variables, "run")
+#        self.cur_step = self.steps.next()
+#        print "next:", self.cur_step
+#    do_n = do_next
+#
+#    def do_vars(self, arg):
+#        "print the list of variables"
+#        print "variables:", self.variables.keys()
+#
+#    def do_var(self, var_name):
+#        "print the valur of a variable"
+#
+#        if not var_name:
+#            print "Please specify a variable name"
+#        elif var_name not in self.variables:
+#            print "Unknown variable '%s'"% var_name
+#        else:
+#            print "value of '%s': '%s'"% (var_name, self.variables[var_name])
+#    do_v = do_var
+#
+#    def do_printstep(self, var_name):
+#        "print the valur of a variable"
+#        print self.cur_step
+#    do_ps = do_printstep
+
+
+def DebugExecuteSteps(steps_, variables, phase):
+    "Execute the steps"
+
+    errors = []
+    try:
+        Debugger(steps_, variables).cmdloop()
+    except StopIteration:
+        pass
+
+    return steps
+
+
 def ExecuteSteps(steps_, variables, phase):
     "Execute the steps"
 
@@ -1451,6 +1504,7 @@ def ExecuteScriptFile(file_path, cmd_vars, check = False):
         return steps, variables
 
     LOG.debug("RUNNING STEPS")
+    #DebugExecuteSteps(steps, variables, 'run')
     ExecuteSteps(steps, variables, 'run')
 
     return steps, variables
@@ -1506,6 +1560,11 @@ def Main():
 
 
 if __name__ == "__main__":
+
+    #import cProfile
+    #command = """Main()"""
+    #cProfile.runctx("Main()", globals(), locals(), filename="parsescript.profile" )
+
     try:
         Main()
     finally:
