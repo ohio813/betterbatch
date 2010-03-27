@@ -570,7 +570,7 @@ def ParseFunctionNameAndArgs(name_args):
     # strip off any trailing args (caused by a trailing comma )
     while parsed_args[-1] == ("", None):
         del parsed_args[-1]
-        
+
 
     return name, parsed_args
 
@@ -802,7 +802,7 @@ class EchoStep(Step):
         message = ReplaceExecutableSections(
             self.message, variables, phase)
         message = ReplaceVariableReferences(message, variables)
-        
+
         if phase != "test":
             LOG.info(message)
             self.output = message
@@ -865,7 +865,6 @@ class ParallelSteps(Step):
 
         # Test the steps
         ExecuteSteps(self.steps, variables, "test")
-
         threads = []
 
         class ThreadStepRunner(threading.Thread):
@@ -1066,11 +1065,11 @@ class FunctionCall(Step):
         name_argvals = SplitStatementAndData(raw_step)[1]
 
         self.name, self.arg_vals = ParseFunctionNameAndArgs(name_argvals)
-        
+
         # a positional arg is any that has a None value and the
         # arg name (which is actually the value) is not empty
         self.positional_args = [
-            arg for (arg, val) in self.arg_vals 
+            arg for (arg, val) in self.arg_vals
                 if (val == None and arg)]
 
         self.keyword_args = dict([
@@ -1192,7 +1191,7 @@ class IncludeStep(Step):
 
             variables["__script_dir__"], variables["__script_filename__"] = \
                 os.path.split(self.filename)
-                
+
             self.steps = ExecuteSteps(self.steps, variables, phase)
         except Exception, e:
             if phase != "test":
@@ -1200,10 +1199,10 @@ class IncludeStep(Step):
         finally:
             if prev_script_dir:
                 variables["__script_dir__"] = prev_script_dir
-            
+
             if prev_script_file:
                 variables["__script_filename__"] = prev_script_file
-        
+
 
         # we may not be abel to do this at this stage
         # as execute for includes will be done before the variables are
