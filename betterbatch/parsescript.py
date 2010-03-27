@@ -937,7 +937,8 @@ class ForStep(Step):
         # split the variables
         values = cmd_output.split("\n")
 
-        for val in values:
+        if 'parallel' in self.qualifiers:
+            loop_steps = [ParallelSteps(self.raw_step, loop_steps)]
 
             # add or update the loop variable in the variables
             #var = VariableDefinition('set %s = %s'% (self.variable, val))
@@ -1078,7 +1079,7 @@ class FunctionCall(Step):
         function = FunctionDefinition.all_functions[self.name.lower()]
 
         if len(self.arg_vals) > len(function.args):
-            raise RuntimeError("Too many arguments passed in function "%
+            raise RuntimeError("Too many arguments passed in function '%s'"%
                 self.raw_step)
 
         # if the arg is a simple value (i.e. not arg = val) then it will
