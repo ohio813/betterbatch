@@ -926,6 +926,8 @@ class ForStep(Step):
         self.steps = steps
         self.raw_step = raw_step
 
+        loop_condition, self.qualifiers = ParseQualifiers(loop_condition)
+
         #split on ' in '
         self.variable, self.command = [
             part.strip() for part in loop_condition.split(' in ', 1)]
@@ -940,17 +942,20 @@ class ForStep(Step):
         # split the variables
         values = cmd_output.split("\n")
 
+        # unloop the loop
+        loop_steps = []
+        for val in values:
+            # create a variableDefinition for this
+            loop_steps.append(
+                VariableDefinition(
+                    "set %s = %s"%(self.variable, val)))
+            loop_steps.extend(self.steps)
+
         if 'parallel' in self.qualifiers:
             loop_steps = [ParallelSteps(self.raw_step, loop_steps)]
 
-            # add or update the loop variable in the variables
-            #var = VariableDefinition('set %s = %s'% (self.variable, val))
-            variables[self.variable] = val
+        ExecuteSteps(loop_steps, variables, phase)
 
-            # loop over the steps
-            loop_steps = copy.deepcopy(self.steps)
-
-            ExecuteSteps(loop_steps, variables, phase)
 
 class IfStep(Step):
     "An IF block"
