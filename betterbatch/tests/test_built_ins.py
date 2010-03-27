@@ -164,16 +164,22 @@ class BuiltInCommandsTests(unittest.TestCase):
         
         self.assertNotEquals(ret, 0)
         
-
     def test_ExternalCommand_pass(self):
         tool_path = os.path.join(package_root, "tools", "compare.py")
         ec = ExternalCommand(tool_path)
         
+        #print tool_path
+        #print ec(["a", "=", "A", "nocase"])
+        
         expected_ret = (0, '')
         self.assertEquals(ec("a = A nocase"), expected_ret)
         self.assertEquals(ec("a = A", ["nocase"]), expected_ret)
-        self.assertEquals(ec(["a", "=", "A", "nocase"]), expected_ret)
-        self.assertEquals(ec(["a", "=", "A"], ["nocase"]), expected_ret)
+        self.assertRaises(
+            RuntimeError,ec,
+                ["a", "=", "A", "nocase"])
+        self.assertRaises(
+            RuntimeError,ec,
+            ["a", "=", "A"], ["nocase"])
             
     def test_ExternalCommand_missing_cmd(self):
         """Test external path with tool that doesn't exitst"""
@@ -210,10 +216,10 @@ class BuiltInCommandsTests(unittest.TestCase):
         del(built_in_commands.NAME_ACTION_MAPPING['compare'])
 
     def test_Split_no_split_text(self):
-        self.assertEquals(Split("1 2"), (0, ["1", "2"]))
+        self.assertEquals(Split("1 2"), (0, "1\n2"))
 
     def test_Split_split_text(self):
-        self.assertEquals(Split("1\n2", "\n"), (0, ["1", "2"]))
+        self.assertEquals(Split("1\n2", "\n"), (0, "1\n2"))
 
     def test_Replace_basic(self):
         self.assertEquals(Replace("some text", ["e", "a"]), (0, "soma taxt"))
