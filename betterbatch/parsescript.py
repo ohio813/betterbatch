@@ -1174,13 +1174,13 @@ class IncludeStep(Step):
                         self.filename)
             else:
                 raise
+        prev_script_dir  = variables.get("__script_dir__", None)
+        prev_script_file = variables.get("__script_filename__", None)
         try:
             if phase != "test":
                 LOG.debug(
                     "Included steps from: %s"% self.filename)
 
-            prev_script_dir  = variables["__script_dir__"]
-            prev_script_file = variables["__script_filename__"] 
             variables["__script_dir__"], variables["__script_filename__"] = \
                 os.path.split(self.filename)
                 
@@ -1189,8 +1189,11 @@ class IncludeStep(Step):
             if phase != "test":
                 raise
         finally:
-            variables["__script_dir__"], variables["__script_filename__"] = \
-                prev_script_dir, prev_script_file
+            if prev_script_dir:
+                variables["__script_dir__"] = prev_script_dir
+            
+            if prev_script_file:
+                variables["__script_filename__"] = prev_script_file
         
 
         # we may not be abel to do this at this stage
