@@ -532,13 +532,6 @@ def ParseParallelStep(step, statements):
     steps = statements[0][-1]
     steps = ParseSteps(steps)
 
-    for loop_step in steps:
-        if not isinstance(loop_step, (CommandStep, FunctionCall, EchoStep)):
-            raise RuntimeError(
-                "You can only have commands (no variable definitions, "
-                "includes, logfile, etc. in Parallel blocks: %s"%
-                    statements)
-
     return ParallelSteps(step, steps)
 
 def ParseFunctionNameAndArgs(name_args):
@@ -867,7 +860,7 @@ class ParallelSteps(Step):
     def execute(self, variables, phase):
         "Run this step"
 
-        # replace variables in the steps to be executed
+        # Test the steps
         ExecuteSteps(self.steps, variables, "test")
 
         threads = []
@@ -890,11 +883,18 @@ class ParallelSteps(Step):
         for step in self.steps:
             if phase != "test":
                 LOG.debug("starting step in new thread: '%s'"% step)
-            t = ThreadStepRunner(step, variables)
-            t.start()
-            threads.append(t)
 
-        # wait for them to finish
+            # define variables immediately
+            if isinstance(step, VariableDefinition):
+                step.execute(variables, phase)
+            else:
+                # otherwise add the step to be executed with the
+                # current values of the variables
+                t = ThreadStepRunner(step, copy.deepcopy(variables))
+                t.start()
+                threads.append(t)
+
+        # wait for the threads to finish
         errs = []
         while threads:
             for t in threads:
