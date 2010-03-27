@@ -794,8 +794,10 @@ class EchoStep(Step):
 
     def __init__(self, raw_step):
         Step.__init__(self, raw_step)
-        self.message= SplitStatementAndData(raw_step)[1]
-    
+        step_data = SplitStatementAndData(raw_step)[1]
+        self.message, self.qualifiers = ParseQualifiers(step_data)
+        self.output = ""
+
     def execute(self, variables, phase):
         message = ReplaceExecutableSections(
             self.message, variables, phase)
@@ -803,6 +805,7 @@ class EchoStep(Step):
         
         if phase != "test":
             LOG.info(message)
+            self.output = message
 
 
 class FunctionDefinition(Step):
