@@ -5,13 +5,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>CHANGES &mdash; BetterBatch v0.9.7 documentation</title>
+    <title>CHANGES &mdash; BetterBatch v0.9.8 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '#',
-        VERSION:     '0.9.7',
+        VERSION:     '0.9.8',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -19,7 +19,7 @@
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="BetterBatch v0.9.7 documentation" href="index.html" />
+    <link rel="top" title="BetterBatch v0.9.8 documentation" href="index.html" />
     <link rel="next" title="BetterBatches License - MIT" href="LICENSE.html" />
     <link rel="prev" title="The available built-in commands are:" href="built_in_commands.html" /> 
   </head>
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="built_in_commands.html" title="The available built-in commands are:"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">BetterBatch v0.9.7 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v0.9.8 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -47,6 +47,40 @@
             
   <div class="section" id="changes">
 <h1>CHANGES<a class="headerlink" href="#changes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="bug-fixes-improve-parallelization-and-add-loop-parallelization">
+<h2>0.9.8 Bug fixes, Improve parallelization (and add loop parallelization)<a class="headerlink" href="#bug-fixes-improve-parallelization-and-add-loop-parallelization" title="Permalink to this headline">¶</a></h2>
+<p>30-March-2011</p>
+<blockquote>
+<ul class="simple">
+<li>Allow parallel steps to include any steps (not just commands, echo steps)</li>
+<li>Also add a qualifer to for loops to allow all the steps to be run in
+parallel. This feature should be considered experimental. And is probably
+not very useful unless used with functions or some other way of ensuring
+certain commands are not executed out of order. It may also mess up with
+logging - but not validated yet.</li>
+<li>Make the loop check time larger (previously it was too small which was
+causing a lot of CPU overhead - &#8216;busy loop&#8217;)</li>
+<li>Split built in command was not working correctly - each item needed to
+be on a line of its own.</li>
+<li>Make function name lookup case insensitive</li>
+<li>Trailing commas in function definitions and function calls looked like an
+empty parameter - fixed the code so that they are ignored.</li>
+<li>Improved how missing variables are checked. It was saying that defined
+variables that used an undefined variable were undefined, fixed so that
+only really undefined variables are listed as undefined.</li>
+<li>Echo used to be implemented using the underlying DOS command - replaced
+with an EchoStep - which can handle multiline strings.</li>
+<li>Include files now have the correct values for __script_filename__ and
+__script_dir__ (they have the value of the included file - not the including
+file)</li>
+<li>&#8220;Script Error!&#8221; is written as the last message if there was an error
+encountered during execution, otherwise it may not be easy to spot at a
+glance that there was indeed an error.</li>
+<li>Small tool added to get the short path file/directory name on windows.</li>
+<li>Improve some error messages</li>
+</ul>
+</blockquote>
+</div>
 <div class="section" id="functions-negative-conditions-setup-installer-and-test-fixes">
 <h2>0.9.7 Functions, negative conditions, Setup/Installer and test fixes<a class="headerlink" href="#functions-negative-conditions-setup-installer-and-test-fixes" title="Permalink to this headline">¶</a></h2>
 <p>07-March-2011</p>
@@ -143,6 +177,7 @@ use Thread.isAlive() rather than Thread.is_alive() ).</li>
             <h3><a href="index.html">Table Of Contents</a></h3>
             <ul>
 <li><a class="reference external" href="#">CHANGES</a><ul>
+<li><a class="reference external" href="#bug-fixes-improve-parallelization-and-add-loop-parallelization">0.9.8 Bug fixes, Improve parallelization (and add loop parallelization)</a></li>
 <li><a class="reference external" href="#functions-negative-conditions-setup-installer-and-test-fixes">0.9.7 Functions, negative conditions, Setup/Installer and test fixes</a></li>
 <li><a class="reference external" href="#fixed-some-critical-issues-with-variable-references">0.9.6 Fixed Some critical issues with variable references</a></li>
 <li><a class="reference external" href="#added-for-loops-and-parallel-sections">0.9.5 Added For loops and Parallel sections</a></li>
@@ -192,7 +227,7 @@ use Thread.isAlive() rather than Thread.is_alive() ).</li>
         <li class="right" >
           <a href="built_in_commands.html" title="The available built-in commands are:"
              >previous</a> |</li>
-        <li><a href="index.html">BetterBatch v0.9.7 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v0.9.8 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
