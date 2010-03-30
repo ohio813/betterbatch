@@ -27,7 +27,7 @@ class Issue_tests(unittest.TestCase):
             True)
             
     def test_distribution_list_Yuhui(self):
-        """Test that an missing tools directory does not raise a problem"""
+        """Test that a missing tools directory does not raise a problem"""
         
         # this is not so easy to test, I don't particulary want to rename
         # the folder on my machine - and would like that "add_tools_dir" still
