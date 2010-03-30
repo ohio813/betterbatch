@@ -651,11 +651,19 @@ class VariableDefinition(Step):
         """Set the variable
 
         Note - we don't replace all sub variables at this point."""
+
         new_val = self.value
         if 'delayed' not in self.qualifiers:
             new_val = ReplaceExecutableSections(new_val, variables, phase)
 
-            new_val = ReplaceVariableReferences(new_val, variables)
+            try:
+                new_val = ReplaceVariableReferences(new_val, variables)
+            except ErrorCollection:
+                # when testing - even if there is an issue where this variable
+                # references missing variables, this varialbe is still 
+                # defined - and shouldn't be raised an a missing variable
+                if phase == "test":
+                    variables[self.name] = ""
 
             if self.value != new_val and phase != "test":
                 LOG.debug("Set variable '%s' to value '%s'"% (
