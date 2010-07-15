@@ -659,7 +659,7 @@ class VariableDefinition(Step):
                 new_val = ReplaceVariableReferences(new_val, variables)
             except ErrorCollection:
                 # when testing - even if there is an issue where this variable
-                # references missing variables, this varialbe is still 
+                # references missing variables, this varialbe is still
                 # defined - and shouldn't be raised an a missing variable
                 if phase == "test":
                     variables[self.name] = ""
