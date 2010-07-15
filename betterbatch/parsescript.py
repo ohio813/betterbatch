@@ -119,10 +119,9 @@ def ParseYAMLFile(yaml_file):
         if "\t" in yaml_data:
             yaml_data = yaml_data.replace("\t", "  ")
             LOG.warning(
-                "WARNING: Script contained one or more tab (\\t) "
-                    "characters.\n"
-                "         They have been replaced by spaces for "
-                    "processing")
+                "WARNING: Script contained one or more tab (\\t) characters.\n"
+                "         They have been replaced by spaces for processing:\n"
+                "         '%s'"% yaml_file)
 
         # only allow mapping at the end of a string
         re_non_end_colon = re.compile(r":( *)(?!\s*$)", re.MULTILINE)
