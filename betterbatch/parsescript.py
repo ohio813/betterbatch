@@ -342,8 +342,8 @@ def ReplaceExecutableSections(text, variables, phase = "run"):
     for section in sections:
         if "{{{" in section.group('command_line'):
             raise RuntimeError(
-                "Do not embed executable section {{{...}}} in another "
-                "executable section: '%s'"% text)
+                "Do not embed executable sections {{{...}}} in other "
+                "executable sections: '%s'"% text)
 
         command = section.group('command_line')
         command = command.replace("--#QUAL_#--", "{*")
