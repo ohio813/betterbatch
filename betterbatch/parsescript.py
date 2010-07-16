@@ -310,6 +310,10 @@ def ReplaceVariableReferences(text, variables, loop = None):
     if errors:
         raise ErrorCollection(errors)
 
+    # if there were any variable references - pass through it again
+    if var_refs:
+        text = ReplaceVariableReferences(text, variables)
+
     text = text.replace("{{_LT_}}", "<")
     text = text.replace("{{_GT_}}", ">")
 
