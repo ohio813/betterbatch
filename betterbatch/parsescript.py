@@ -607,7 +607,7 @@ def ParseComplexStep(step):
         clean_keys.append(clean_key)
         statements.append((clean_key, key_data, step[key]))
 
-    # if it iss an IF statement
+    # if it is an IF statement
     if 'if' in clean_keys:
         return ParseIfStep(step, statements, clean_keys)
 
