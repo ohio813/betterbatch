@@ -619,6 +619,14 @@ def ParseComplexStep(step):
 
     elif 'function' in clean_keys:
         return ParseFunctionDefinition(step, statements)
+
+    elif set(clean_keys).intersection(['else', 'or', 'and']):
+        raise RuntimeError(
+            "'%s' without 'if'. Please ensure that you do *not* have "
+            "a dash in front of %s, and the first letter of '%s' should be "
+            "indented to the same level as the 'i' of if"%(
+                clean_keys[0], clean_keys[0], clean_keys[0]))
+
     else:
         raise RuntimeError("Unknown Complex step type: '%s'"%
             clean_keys)
