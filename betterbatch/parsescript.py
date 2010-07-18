@@ -225,7 +225,11 @@ def FindVariableReferences(text):
     >>> {'var1': ['<var1>', < var1>], 'var2': ['<  var2 >']}
     """
 
-    variable_reference_re = re.compile("\<([^\>\<]+)\>")
+    variable_reference_re = re.compile("""
+            (\<
+                ([^\>\<]+)
+            \>)
+        """, re.X)
 
     # find all the variable references
     found = variable_reference_re.findall(text)
@@ -233,12 +237,14 @@ def FindVariableReferences(text):
     variables_referenced = {}
 
     # for each of the refernece variables in this variable
-    for var in found:
+    for var_ref in found:
+        var_def = var_ref[0]
+
         # clean the variable name
-        var_name = var.strip().lower()
+        var_name = var_ref[1].strip().lower()
 
         # add it and the text that needs to be replaced to the dictionary
-        variables_referenced.setdefault(var_name, []).append("<%s>"% var)
+        variables_referenced.setdefault(var_name, []).append(var_def)
 
     return variables_referenced
 
@@ -307,6 +313,10 @@ def ReplaceVariableReferences(text, variables, loop = None):
     if errors:
         raise ErrorCollection(errors)
 
+    # if there were any variable references - pass through it again
+    if var_refs:
+        text = ReplaceVariableReferences(text, variables)
+
     text = text.replace("{{_LT_}}", "<")
     text = text.replace("{{_GT_}}", ">")
 
@@ -339,8 +349,8 @@ def ReplaceExecutableSections(text, variables, phase = "run"):
     for section in sections:
         if "{{{" in section.group('command_line'):
             raise RuntimeError(
-                "Do not embed executable section {{{...}}} in another "
-                "executable section: '%s'"% text)
+                "Do not embed executable sections {{{...}}} in other "
+                "executable sections: '%s'"% text)
 
         command = section.group('command_line')
         command = command.replace("--#QUAL_#--", "{*")
