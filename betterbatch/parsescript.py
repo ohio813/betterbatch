@@ -76,6 +76,7 @@ class ErrorCollection(RuntimeError):
 
         for e in other_errs:
             LOG.fatal(e)
+            return
 
         LOG.fatal("======== UNDEFINED VARIABLES ========")
         LOG.info(
