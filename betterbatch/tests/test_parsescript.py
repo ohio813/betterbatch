@@ -1022,7 +1022,6 @@ class ForStepTests(unittest.TestCase):
         ParseStep(step).execute({}, 'test')
 
 
-
 class IfStepTests(unittest.TestCase):
 
     def test_working_do(self):
