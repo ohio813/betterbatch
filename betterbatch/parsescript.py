@@ -170,7 +170,10 @@ def ParseYAMLFile(yaml_file):
 
 
 def ParseVariableDefinition(var_def, allow_no_value = False):
-    """Return the variable name and variable value of a variable definition"""
+    """Return the variable name and variable value of a variable definition
+    
+    allow_no_value was added to allow variables to be defined but not have
+    a value - currently this is only used for Function definitions"""
 
     # NOTE: do not add %var_def after the errors - this will be added by the
     # the code that calls this method!!
