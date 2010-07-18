@@ -662,6 +662,27 @@ class ParseComplexStepTests(unittest.TestCase):
                 step)
 
 
+class ParallelStepTests(unittest.TestCase):
+    def test_empty_steps(self):
+        step = {r"parallel": ["dir \\", "dir \\"]}
+        ParseComplexStep(step).execute({}, 'run')
+        ParseComplexStep(step).execute({}, 'test')
+
+    def test_with_var_def(self):
+        step = {r"parallel": ["set x= 1"]}
+        ParseComplexStep(step).execute({}, 'run')
+        ParseComplexStep(step).execute({}, 'test')
+
+    def test_with_error(self):
+        step = {r"parallel": ["dir NO FIL EXISTS HERE"]}
+        self.assertRaises(
+            RuntimeError, 
+            ParseComplexStep(step).execute,
+                {}, 'run')
+        
+        ParseComplexStep(step).execute({}, 'test')
+
+
 class StepTests(unittest.TestCase):
     ""
 
@@ -994,6 +1015,13 @@ class VariableDefinedCheckTests(unittest.TestCase):
 #        step.execute(variables, "run")
 #
 
+class ForStepTests(unittest.TestCase):
+
+    def test_with_parallel_qualifier(self):
+        step = {'for x in {{{split here there}}} {*parallel*}': ['echo 1']}
+        ParseStep(step).execute({}, 'test')
+
+
 
 class IfStepTests(unittest.TestCase):
 
@@ -1161,6 +1189,22 @@ class IfStepTests(unittest.TestCase):
         self.assertRaises(
             RuntimeError,
             ParseStep, step)
+
+    def test_with_or_step(self):
+        step = {'if test': [], 'or test3': ['echo 1']}
+        ParseStep(step).execute({}, 'run')
+
+    def test_with_and_step(self):
+        step = {'if test': [], 'AND test3': ['BLAH']}
+        ParseStep(step).execute({}, 'run')
+
+    def test_with_and_or_step(self):
+        step = {'if test': [], 'or test2': [], 'AND test3': ['BLAH']}
+        self.assertRaises(
+            RuntimeError, 
+            ParseStep,
+                step)
+
 
 
 class ParseFunctionNameAndArgsTests(unittest.TestCase):
