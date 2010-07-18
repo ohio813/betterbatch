@@ -78,6 +78,7 @@ class ParseYAMLFileTests(unittest.TestCase):
             ParseYAMLFile,
                 full_path)
 
+
 class ErrorCollectionTests(unittest.TestCase):
     def test_LOGErrors(self):
         """"""
@@ -169,6 +170,15 @@ class ParseVariableDefinitionTests(unittest.TestCase):
         v.execute(vars, "run")
 
         self.assertEquals(vars['x'], os.path.abspath('.'))
+
+    def test_with_missing_vars(self):
+        v = VariableDefinition("set x = <missing>")
+        vars = {}
+
+        v.execute(vars, "run")
+
+        v.execute(vars, "test")
+        #self.assertEquals(vars['x'], '')
 
 
 class FindVariableReferencesTests(unittest.TestCase):
@@ -533,6 +543,7 @@ class ParseStepTests(unittest.TestCase):
         """"""
         self.assertEquals(ParseStep(None), None)
 
+
 class ParseComplexStepTests(unittest.TestCase):
     ""
 
@@ -651,7 +662,6 @@ class ParseComplexStepTests(unittest.TestCase):
                 step)
 
 
-
 class StepTests(unittest.TestCase):
     ""
 
@@ -739,14 +749,14 @@ class VariableDefinitionTests(unittest.TestCase):
         vars = {'a': 'here'}
         s = VariableDefinition("set _yikes_=_close_ <a> {*delayed*}")
         s.execute(vars, "run")
-        
+
         self.assertEquals(vars["_yikes_"], '_close_ <a>')
 
     def test_not_delayed_step(self):
         vars = {'a': 'here'}
         s = VariableDefinition("set _yikes_=_close_ <a>")
         s.execute(vars, "run")
-        
+
         self.assertEquals(vars["_yikes_"], '_close_ here')
 
 
@@ -811,8 +821,6 @@ class ExecutionEndStepTests(unittest.TestCase):
             EndExecution,
             e.execute,
                 {}, "run")
-
-
 
 
 def DebugAction(to_exec, dummy = None):
@@ -908,9 +916,11 @@ class IncludeStepTests(unittest.TestCase):
         step.execute(variables, "test")
         step.execute(variables, "run")
 
+
 class LogFileStepTests(IncludeStepTests):
     class_under_test = LogFileStep
     test_file_not_existing = lambda x: 1
+
 
 class VariableDefinedCheckTests(unittest.TestCase):
     def test_emtpy_variable(self):
@@ -924,15 +934,36 @@ class VariableDefinedCheckTests(unittest.TestCase):
         s = VariableDefinedCheck('defined test')
 
         s.execute(variables, 'test')
+        self.assertEquals(s.ret, 0)
         s.execute(variables, 'run')
+        self.assertEquals(s.ret, 0)
 
     def test_variable_not_defined(self):
         variables = {'test': "abc"}
         s = VariableDefinedCheck('defined test234')
 
         s.execute(variables, 'test')
+        self.assertEquals(s.ret, 1)
         s.execute(variables, 'run')
+        self.assertEquals(s.ret, 1)
 
+    def test_variable_defined_brakets(self):
+        variables = {'test': "abc"}
+        s = VariableDefinedCheck('defined <test>')
+
+        s.execute(variables, 'test')
+        self.assertEquals(s.ret, 0)
+        s.execute(variables, 'run')
+        self.assertEquals(s.ret, 0)
+
+    def test_variable_not_defined_brackets(self):
+        variables = {'test': "abc"}
+        s = VariableDefinedCheck('defined <test234>')
+
+        s.execute(variables, 'test')
+        self.assertEquals(s.ret, 1)
+        s.execute(variables, 'run')
+        self.assertEquals(s.ret, 1)
 
 
 #class IncludeStepTests(unittest.TestCase):
@@ -1124,6 +1155,13 @@ class IfStepTests(unittest.TestCase):
             repr(if_step),
             "<IF [('if', <CommandStep test>)]...>")
 
+    def test_and_else_or_steps(self):
+        step = {'and test': None}
+
+        self.assertRaises(
+            RuntimeError,
+            ParseStep, step)
+
 
 class ParseFunctionNameAndArgsTests(unittest.TestCase):
     def test_basic(self):
@@ -1153,12 +1191,13 @@ class ParseFunctionNameAndArgsTests(unittest.TestCase):
             ParseFunctionNameAndArgs,
                 name_args)
 
+
 class ParseFunctionDefinitionTests(unittest.TestCase):
     def test_basic(self):
         func = ParseComplexStep({"function test(1)": ["echo 1", 'echo 2']})
-        
+
         self.assertEquals(func.steps[0].raw_step, "echo 1")
-        
+
     def test_more_than_one_header(self):
         self.assertRaises(
             RuntimeError,
@@ -1166,13 +1205,20 @@ class ParseFunctionDefinitionTests(unittest.TestCase):
                 {"function test(a)": ["echo 1", 'echo 2'],
                 "function test(b)": ["echo 1", 'echo 2']})
 
+    def test_more_no_steps(self):
+        self.assertRaises(
+            RuntimeError,
+            ParseComplexStep,
+                {"function test(a)": []})
+
+
 class FunctionDefinitionTests(unittest.TestCase):
     def test_basic(self):
         vars = {"c": 'here'}
 
         step = {"function test(a)": ["echo <a>", 'echo 2']}
         func = ParseComplexStep(step)
-        
+
         func.execute(vars, "test")
         func.execute(vars, "run")
         func.call_function(({'a': '123'}), vars, 'test')
@@ -1183,12 +1229,12 @@ class FunctionDefinitionTests(unittest.TestCase):
 
         step = {"function test(a)": ["echo <a>", 'echo <b>']}
         func = ParseComplexStep(step)
-        
+
         self.assertRaises(
             ErrorCollection,
             func.execute,
                 vars, "test")
-        
+
         func.execute(vars, "run")
 
 
@@ -1205,7 +1251,7 @@ class FunctionCallTests(unittest.TestCase):
         vars = {"c": 'here'}
 
         step = ParseStep("call test(a)")
-        
+
         step.execute(vars, "test")
 
     def test_too_many_args(self):
@@ -1218,7 +1264,7 @@ class FunctionCallTests(unittest.TestCase):
             ErrorCollection,
             ExecuteSteps,
                 steps, vars, "test")
-        
+
     def test_positional(self):
         vars = {"c": 'here'}
         steps = [
@@ -1234,6 +1280,51 @@ class FunctionCallTests(unittest.TestCase):
             "call test(1, a = 3)",]
         steps = ParseSteps(steps)
         ExecuteSteps(steps, vars, "test")
+
+
+class FunctionReturnTests(unittest.TestCase):
+    def test_single_step(self):
+        vars = {}
+        steps = [
+            {"function test(a)": ['return <a>2'], },
+            "set b = {{{ call test(1) }}}",]
+        steps = ParseSteps(steps)
+        steps = ExecuteSteps(steps, vars, "test")
+        self.assertEquals(vars['b'], '12')
+
+    def test_steps_after_return_run(self):
+        vars = {}
+        steps = [
+            {"function test(a)": ['return <a>2', 'echo ' + '9'*8000 ], },
+            "set b = {{{ call test(1) }}}",]
+        steps = ParseSteps(steps)
+        steps = ExecuteSteps(steps, vars, "run")
+        self.assertEquals(vars['b'], '12')
+
+    def test_steps_after_return_test(self):
+        vars = {}
+        steps = [
+            {"function test(a)": ['return <a>2', 'echo ' + '9'*8000 ], },
+            "set b = {{{ call test(1) }}}",]
+        steps = ParseSteps(steps)
+        steps = ExecuteSteps(steps, vars, "test")
+        self.assertEquals(vars['b'], '12')
+
+    def test_steps_no_return_no_output(self):
+        vars = {}
+        steps = [
+            {"function test(a)": ['set x = 3 '], },
+            "set b = {{{ call test(1) }}}",]
+        steps = ParseSteps(steps)
+        self.assertRaises(
+            RuntimeError,
+            ExecuteSteps,
+                steps, vars, "test")
+
+
+class ParseStepsTests(unittest.TestCase):
+    def test_single_step(self):
+        ParseSteps(["set z = <a>", "set n = <b>",])
 
 
 if __name__ == "__main__":
