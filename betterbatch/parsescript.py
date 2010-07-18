@@ -831,6 +831,11 @@ class FunctionDefinition(Step):
 
         self.raw_step = raw_step
 
+        # don't allow a function with no steps
+        if not steps:
+            raise RuntimeError("Function definition with no steps: '%s'"%
+                self.raw_step.keys()[0])
+
         self.name = name
         self.args = args
         self.steps = steps
