@@ -862,7 +862,14 @@ class FunctionDefinition(Step):
         vars_copy = copy.deepcopy(variables)
         vars_copy.update(arg_values)
 
-        ExecuteSteps(self.steps, vars_copy, phase)
+        steps = ExecuteSteps(self.steps, vars_copy, phase)
+
+        if hasattr(self, 'output'):
+            del self.output
+
+        # on purpose do not set self.output if there was no return vlaue
+        if hasattr(steps[-1], 'output'):
+            self.output = steps[-1].output
 
 
 class ParallelSteps(Step):
@@ -1032,6 +1039,7 @@ class IfStep(Step):
         # due to a 'defined' check which would upset the 'else' checks
         if phase == 'test':
             self.__test_step(variables)
+            self.output = ''
             return
 
         for cond_type, condition in self.conditions:
@@ -1064,7 +1072,10 @@ class IfStep(Step):
             self.steps_to_exec = self.else_steps
 
         # Execute the steps
-        ExecuteSteps(self.steps_to_exec, variables, phase)
+        if self.steps_to_exec:
+            ExecuteSteps(self.steps_to_exec, variables, phase)
+            if hasattr(self.steps_to_exec[-1], 'output'):
+                self.output = self.steps_to_exec[-1].output
 
     def __repr__(self):
         return "<IF %s...>"% self.conditions
@@ -1136,6 +1147,19 @@ class FunctionCall(Step):
             #            (i + len(arg_values_to_pass), arg_name, self.raw_step))
 
         function.call_function(args_to_pass, variables, phase)
+
+
+class FunctionReturn(Step):
+
+    def __init__(self, raw_step):
+        Step.__init__(self, raw_step)
+        step_data = SplitStatementAndData(raw_step)[1]
+        self.value, self.qualifiers = ParseQualifiers(step_data)
+
+    def execute(self, variables, phase):
+        return_val = ReplaceExecutableSections(
+            self.value, variables, phase)
+        self.output = ReplaceVariableReferences(return_val, variables)
 
 
 class ExecutionEndStep(Step):
