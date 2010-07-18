@@ -1283,6 +1283,7 @@ STATEMENT_HANDLERS = {
     'defined': VariableDefinedCheck,
     'call'   : FunctionCall,
     'echo'   : EchoStep,
+    'return' : FunctionReturn,
     'end'    : ExecutionEndStep, }
 
 
@@ -1365,9 +1366,18 @@ def ExecuteSteps(steps_, variables, phase):
     else:
         steps = steps_
 
+    return_steps = None
+
     for step in steps:
         try:
             step.execute(variables, phase)
+
+            # if we are not testing - then truncate the steps so that
+            # the function return is the last step
+            if isinstance(step, FunctionReturn):
+                return_steps = steps[:steps.index(step)+1]
+                if phase != 'test':
+                    return return_steps
 
         except ErrorCollection, e:
             if phase != "test":
@@ -1381,6 +1391,10 @@ def ExecuteSteps(steps_, variables, phase):
     if errors:
         raise ErrorCollection(errors)
 
+    # if there was a 'return' from a function call - ensure that the return
+    # is the last step
+    if return_steps != None:
+        return return_steps
     return steps
 
 
