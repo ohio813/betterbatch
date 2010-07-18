@@ -1162,6 +1162,9 @@ class FunctionCall(Step):
 
         function.call_function(args_to_pass, variables, phase)
 
+        if hasattr(function, 'output'):
+            self.output = function.output
+
 
 class FunctionReturn(Step):
 
