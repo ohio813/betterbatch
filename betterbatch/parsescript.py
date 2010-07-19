@@ -117,7 +117,7 @@ def ParseYAMLFile(yaml_file):
         # replace tabs with spaces
         # and log a warning if we changed the file
         if "\t" in yaml_data:
-            yaml_data = yaml_data.replace("\t", "  ")
+            yaml_data = yaml_data.replace("\t", "    ")
             LOG.warning(
                 "WARNING: Script contained one or more tab (\\t) characters.\n"
                 "         They have been replaced by spaces for processing:\n"
