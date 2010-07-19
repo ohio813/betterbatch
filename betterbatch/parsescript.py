@@ -679,8 +679,6 @@ class VariableDefinition(Step):
 
         new_val = self.value
         if 'delayed' not in self.qualifiers:
-            new_val = ReplaceExecutableSections(new_val, variables, phase)
-
             try:
                 new_val = ReplaceVariableReferences(new_val, variables)
             except ErrorCollection:
@@ -689,6 +687,8 @@ class VariableDefinition(Step):
                 # defined - and shouldn't be raised an a missing variable
                 if phase == "test":
                     variables[self.name] = ""
+                    
+            new_val = ReplaceExecutableSections(new_val, variables, phase)
 
             if self.value != new_val and phase != "test":
                 LOG.debug("Set variable '%s' to value '%s'"% (
@@ -765,9 +765,7 @@ class CommandStep(Step):
     def execute(self, variables, phase):
         "Run this step"
 
-        command_text = ReplaceExecutableSections(
-            self.step_data, variables, phase)
-        command_text = ReplaceVariableReferences(command_text, variables)
+        command_text = RenderVariableValue(self.step_data, variables, phase)
 
         if phase == "test":
             return
@@ -821,6 +819,15 @@ class CommandStep(Step):
         elif indented_output != "\n":
             LOG.debug("Output from command:\n%s"% indented_output)
 
+def RenderVariableValue(value, variables, phase):
+    value = ReplaceVariableReferences(value, variables)
+    value = ReplaceExecutableSections(value, variables, phase)
+    
+    #if '{{{'  in value:
+    #    value = ReplaceExecutableSections(value, variables, phase)
+    
+    return value
+    
 
 class EchoStep(Step):
     "Request end execution of the script"
@@ -832,9 +839,7 @@ class EchoStep(Step):
         self.output = ""
 
     def execute(self, variables, phase):
-        message = ReplaceExecutableSections(
-            self.message, variables, phase)
-        message = ReplaceVariableReferences(message, variables)
+        message = RenderVariableValue(self.message, variables, phase)
 
         if phase != "test":
             LOG.info(message)
@@ -980,8 +985,7 @@ class ForStep(Step):
     def execute(self, variables, phase):
         "Run this step"
 
-        cmd_output = ReplaceExecutableSections(
-            self.command, variables, phase)
+        cmd_output= RenderVariableValue(self.command, variables, phase)
 
         # split the variables
         values = cmd_output.split("\n")
@@ -1184,9 +1188,7 @@ class FunctionReturn(Step):
         self.value, self.qualifiers = ParseQualifiers(step_data)
 
     def execute(self, variables, phase):
-        return_val = ReplaceExecutableSections(
-            self.value, variables, phase)
-        self.output = ReplaceVariableReferences(return_val, variables)
+        self.output= RenderVariableValue(self.value, variables, phase)
 
 
 class ExecutionEndStep(Step):
