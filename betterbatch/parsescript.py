@@ -584,8 +584,8 @@ def ParseFunctionNameAndArgs(name_args):
         else:
             default_found = True
 
-    # strip off any trailing args (caused by a trailing comma )
-    while parsed_args[-1] == ("", None):
+    # strip off any trailing args (caused by a trailing comma)
+    while parsed_args and parsed_args[-1] == ("", None):
         del parsed_args[-1]
 
 
