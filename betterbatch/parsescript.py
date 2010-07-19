@@ -588,7 +588,6 @@ def ParseFunctionNameAndArgs(name_args):
     while parsed_args and parsed_args[-1] == ("", None):
         del parsed_args[-1]
 
-
     return name, parsed_args
 
 
