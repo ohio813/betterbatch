@@ -284,7 +284,7 @@ def ReplaceVariableReferences(text, variables, loop = None):
         # a loop of 1 is OK e.g. x = <x>_ + 1
         if len(loop) > 100:
             errors.append("Loop found in variable definition "
-                "'%s', variable %s"% (original_text, repr(loop)))
+                "'%s', variables %s"% (original_text, list(set(loop))))
             continue
 
         loop.append(variable)
