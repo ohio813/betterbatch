@@ -62,7 +62,7 @@ class ParseYAMLFileTests(unittest.TestCase):
         steps = ParseYAMLFile(full_path)
         self.assertEquals(
             steps,
-            ["set  Hello  =  .", "cd  <hello>"])
+            ["set    Hello    =    .", "cd    <hello>"])
 
     def test_empty_file(self):
         """"""
