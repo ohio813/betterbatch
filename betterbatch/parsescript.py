@@ -1145,6 +1145,13 @@ class FunctionCall(Step):
         # be simply passed in the order in the call
         args_to_pass = {}
 
+        function_args = [arg[0].lower() for arg in function.args]
+        unmatched_args = set(self.keyword_args.keys()).difference(function_args)
+        if unmatched_args:
+            raise RuntimeError((
+                "Argument(s) %s are not "
+                "arguments of function '%s'")%(unmatched_args, function.name))
+        
         # for each of the remaining function definition arguments
         # match passed arguments against function arguments
         for i, (arg_name, arg_value) in enumerate(function.args):
