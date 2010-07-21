@@ -129,6 +129,10 @@ def ParseYAMLFile(yaml_file):
 
         # avoid the 'double quote parsing of YAML'
         yaml_data = yaml_data.replace('"', '+++++dblquote+++++')
+        
+        #ensure that USAGE blocks are treated as pre-formatted strings
+        usage_block = re.compile ("^(\s*)-(\s+set\s+usage.*$)", re.I | re.M)
+        yaml_data = usage_block.sub(r"\1- |\n\1 \2", yaml_data)
 
         # Parse the yaml data
         script_data = yaml.load(yaml_data)
