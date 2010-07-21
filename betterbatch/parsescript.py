@@ -336,7 +336,7 @@ def ReplaceExecutableSections(text, variables, phase = "run"):
                 \s*
                 (?P<command_line>.+?)
                 \s*
-            \}\}\}""", re.VERBOSE)
+            \}\}\}""", re.VERBOSE | re.DOTALL)
 
     # See if it matches the executable section pattern
     sections = EXECUTABLE_SECTION.finditer(text)
