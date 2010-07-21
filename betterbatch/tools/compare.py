@@ -22,6 +22,9 @@ def ParseComparisonOperator(op_text):
 
     elif op_text.startswith("="):
         op = operator.eq
+
+    elif op_text.startswith("!="):
+        op = operator.ne
     
     elif op_text.lower() == "startswith":
         op = unicode.startswith
