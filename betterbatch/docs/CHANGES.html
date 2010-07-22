@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -5,21 +7,22 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>CHANGES &mdash; BetterBatch v0.9.8 documentation</title>
+    <title>CHANGES &mdash; BetterBatch v0.9.9 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '#',
-        VERSION:     '0.9.8',
-        COLLAPSE_MODINDEX: false,
+        URL_ROOT:    '',
+        VERSION:     '0.9.9',
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="BetterBatch v0.9.8 documentation" href="index.html" />
+    <link rel="top" title="BetterBatch v0.9.9 documentation" href="index.html" />
     <link rel="next" title="BetterBatches License - MIT" href="LICENSE.html" />
     <link rel="prev" title="The available built-in commands are:" href="built_in_commands.html" /> 
   </head>
@@ -36,7 +39,7 @@
         <li class="right" >
           <a href="built_in_commands.html" title="The available built-in commands are:"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">BetterBatch v0.9.8 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v0.9.9 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -47,9 +50,43 @@
             
   <div class="section" id="changes">
 <h1>CHANGES<a class="headerlink" href="#changes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="improved-processing-more-error-checking">
+<h2>0.9.9 Improved processing, More error checking<a class="headerlink" href="#improved-processing-more-error-checking" title="Permalink to this headline">¶</a></h2>
+<p>23-July-2010</p>
+<blockquote>
+<ul class="simple">
+<li>Add a check when replacing <tt class="docutils literal"><span class="pre">{{{</span> <span class="pre">}}}</span></tt> to see if the command had an output value
+(external commands will always have output - but a function will not have
+output if there was no return statement executed).</li>
+<li>Added a return step to allow returning values from functions</li>
+<li>Improved or added some error messages</li>
+<li><tt class="docutils literal"><span class="pre">ReplaceVariableReferences()</span></tt> (which replaces &lt;var_ref&gt; with the variable
+reference) will ensure that there are no remaining &lt;var_refs&gt; in the string.
+Previously if a replacement variable included a &lt;var_ref&gt; (i.e. a
+{<em>delayed</em>} value - then it would not replace those.</li>
+<li>Functions with no arguments are now allowed</li>
+<li>Add a new function to call both <tt class="docutils literal"><span class="pre">ReplaceVariableReferences()</span></tt> and
+<tt class="docutils literal"><span class="pre">ReplaceExecutableSections()</span></tt>. Also Variable References are replaced first
+and THEN executable sections - this is a change from the previous
+implementation.</li>
+<li>Replaced tabs will default to 4 spaces instead of 2 (maybe I should add
+a configuration value for this?)</li>
+<li>Executable Blocks {{{ ... }}} can now span multiple lines.</li>
+<li>special case <tt class="docutils literal"><span class="pre">set</span> <span class="pre">usage</span> <span class="pre">=</span></tt>  variable definitions so that they always
+are treated as preformatted.</li>
+<li>Replaced <tt class="docutils literal"><span class="pre">associate_filetype.bb</span></tt> with <tt class="docutils literal"><span class="pre">associate_filetype.py</span></tt> to enable more
+complete processing</li>
+<li>Add support for <tt class="docutils literal"><span class="pre">!=</span></tt> comparisons in <tt class="docutils literal"><span class="pre">compare.py</span></tt></li>
+<li>Realized I never had a time machine - and set the years in <tt class="docutils literal"><span class="pre">CHANGES.txt</span></tt>
+back to 2010 (not 2011)</li>
+<li>Lots of small code cleanups</li>
+<li>More tests</li>
+</ul>
+</blockquote>
+</div>
 <div class="section" id="bug-fixes-improve-parallelization-and-add-loop-parallelization">
 <h2>0.9.8 Bug fixes, Improve parallelization (and add loop parallelization)<a class="headerlink" href="#bug-fixes-improve-parallelization-and-add-loop-parallelization" title="Permalink to this headline">¶</a></h2>
-<p>30-March-2011</p>
+<p>30-March-2010</p>
 <blockquote>
 <ul class="simple">
 <li>Allow parallel steps to include any steps (not just commands, echo steps)</li>
@@ -83,7 +120,7 @@ glance that there was indeed an error.</li>
 </div>
 <div class="section" id="functions-negative-conditions-setup-installer-and-test-fixes">
 <h2>0.9.7 Functions, negative conditions, Setup/Installer and test fixes<a class="headerlink" href="#functions-negative-conditions-setup-installer-and-test-fixes" title="Permalink to this headline">¶</a></h2>
-<p>07-March-2011</p>
+<p>07-March-2010</p>
 <blockquote>
 <ul class="simple">
 <li>Add preliminary support for Functions, give it a try and let me know.</li>
@@ -114,7 +151,7 @@ mail list.</li>
 </div>
 <div class="section" id="fixed-some-critical-issues-with-variable-references">
 <h2>0.9.6 Fixed Some critical issues with variable references<a class="headerlink" href="#fixed-some-critical-issues-with-variable-references" title="Permalink to this headline">¶</a></h2>
-<p>02-March-2011</p>
+<p>02-March-2010</p>
 <blockquote>
 <ul class="simple">
 <li>Fixed an issue with how variables are dealt with. I was finding that during
@@ -125,7 +162,7 @@ phase.</li>
 </div>
 <div class="section" id="added-for-loops-and-parallel-sections">
 <h2>0.9.5 Added For loops and Parallel sections<a class="headerlink" href="#added-for-loops-and-parallel-sections" title="Permalink to this headline">¶</a></h2>
-<p>01-March-2011</p>
+<p>01-March-2010</p>
 <blockquote>
 <ul class="simple">
 <li>Huge refactoring of the code. Removed Step.replace_vars() methods and
@@ -174,43 +211,44 @@ use Thread.isAlive() rather than Thread.is_alive() ).</li>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-            <h3><a href="index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="#">CHANGES</a><ul>
-<li><a class="reference external" href="#bug-fixes-improve-parallelization-and-add-loop-parallelization">0.9.8 Bug fixes, Improve parallelization (and add loop parallelization)</a></li>
-<li><a class="reference external" href="#functions-negative-conditions-setup-installer-and-test-fixes">0.9.7 Functions, negative conditions, Setup/Installer and test fixes</a></li>
-<li><a class="reference external" href="#fixed-some-critical-issues-with-variable-references">0.9.6 Fixed Some critical issues with variable references</a></li>
-<li><a class="reference external" href="#added-for-loops-and-parallel-sections">0.9.5 Added For loops and Parallel sections</a></li>
-<li><a class="reference external" href="#id1">0.9.4 Added For loops and Parallel sections</a></li>
-<li><a class="reference external" href="#path-handling-documentation-shell-references">0.9.3 Path handling, documentation, shell references</a></li>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">CHANGES</a><ul>
+<li><a class="reference internal" href="#improved-processing-more-error-checking">0.9.9 Improved processing, More error checking</a></li>
+<li><a class="reference internal" href="#bug-fixes-improve-parallelization-and-add-loop-parallelization">0.9.8 Bug fixes, Improve parallelization (and add loop parallelization)</a></li>
+<li><a class="reference internal" href="#functions-negative-conditions-setup-installer-and-test-fixes">0.9.7 Functions, negative conditions, Setup/Installer and test fixes</a></li>
+<li><a class="reference internal" href="#fixed-some-critical-issues-with-variable-references">0.9.6 Fixed Some critical issues with variable references</a></li>
+<li><a class="reference internal" href="#added-for-loops-and-parallel-sections">0.9.5 Added For loops and Parallel sections</a></li>
+<li><a class="reference internal" href="#id1">0.9.4 Added For loops and Parallel sections</a></li>
+<li><a class="reference internal" href="#path-handling-documentation-shell-references">0.9.3 Path handling, documentation, shell references</a></li>
 </ul>
 </li>
 </ul>
 
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="built_in_commands.html"
-                                  title="previous chapter">The available built-in commands are:</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="LICENSE.html"
-                                  title="next chapter">BetterBatches License - MIT</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="_sources/CHANGES.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="built_in_commands.html"
+                        title="previous chapter">The available built-in commands are:</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="LICENSE.html"
+                        title="next chapter">BetterBatches License - MIT</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/CHANGES.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -227,12 +265,12 @@ use Thread.isAlive() rather than Thread.is_alive() ).</li>
         <li class="right" >
           <a href="built_in_commands.html" title="The available built-in commands are:"
              >previous</a> |</li>
-        <li><a href="index.html">BetterBatch v0.9.8 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v0.9.9 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2010, Mark Mc Mahon.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+        &copy; Copyright 2010, Mark Mc Mahon.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2.
     </div>
   </body>
 </html>
