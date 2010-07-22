@@ -6,5 +6,5 @@ prune *.pyc
 prune relnotes*.txt
 
 include example.bb
-include associate_filetype.bb
+include associate_filetype.py
 include makedocs.bb
