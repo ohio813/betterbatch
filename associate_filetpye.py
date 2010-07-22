@@ -2,25 +2,37 @@
 import sys
 import os
 import _winreg
-#import optparse
+import optparse
 
-#def ParseOptions()
-#    optparse.OptionParser('Associate BetterBatch files on Windows')
+def ParseOptions():
+    parser = optparse.OptionParser('Associate BetterBatch files on Windows')
+
+    parser.add_option(
+        "--bbrun",
+        default = '',
+        help='use the path to the specified bbrun.py')
+    
+   # parse the command line
+    options, args =  parser.parse_args()
+    
+    if options.bbrun:
+        options.bbrun = os.path.abspath(options.bbrun)
+    else:
+        options.bbrun = os.path.join(sys.prefix, 'scripts', 'bbrun.py')
+        
+    return options
+    
 #    Add timing arg
 #    don't modify PATHEXT
+#    use specified bbrun.py
 
 
 def main():
     "Do the work"
-    #options = ParseOptions()
-
-    # get the Path of python.exe (and from that the python\scripts directory
-    python_path = sys.prefix
-
-    runner_script = os.path.join(python_path, 'scripts', 'bbrun.py')
+    options = ParseOptions()
 
     # check that the bbrun.py exists in the scripts directory
-    if not os.path.exists(runner_script):
+    if not os.path.exists(options.bbrun):
         print "Script runner was not found: '%s'"% runner_script
         sys.exit(1)
 
@@ -29,8 +41,8 @@ def main():
     os.system("assoc .bb=BetterBatchScriptFile")
     os.system(
         'ftype BetterBatchScriptFile=%s %s "%%1" %%*'% (
-            os.path.join(python_path, "python.exe"),
-            runner_script))
+            os.path.join(sys.prefix, "python.exe"),
+            options.bbrun))
 
     # update the pathext
 
