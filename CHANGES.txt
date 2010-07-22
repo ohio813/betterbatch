@@ -5,29 +5,30 @@ CHANGES
 0.9.9 Improved processing, More error checking
 ------------------------------------------------------------------------
 23-July-2010
- * Add a check when replacing {{{ }}} to see if the command had an output value
+
+ * Add a check when replacing ``{{{ }}}`` to see if the command had an output value
    (external commands will always have output - but a function will not have
    output if there was no return statement executed).
  * Added a return step to allow returning values from functions
  * Improved or added some error messages
- * ReplaceVariableReferences() (which replaces <var_ref> with the variable
+ * ``ReplaceVariableReferences()`` (which replaces <var_ref> with the variable
    reference) will ensure that there are no remaining <var_refs> in the string.
    Previously if a replacement variable included a <var_ref> (i.e. a
    {*delayed*} value - then it would not replace those.
  * Functions with no arguments are now allowed
- * Add a new function to call both ReplaceVariableReferences() and
-   ReplaceExecutableSections(). Also Variable References are replaced first
+ * Add a new function to call both ``ReplaceVariableReferences()`` and
+   ``ReplaceExecutableSections()``. Also Variable References are replaced first
    and THEN executable sections - this is a change from the previous
    implementation.
  * Replaced tabs will default to 4 spaces instead of 2 (maybe I should add
    a configuration value for this?)
  * Executable Blocks {{{ ... }}} can now span multiple lines.
- * special case ``set usage = `` variable definitions so that they always
+ * special case ``set usage =``  variable definitions so that they always
    are treated as preformatted.
- * Replaced associate_filetype.bb with associate_filetype.py to enable more
+ * Replaced ``associate_filetype.bb`` with ``associate_filetype.py`` to enable more
    complete processing
- * Add support for != comparisons in compare.py
- * Realized I never had a time machine - and set the years in CHANGES.txt
+ * Add support for ``!=`` comparisons in ``compare.py``
+ * Realized I never had a time machine - and set the years in ``CHANGES.txt``
    back to 2010 (not 2011)
  * Lots of small code cleanups
  * More tests
