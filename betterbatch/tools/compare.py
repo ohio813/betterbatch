@@ -64,11 +64,11 @@ if __name__ == "__main__":
         str2 = int(str2)
 
     op = ParseComparisonOperator(op_text)
-    
-    ret = RunComparison(str1, op, str2)
-    
+
+    matches = RunComparison(str1, op, str2)
+
     # convert True or False to 0/1 for error return
-    if ret:
+    if matches:
         ret = 0
     else:
         ret = 1
