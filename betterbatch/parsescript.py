@@ -134,6 +134,18 @@ def ParseYAMLFile(yaml_file):
         usage_block = re.compile ("^(\s*)-(\s+set\s+usage.*$)", re.I | re.M)
         yaml_data = usage_block.sub(r"\1- |\n\1 \2", yaml_data)
 
+        # allow new-lines in {{{ }}} quoted strings
+        brace_quoted = re.compile("{{{.*?}}}", re.DOTALL)
+        for quoted in brace_quoted.finditer(yaml_data):
+            quoted_text = quoted.group(0)
+            
+            #  we keep the same length with these replacements
+            quoted_text = quoted_text.replace("\r\n", "  ")
+            quoted_text = quoted_text.replace("\n", " ")
+            quoted_text = quoted_text.replace("\r", " ")
+            
+            yaml_data = yaml_data[:quoted.start()] + quoted_text + yaml_data[quoted.end():]
+        
         # Parse the yaml data
         script_data = yaml.load(yaml_data)
 
