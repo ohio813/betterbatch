@@ -381,7 +381,7 @@ def ReplaceExecutableSections(text, variables, phase = "run"):
 
         if not hasattr(step, 'output') and isinstance(step, FunctionCall):
             raise RuntimeError(
-                "Function with call no return statement, "
+                "Function call with no return statement, "
                 "No value to retrieve:\n\t'%s'"% text)
 
         # Escape any greater/less than characters in the output of the

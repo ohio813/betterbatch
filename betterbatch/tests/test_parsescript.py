@@ -1347,9 +1347,14 @@ class FunctionReturnTests(unittest.TestCase):
     def test_steps_after_return_test(self):
         vars = {}
         steps = [
-            {"function test(a)": ['return <a>2', 'echo ' + '9'*8000 ], },
+            {"function test(a)": [
+                'return <a>2', 
+                'echo ' + '9'*8000 ], 
+            },
             "set b = {{{ call test(1) }}}",]
         steps = ParseSteps(steps)
+        import pdb; pdb.set_trace()
+        
         steps = ExecuteSteps(steps, vars, "test")
         self.assertEquals(vars['b'], '12')
 
