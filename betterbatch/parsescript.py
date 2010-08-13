@@ -129,7 +129,7 @@ def ParseYAMLFile(yaml_file):
 
         # avoid the 'double quote parsing of YAML'
         yaml_data = yaml_data.replace('"', '+++++dblquote+++++')
-        
+
         #ensure that USAGE blocks are treated as pre-formatted strings
         usage_block = re.compile ("^(\s*)-(\s+set\s+usage.*$)", re.I | re.M)
         yaml_data = usage_block.sub(r"\1- |\n\1 \2", yaml_data)
@@ -138,14 +138,14 @@ def ParseYAMLFile(yaml_file):
         brace_quoted = re.compile("{{{.*?}}}", re.DOTALL)
         for quoted in brace_quoted.finditer(yaml_data):
             quoted_text = quoted.group(0)
-            
+
             #  we keep the same length with these replacements
             quoted_text = quoted_text.replace("\r\n", "  ")
             quoted_text = quoted_text.replace("\n", " ")
             quoted_text = quoted_text.replace("\r", " ")
-            
+
             yaml_data = yaml_data[:quoted.start()] + quoted_text + yaml_data[quoted.end():]
-        
+
         # Parse the yaml data
         script_data = yaml.load(yaml_data)
 
@@ -709,7 +709,7 @@ class VariableDefinition(Step):
                 # defined - and shouldn't be raised an a missing variable
                 if phase == "test":
                     variables[self.name] = ""
-                    
+
             new_val = ReplaceExecutableSections(new_val, variables, phase)
 
             if self.value != new_val and phase != "test":
@@ -844,12 +844,12 @@ class CommandStep(Step):
 def RenderVariableValue(value, variables, phase):
     value = ReplaceVariableReferences(value, variables)
     value = ReplaceExecutableSections(value, variables, phase)
-    
+
     #if '{{{'  in value:
     #    value = ReplaceExecutableSections(value, variables, phase)
-    
+
     return value
-    
+
 
 class EchoStep(Step):
     "Request end execution of the script"
@@ -1172,19 +1172,20 @@ class FunctionCall(Step):
             raise RuntimeError((
                 "Argument(s) %s are not "
                 "arguments of function '%s'")%(unmatched_args, function.name))
-        
+
         # for each of the remaining function definition arguments
         # match passed arguments against function arguments
         for i, (arg_name, arg_value) in enumerate(function.args):
             arg_name = arg_name.lower()
 
             # this will populate arguments from the positional args in the
-            # function call
+            # function call (we have already validated that no positional arg
+            # comes after a keyword arg - when parsing call)
             if len(self.positional_args) > i:
                 args_to_pass[arg_name] = self.positional_args[i]
                 continue
 
-            # If it is one of the passed our keyword arguments
+            # If it is one of the passed keyword arguments
             if arg_name.lower() in self.keyword_args:
                 if arg_name in args_to_pass:
                     raise RuntimeError(
@@ -1192,14 +1193,9 @@ class FunctionCall(Step):
 
                 args_to_pass[arg_name] = self.keyword_args[arg_name]
 
-            # otherwise just use the default value
+            # otherwise just use the default value after checking it
             else:
                 args_to_pass[arg_name] = arg_value
-            #elif arg_value is None:
-            #    raise RuntimeError((
-            #        "No Value passed for function parameter %d '%s' in "
-            #        "function call:\n\t%s")%
-            #            (i + len(arg_values_to_pass), arg_name, self.raw_step))
 
 
         # If there was a return then set our output value
