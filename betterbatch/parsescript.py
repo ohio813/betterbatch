@@ -195,18 +195,19 @@ def ParseVariableDefinition(var_def, allow_no_value = False):
     # NOTE: do not add %var_def after the errors - this will be added by the
     # the code that calls this method!!
 
-    if allow_no_value:
-        if '=' not in var_def:
-            return var_def.strip(), None
+    name_value = [p.strip() for p in var_def.split("=", 1)]
 
-    try:
-        name, value = [p.strip() for p in var_def.split("=", 1)]
-    except ValueError, e:
-        raise RuntimeError("Variable not defined correctly: '%s'")
-
-    if len(name.split()) > 1:
+    if len(name_value[0].split()) > 1:
         raise RuntimeError(
             "Variable names cannot have spaces: '%s'")
+
+    if len(name_value) == 1:
+        if allow_no_value:
+            name, value = name_value[0], None
+        else:
+            raise RuntimeError("Variable not defined correctly (no '='): '%s'")
+    else:
+        name, value = name_value
 
     if not name:
         raise RuntimeError(
