@@ -1182,19 +1182,25 @@ class FunctionCall(Step):
             # function call (we have already validated that no positional arg
             # comes after a keyword arg - when parsing call)
             if len(self.positional_args) > i:
+                if arg_name in self.keyword_args:
+                    raise RuntimeError(
+                        "Function parameter supplied as both positional "
+                        "and keyword argument: '%s'"% arg_name)
                 args_to_pass[arg_name] = self.positional_args[i]
                 continue
 
             # If it is one of the passed keyword arguments
             if arg_name.lower() in self.keyword_args:
-                if arg_name in args_to_pass:
-                    raise RuntimeError(
-                        "Value for parameter '%s' already supplied"% arg_name)
-
                 args_to_pass[arg_name] = self.keyword_args[arg_name]
 
             # otherwise just use the default value after checking it
             else:
+                if arg_value is None:
+                    raise RuntimeError((
+                        "No Value passed for function parameter %d '%s' in "
+                        "function call:\n\t%s")% (
+                            i+1, arg_name, self.raw_step))
+
                 args_to_pass[arg_name] = arg_value
 
 
