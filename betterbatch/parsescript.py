@@ -581,6 +581,10 @@ def ParseFunctionNameAndArgs(name_args):
     name = found.group(1).strip()
     args = found.group(2).split(",")
 
+    # strip off 1 trailing empty arg (caused by a trailing comma)
+    if args and args[-1].strip() == "":
+        del args[-1]
+
     parsed_args = []
     for arg in args:
         try:
@@ -605,9 +609,7 @@ def ParseFunctionNameAndArgs(name_args):
         else:
             default_found = True
 
-    # strip off any trailing args (caused by a trailing comma)
-    while parsed_args and parsed_args[-1] == ("", None):
-        del parsed_args[-1]
+
 
     return name, parsed_args
 
