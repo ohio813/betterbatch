@@ -1294,7 +1294,10 @@ class FunctionCallTests(unittest.TestCase):
 
         step = ParseStep("call test1234567(a)")
 
-        step.execute(vars, "test")
+        self.assertRaises(
+            RuntimeError,
+            step.execute,
+                vars, "test")
 
     def test_too_many_args(self):
         vars = {"c": 'here'}
