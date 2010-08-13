@@ -609,8 +609,6 @@ def ParseFunctionNameAndArgs(name_args):
         else:
             default_found = True
 
-
-
     return name, parsed_args
 
 
@@ -868,59 +866,6 @@ class EchoStep(Step):
             self.output = message
 
 
-class FunctionDefinition(Step):
-    "An set of command steps to be executed in parallel"
-
-    all_functions = {}
-
-    def __init__(self, raw_step, name, args, steps):
-
-        self.raw_step = raw_step
-
-        # don't allow a function with no steps
-        if not steps:
-            raise RuntimeError("Function definition with no steps: '%s'"%
-                self.raw_step.keys()[0])
-
-        self.name = name
-        self.args = args
-        self.steps = steps
-
-        # arg has a default if the arg value is not None
-        self.non_default_args = [
-            arg[0] for arg in self.args if arg[1] == None]
-
-        # keep a record of the function so that we can reference it
-        FunctionDefinition.all_functions[name.lower()] = self
-
-    def execute(self, variables, phase):
-        """Only run the steps in test mode - they are not
-        executed in run mode - because they should only run when called"""
-        if phase == "test":
-            vars_copy = copy.deepcopy(variables)
-            for arg_name, arg_val in self.args:
-                vars_copy[arg_name] = arg_val or 'dummy val'
-
-            # don't propagate function returns up the stack
-            # at this point - we are only validating the steps are valid
-            try:
-                ExecuteSteps(self.steps, vars_copy, phase)
-            except FunctionReturnWrapper:
-                pass
-
-    def call_function(self, arg_values, variables, phase):
-
-        if phase != "test":
-            LOG.debug(
-                "Function call: '%s' with args %s"% (self.name, arg_values))
-
-        # make a copy of the variables
-        vars_copy = copy.deepcopy(variables)
-        vars_copy.update(arg_values)
-
-        steps = ExecuteSteps(self.steps, vars_copy, phase)
-
-
 class ParallelSteps(Step):
     "An set of command steps to be executed in parallel"
 
@@ -1127,6 +1072,59 @@ class IfStep(Step):
 
     def __repr__(self):
         return "<IF %s...>"% self.conditions
+
+
+class FunctionDefinition(Step):
+    "An set of command steps to be executed in parallel"
+
+    all_functions = {}
+
+    def __init__(self, raw_step, name, args, steps):
+
+        self.raw_step = raw_step
+
+        # don't allow a function with no steps
+        if not steps:
+            raise RuntimeError("Function definition with no steps: '%s'"%
+                self.raw_step.keys()[0])
+
+        self.name = name
+        self.args = args
+        self.steps = steps
+
+        # arg has a default if the arg value is not None
+        self.non_default_args = [
+            arg[0] for arg in self.args if arg[1] == None]
+
+        # keep a record of the function so that we can reference it
+        FunctionDefinition.all_functions[name.lower()] = self
+
+    def execute(self, variables, phase):
+        """Only run the steps in test mode - they are not
+        executed in run mode - because they should only run when called"""
+        if phase == "test":
+            vars_copy = copy.deepcopy(variables)
+            for arg_name, arg_val in self.args:
+                vars_copy[arg_name] = arg_val or 'dummy val'
+
+            # don't propagate function returns up the stack
+            # at this point - we are only validating the steps are valid
+            try:
+                ExecuteSteps(self.steps, vars_copy, phase)
+            except FunctionReturnWrapper:
+                pass
+
+    def call_function(self, arg_values, variables, phase):
+
+        if phase != "test":
+            LOG.debug(
+                "Function call: '%s' with args %s"% (self.name, arg_values))
+
+        # make a copy of the variables
+        vars_copy = copy.deepcopy(variables)
+        vars_copy.update(arg_values)
+
+        steps = ExecuteSteps(self.steps, vars_copy, phase)
 
 
 class FunctionCall(Step):
