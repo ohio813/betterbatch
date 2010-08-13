@@ -581,7 +581,7 @@ class ParseComplexStepTests(unittest.TestCase):
 
     def test_if_step_none_when(self):
         """"""
-        step = {r"if 1": None,}
+        step = {r"if 1": None, }
         self.assertRaises(
             RuntimeError,
             ParseComplexStep,
@@ -676,10 +676,10 @@ class ParallelStepTests(unittest.TestCase):
     def test_with_error(self):
         step = {r"parallel": ["dir NO FIL EXISTS HERE"]}
         self.assertRaises(
-            RuntimeError, 
+            RuntimeError,
             ParseComplexStep(step).execute,
                 {}, 'run')
-        
+
         ParseComplexStep(step).execute({}, 'test')
 
 
@@ -1200,10 +1200,9 @@ class IfStepTests(unittest.TestCase):
     def test_with_and_or_step(self):
         step = {'if test': [], 'or test2': [], 'AND test3': ['BLAH']}
         self.assertRaises(
-            RuntimeError, 
+            RuntimeError,
             ParseStep,
                 step)
-
 
 
 class ParseFunctionNameAndArgsTests(unittest.TestCase):
