@@ -1410,8 +1410,7 @@ class FunctionReturnTests(unittest.TestCase):
             },
             "set b = {{{ call test(3) }}}",]
         steps = ParseSteps(steps)
-        import pdb; pdb.set_trace()
-        
+
         steps = ExecuteSteps(steps, vars, "test")
         self.assertEquals(vars['b'], '33')
 
