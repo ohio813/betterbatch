@@ -1292,7 +1292,7 @@ class FunctionCallTests(unittest.TestCase):
     def test_no_function(self):
         vars = {"c": 'here'}
 
-        step = ParseStep("call test(a)")
+        step = ParseStep("call test1234567(a)")
 
         step.execute(vars, "test")
 
