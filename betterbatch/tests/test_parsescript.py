@@ -808,6 +808,10 @@ class ExecutionEndStepTests(unittest.TestCase):
         self.assertEquals(e.ret, 123)
         self.assertEquals(e.message, "")
 
+    def test_do_not_exit_when_testing(self):
+        """"""
+        step = ExecutionEndStep("end 123, hi")
+        step.execute({}, phase = "test")
 
     def test_construct_bad_return_code(self):
         """"""
@@ -1233,6 +1237,14 @@ class ParseFunctionNameAndArgsTests(unittest.TestCase):
             ParseFunctionNameAndArgs,
                 name_args)
 
+    def test_arg_with_space(self):
+        name_args = "func_name (this is a test)"
+
+        self.assertRaises(
+            RuntimeError,
+            ParseFunctionNameAndArgs,
+                name_args)
+
 
 class ParseFunctionDefinitionTests(unittest.TestCase):
     def test_basic(self):
@@ -1289,6 +1301,14 @@ class FunctionCallTests(unittest.TestCase):
         steps = ParseSteps(steps)
         ExecuteSteps(steps, vars, "test")
 
+    def test_use_default(self):
+        vars = {"c": 'here'}
+        steps = [
+            {"function test(a, b=1)": ["echo <a>, <b>"], },
+            "call test(1)",]
+        steps = ParseSteps(steps)
+        ExecuteSteps(steps, vars, "test")
+
     def test_no_function(self):
         vars = {"c": 'here'}
 
@@ -1324,7 +1344,42 @@ class FunctionCallTests(unittest.TestCase):
             {"function test(a, b)": ["echo <a>", 'echo 2'], },
             "call test(1, a = 3)",]
         steps = ParseSteps(steps)
-        ExecuteSteps(steps, vars, "test")
+        self.assertRaises(
+            RuntimeError,
+            ExecuteSteps,
+                steps, vars, "test")
+
+    def test_unmatched_args(self):
+        vars = {"c": 'here'}
+        steps = [
+            {"function test(a, b)": ["echo <a>"], },
+            "call test(1, g = 3)",]
+        steps = ParseSteps(steps)
+        self.assertRaises(
+            RuntimeError,
+            ExecuteSteps,
+                steps, vars, "test")
+
+    def test_positional_after_keyword(self):
+        vars = {"c": 'here'}
+        steps = [
+            {"function test(xyz, bcd)": ["echo <a>"], },
+            "call test(xyz = 3, 1)",]
+        self.assertRaises(
+            RuntimeError,
+            ParseSteps,
+                steps)
+
+    def test_no_value_passed_for_arg(self):
+        vars = {"c": 'here'}
+        steps = [
+            {"function test(xyz, bcd)": ["echo <a>"], },
+            "call test(1)",]
+        steps = ParseSteps(steps)
+        self.assertRaises(
+            RuntimeError,
+            ExecuteSteps,
+                steps, vars, "test")
 
 
 class FunctionReturnTests(unittest.TestCase):
@@ -1369,7 +1424,21 @@ class FunctionReturnTests(unittest.TestCase):
         self.assertRaises(
             RuntimeError,
             ExecuteSteps,
-                steps, vars, "test")
+                steps, vars, "run")
+
+    def test_return_in_nested_block(self):
+        "Test that a return works correctly if inside an if, for, nested block"
+        vars = {}
+        steps = [
+            {"function test(a)": [
+                {'for x in a:': ["return <a>5"]}]
+            },
+            "set b = {{{ call test(5) }}}",]
+        steps = ParseSteps(steps)
+        #import pdb; pdb.set_trace()
+
+        steps = ExecuteSteps(steps, vars, "run")
+        self.assertEquals(vars['b'], '55')
 
 
 class ParseStepsTests(unittest.TestCase):
