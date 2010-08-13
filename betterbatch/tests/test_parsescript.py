@@ -1328,40 +1328,40 @@ class FunctionReturnTests(unittest.TestCase):
     def test_single_step(self):
         vars = {}
         steps = [
-            {"function test(a)": ['return <a>2'], },
+            {"function test(a)": ['return <a>1'], },
             "set b = {{{ call test(1) }}}",]
         steps = ParseSteps(steps)
         steps = ExecuteSteps(steps, vars, "test")
-        self.assertEquals(vars['b'], '12')
+        self.assertEquals(vars['b'], '11')
 
     def test_steps_after_return_run(self):
         vars = {}
         steps = [
             {"function test(a)": ['return <a>2', 'echo ' + '9'*8000 ], },
-            "set b = {{{ call test(1) }}}",]
+            "set b = {{{ call test(2) }}}",]
         steps = ParseSteps(steps)
         steps = ExecuteSteps(steps, vars, "run")
-        self.assertEquals(vars['b'], '12')
+        self.assertEquals(vars['b'], '22')
 
     def test_steps_after_return_test(self):
         vars = {}
         steps = [
             {"function test(a)": [
-                'return <a>2', 
-                'echo ' + '9'*8000 ], 
+                'return <a>3',
+                'echo ' + '9'*8000 ],
             },
-            "set b = {{{ call test(1) }}}",]
+            "set b = {{{ call test(3) }}}",]
         steps = ParseSteps(steps)
         import pdb; pdb.set_trace()
         
         steps = ExecuteSteps(steps, vars, "test")
-        self.assertEquals(vars['b'], '12')
+        self.assertEquals(vars['b'], '33')
 
     def test_steps_no_return_no_output(self):
         vars = {}
         steps = [
             {"function test(a)": ['set x = 3 '], },
-            "set b = {{{ call test(1) }}}",]
+            "set b = {{{ call test(4) }}}",]
         steps = ParseSteps(steps)
         self.assertRaises(
             RuntimeError,
