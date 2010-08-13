@@ -712,9 +712,9 @@ class VariableDefinition(Step):
 
             new_val = ReplaceExecutableSections(new_val, variables, phase)
 
-            if self.value != new_val and phase != "test":
-                LOG.debug("Set variable '%s' to value '%s'"% (
-                    self.name, new_val))
+        if phase != "test":
+            LOG.debug("Set variable '%s' to value '%s'"% (
+                self.name, new_val))
 
         variables[self.name] = new_val
 
