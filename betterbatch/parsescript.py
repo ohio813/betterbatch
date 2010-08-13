@@ -901,7 +901,12 @@ class FunctionDefinition(Step):
             for arg_name, arg_val in self.args:
                 vars_copy[arg_name] = arg_val or 'dummy val'
 
-            ExecuteSteps(self.steps, vars_copy, phase)
+            # don't propagate function returns up the stack
+            # at this point - we are only validating the steps are valid
+            try:
+                ExecuteSteps(self.steps, vars_copy, phase)
+            except FunctionReturnWrapper:
+                pass
 
     def call_function(self, arg_values, variables, phase):
 
@@ -914,13 +919,6 @@ class FunctionDefinition(Step):
         vars_copy.update(arg_values)
 
         steps = ExecuteSteps(self.steps, vars_copy, phase)
-
-        if hasattr(self, 'output'):
-            del self.output
-
-        # on purpose do not set self.output if there was no return vlaue
-        if hasattr(steps[-1], 'output'):
-            self.output = steps[-1].output
 
 
 class ParallelSteps(Step):
@@ -1203,10 +1201,17 @@ class FunctionCall(Step):
             #        "function call:\n\t%s")%
             #            (i + len(arg_values_to_pass), arg_name, self.raw_step))
 
-        function.call_function(args_to_pass, variables, phase)
 
-        if hasattr(function, 'output'):
-            self.output = function.output
+        # If there was a return then set our output value
+        try:
+            function.call_function(args_to_pass, variables, phase)
+        except FunctionReturnWrapper, e:
+            self.output = e.ret.output
+
+
+class FunctionReturnWrapper(Exception):
+    def __init__(self, ret):
+        self.ret = ret
 
 
 class FunctionReturn(Step):
@@ -1217,7 +1222,12 @@ class FunctionReturn(Step):
         self.value, self.qualifiers = ParseQualifiers(step_data)
 
     def execute(self, variables, phase):
-        self.output= RenderVariableValue(self.value, variables, phase)
+        self.output = RenderVariableValue(self.value, variables, phase)
+        if phase != "test":
+            message = "Returning from function: %s"% self.output
+            LOG.debug(message)
+        # throw ourselves up the stack!
+        raise FunctionReturnWrapper(self)
 
 
 class ExecutionEndStep(Step):
@@ -1448,19 +1458,21 @@ def ExecuteSteps(steps_, variables, phase):
     else:
         steps = steps_
 
-    return_steps = None
+    function_return = None
 
     for step in steps:
         try:
             step.execute(variables, phase)
 
-            # if we are not testing - then truncate the steps so that
-            # the function return is the last step
-            if isinstance(step, FunctionReturn):
-                return_steps = steps[:steps.index(step)+1]
-                if phase != 'test':
-                    return return_steps
-
+        except FunctionReturnWrapper, e:
+            # we do not return immediately if we are testing - as we
+            # want to test all the steps, so store the return value and raise
+            # it when finished
+            if phase == 'test':
+                function_return = e
+                continue
+            else:
+                raise
         except ErrorCollection, e:
             if phase != "test":
                 raise
@@ -1473,10 +1485,10 @@ def ExecuteSteps(steps_, variables, phase):
     if errors:
         raise ErrorCollection(errors)
 
-    # if there was a 'return' from a function call - ensure that the return
-    # is the last step
-    if return_steps != None:
-        return return_steps
+    # if there was a 'return' (during test phase - then bubble it's return
+    # value up through the call stack now (after testing all steps)
+    if function_return is not None:
+        raise function_return
     return steps
 
 
