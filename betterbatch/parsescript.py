@@ -953,7 +953,7 @@ class ForStep(Step):
     def execute(self, variables, phase):
         "Run this step"
 
-        cmd_output= RenderVariableValue(self.command, variables, phase)
+        cmd_output = RenderVariableValue(self.command, variables, phase)
 
         # split the variables
         values = cmd_output.split("\n")
