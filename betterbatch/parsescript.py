@@ -144,7 +144,10 @@ def ParseYAMLFile(yaml_file):
             quoted_text = quoted_text.replace("\n", " ")
             quoted_text = quoted_text.replace("\r", " ")
 
-            yaml_data = yaml_data[:quoted.start()] + quoted_text + yaml_data[quoted.end():]
+            yaml_data = (
+                yaml_data[:quoted.start()] +
+                quoted_text +
+                yaml_data[quoted.end():])
 
         # Parse the yaml data
         script_data = yaml.load(yaml_data)
@@ -1685,7 +1688,8 @@ if __name__ == "__main__":
 
     #import cProfile
     #command = """Main()"""
-    #cProfile.runctx("Main()", globals(), locals(), filename="parsescript.profile" )
+    #cProfile.runctx(
+    #    "Main()", globals(), locals(), filename="parsescript.profile" )
 
     try:
         Main()
