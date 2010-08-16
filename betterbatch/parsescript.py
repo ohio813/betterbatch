@@ -343,46 +343,84 @@ def ReplaceVariableReferences(text, variables, loop = None):
     return text
 
 
+def ParseExecSectionTokens(tokens, exe_sections, cur_block = None):
+    "get the blocks"
+
+    if cur_block is None:
+        cur_block = []
+
+    while tokens:
+        token = tokens.pop()
+        if token == '{{{':
+
+            # store the ref to the exe section in the current block
+            cur_block.append("{{{%d}}}"% (len(exe_sections)))
+
+            # fill up the latest exe section
+            exe_sections.append([])
+            ParseExecSectionTokens(tokens, exe_sections, exe_sections[-1])
+            continue
+
+        elif token == "}}}":
+            # exe section is complete - so just return
+            return cur_block
+
+        # add the normal token to the current block
+        cur_block.append(token)
+
+    return cur_block
+
+
+def TokenizeExecSections(text):
+    "Split up the executable sections, keeping delimiters"
+    EXECUTABLE_SECTION = re.compile(
+        r"""
+            (\{\{\{|\}\}\})
+                (.*?)
+            (\{\{\{|\}\}\})""", re.VERBOSE | re.DOTALL)
+
+    return EXECUTABLE_SECTION.split(text)
+
+
 def ReplaceExecutableSections(text, variables, phase = "run"):
     """If variable has {{{cmd}}} - execute 'cmd' and update value with output
     """
 
-    # replace qualifiers before finding sections
-    text = re.sub(r"\{\*(.+?)\*\}", r"--#QUAL_#--\1--#_QUAL#--", text)
+    # this is necessary - as otherwise {{{{* or *}}}} will not be interpreted
+    # correctly
+    text = text.replace("{*", "--#QUAL_#--")
+    text = text.replace("*}", "--#_QUAL#--")
 
-    EXECUTABLE_SECTION = re.compile(
-        r"""
-            \{\{\{
-                \s*
-                (?P<command_line>.+?)
-                \s*
-            \}\}\}""", re.VERBOSE | re.DOTALL)
+    tokens = TokenizeExecSections(text)
+    tokens.reverse()
+    exe_sections = []
+    base_value = ParseExecSectionTokens(tokens, exe_sections)
+    base_value = "".join(base_value)
 
-    # See if it matches the executable section pattern
-    sections = EXECUTABLE_SECTION.finditer(text)
+    def PushOutputsIntoString(recieving, outputs):
+        "replace any command reference e.g. {{{1}}} with the computed output"
+        sub_sections = re.findall("\{\{\{(\d+)\}\}\}", recieving)
+        for sub_section in sub_sections:
+            recieving = recieving.replace(
+                "{{{%s}}}"% (sub_section),
+                outputs[int(sub_section)])
+        return recieving
 
-    replaced = []
-    # was going reversed so that it would be easier to replace the text
-    # but that meant the commands were executed backwards when there was more
-    # than one on a line (maybe not a big issue but a little confusing)
-    last_section_end = 0
-    for section in sections:
-        if "{{{" in section.group('command_line'):
-            raise RuntimeError(
-                "Do not embed executable sections {{{...}}} in other "
-                "executable sections: '%s'"% text)
+    # go over them backwards - because the later ones do not rely on
+    # earlier ones - in case of exe sections within exe sections
+    outputs = [None] * len(exe_sections)
+    for i, command in enumerate(reversed(exe_sections)):
+        # convert it back to a string
+        command = "".join(command).strip()
 
-        command = section.group('command_line')
+        command = PushOutputsIntoString(command, outputs)
+
+        # replace the escaped qualifiers
         command = command.replace("--#QUAL_#--", "{*")
         command = command.replace("--#_QUAL#--", "*}")
 
         step = ParseStep(command)
-
-        # text before the section
-        replaced.append(text[last_section_end:section.start()])
-
         step.execute(variables, phase)
-
         if not hasattr(step, 'output') and isinstance(step, FunctionCall):
             raise RuntimeError(
                 "Function call with no return statement, "
@@ -394,17 +432,14 @@ def ReplaceExecutableSections(text, variables, phase = "run"):
         output = output.replace("<", "<<")
         output = output.replace(">", ">>")
 
-        replaced.append(output)
+        # ensure that the output is stored at teh correct position in the
+        # list (a bit more complicated as we are going backwards)
+        outputs[len(exe_sections) - i -1] = output
 
-        last_section_end = section.end()
-
-    # if we were not exectuing - then replaced will still contain the
-    # original string
-    replaced.append(text[last_section_end:])
-
-    text = "".join(replaced)
+    text = PushOutputsIntoString(base_value, outputs)
     text = text.replace("--#QUAL_#--", "{*")
     text = text.replace("--#_QUAL#--", "*}")
+
     return text
 
 
