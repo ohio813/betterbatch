@@ -408,6 +408,16 @@ def ReplaceExecutableSections(text, variables, phase = "run"):
     return text
 
 
+def RenderVariableValue(value, variables, phase, loop = None):
+    value = ReplaceVariableReferences(value, variables)
+    value = ReplaceExecutableSections(value, variables, phase)
+
+    #if '{{{'  in value:
+    #    value = ReplaceExecutableSections(value, variables, phase)
+
+    return value
+
+
 def SetupLogFile(log_filename):
     "Create the log file if it has been requested"
 
@@ -841,15 +851,6 @@ class CommandStep(Step):
 
         elif indented_output != "\n":
             LOG.debug("Output from command:\n%s"% indented_output)
-
-def RenderVariableValue(value, variables, phase):
-    value = ReplaceVariableReferences(value, variables)
-    value = ReplaceExecutableSections(value, variables, phase)
-
-    #if '{{{'  in value:
-    #    value = ReplaceExecutableSections(value, variables, phase)
-
-    return value
 
 
 class EchoStep(Step):
