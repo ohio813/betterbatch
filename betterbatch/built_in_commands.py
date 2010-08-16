@@ -243,7 +243,7 @@ def EscapeNewlines(text, qualifiers = ''):
     return 0, text
 
 def unescape_text(text):
-    "Return the input wiht newlines replaced"
+    "Return the input with newlines replaced"
     text = text.replace("\\t", "\t")
     text = text.replace("\\\\", "\\")
     text = text.replace("\\r", "\r")
