@@ -8,3 +8,12 @@ glob:Coverage_report/*
 glob:sandbox/*
 glob:doc_build/*.txt
 glob:*.doctree
+glob:build\*
+glob:BetterBatch.egg-info\*
+glob:*worked example\*
+glob:temp\*
+glob:*.pptx
+glob:*.mnk
+glob:copy of*
+glob:antlr\*
+
