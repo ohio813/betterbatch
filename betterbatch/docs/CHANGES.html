@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>CHANGES &mdash; BetterBatch v0.9.9 documentation</title>
+    <title>CHANGES &mdash; BetterBatch v1.0.0 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.9.9',
+        VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -22,7 +22,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="BetterBatch v0.9.9 documentation" href="index.html" />
+    <link rel="top" title="BetterBatch v1.0.0 documentation" href="index.html" />
     <link rel="next" title="BetterBatches License - MIT" href="LICENSE.html" />
     <link rel="prev" title="The available built-in commands are:" href="built_in_commands.html" /> 
   </head>
@@ -39,7 +39,7 @@
         <li class="right" >
           <a href="built_in_commands.html" title="The available built-in commands are:"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">BetterBatch v0.9.9 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v1.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -50,6 +50,22 @@
             
   <div class="section" id="changes">
 <h1>CHANGES<a class="headerlink" href="#changes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="multiline-and-nested-code-blocks-various-clean-ups-and-more-tests">
+<h2>1.0.0 multiline and Nested code blocks, various clean-ups and more tests<a class="headerlink" href="#multiline-and-nested-code-blocks-various-clean-ups-and-more-tests" title="Permalink to this headline">¶</a></h2>
+<p>23-July-2010</p>
+<blockquote>
+<ul class="simple">
+<li>Allow {{{ }}} blocks to be split over multiple lines</li>
+<li>Improvements to tests (especially around function calls and returns)</li>
+<li>Only allow one trailing argument in function calls</li>
+<li>Improve how function returns are handled - so that they work even when
+embedded in other structures (e.g. inside an if or for block)</li>
+<li>Improve how function call values are matched to function variables.</li>
+<li>Add a debug message when setting a variable value</li>
+<li>Executeable sections {{{ }}} can now be nested.</li>
+</ul>
+</blockquote>
+</div>
 <div class="section" id="improved-processing-more-error-checking">
 <h2>0.9.9 Improved processing, More error checking<a class="headerlink" href="#improved-processing-more-error-checking" title="Permalink to this headline">¶</a></h2>
 <p>23-July-2010</p>
@@ -214,6 +230,7 @@ use Thread.isAlive() rather than Thread.is_alive() ).</li>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">CHANGES</a><ul>
+<li><a class="reference internal" href="#multiline-and-nested-code-blocks-various-clean-ups-and-more-tests">1.0.0 multiline and Nested code blocks, various clean-ups and more tests</a></li>
 <li><a class="reference internal" href="#improved-processing-more-error-checking">0.9.9 Improved processing, More error checking</a></li>
 <li><a class="reference internal" href="#bug-fixes-improve-parallelization-and-add-loop-parallelization">0.9.8 Bug fixes, Improve parallelization (and add loop parallelization)</a></li>
 <li><a class="reference internal" href="#functions-negative-conditions-setup-installer-and-test-fixes">0.9.7 Functions, negative conditions, Setup/Installer and test fixes</a></li>
@@ -265,12 +282,12 @@ use Thread.isAlive() rather than Thread.is_alive() ).</li>
         <li class="right" >
           <a href="built_in_commands.html" title="The available built-in commands are:"
              >previous</a> |</li>
-        <li><a href="index.html">BetterBatch v0.9.9 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v1.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2010, Mark Mc Mahon.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0b2.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.2.
     </div>
   </body>
 </html>
