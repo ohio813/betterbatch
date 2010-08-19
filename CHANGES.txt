@@ -2,6 +2,20 @@
 CHANGES
 ************************************
 
+1.0.0 multiline and Nested code blocks, various clean-ups and more tests 
+------------------------------------------------------------------------
+23-July-2010
+
+ * Allow {{{ }}} blocks to be split over multiple lines
+ * Improvements to tests (especially around function calls and returns)
+ * Only allow one trailing argument in function calls
+ * Improve how function returns are handled - so that they work even when
+   embedded in other structures (e.g. inside an if or for block)
+ * Improve how function call values are matched to function variables.
+ * Add a debug message when setting a variable value
+ * Executeable sections {{{ }}} can now be nested.
+
+
 0.9.9 Improved processing, More error checking
 ------------------------------------------------------------------------
 23-July-2010
