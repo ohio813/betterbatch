@@ -4,7 +4,7 @@ CHANGES
 
 1.0.0 multiline and Nested code blocks, various clean-ups and more tests 
 ------------------------------------------------------------------------
-23-July-2010
+19-August-2010
 
  * Allow {{{ }}} blocks to be split over multiple lines
  * Improvements to tests (especially around function calls and returns)
