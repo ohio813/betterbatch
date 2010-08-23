@@ -2,6 +2,23 @@
 CHANGES
 ************************************
 
+1.1.0 Mapping values, able to get the value of the last command return code
+---------------------------------------------------------------------------
+23-August-2010
+
+ * Mapping variables can now be defined::
+
+         - set mapping_var:
+            - key1 = value 1
+            - key2 = value 2
+         - echo <mapping_var.key1>
+         - for key ih mapping_var.keys:
+            - echo KEY: <key> VALUE: <mapping_var.<key> >
+
+ * Added pseudo variable __last_return__ which allows you to check the 
+    return value from the last executed command.
+
+
 1.0.0 multiline and Nested code blocks, various clean-ups and more tests 
 ------------------------------------------------------------------------
 19-August-2010
