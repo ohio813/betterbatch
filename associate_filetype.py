@@ -8,10 +8,15 @@ def ParseOptions():
     parser = optparse.OptionParser('Associate BetterBatch files on Windows')
 
     parser.add_option(
-        "--bbrun",
+        "-b", "--bbrun",
         default = '',
         help='use the path to the specified bbrun.py')
     
+    parser.add_option(
+        "-t", "--timed",
+        action = 'store_true',
+        help='register bbrun.py so that scripts will be timed')
+
    # parse the command line
     options, args =  parser.parse_args()
     
@@ -33,16 +38,19 @@ def main():
 
     # check that the bbrun.py exists in the scripts directory
     if not os.path.exists(options.bbrun):
-        print "Script runner was not found: '%s'"% runner_script
+        print "Script runner was not found: '%s'"% options.bbrun
         sys.exit(1)
 
     print "Setting up Association and Filetype"
     # Register the BB file type and associate the bbrun script to run it
     os.system("assoc .bb=BetterBatchScriptFile")
+    timing = ''
+    if options.timed:
+        timing = '-t'
     os.system(
-        'ftype BetterBatchScriptFile=%s %s "%%1" %%*'% (
+        'ftype BetterBatchScriptFile=%s %s %s "%%1" %%*'% (
             os.path.join(sys.prefix, "python.exe"),
-            options.bbrun))
+            options.bbrun, timing))
 
     # update the pathext
 
