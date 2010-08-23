@@ -894,6 +894,8 @@ class CommandStep(Step):
         "Run this step"
 
         command_text = RenderVariableValue(self.step_data, variables, phase)
+        
+        variables['__last_return__'] = '0'
 
         if phase == "test":
             return
@@ -919,7 +921,9 @@ class CommandStep(Step):
             LOG.debug("Executing command %s"% cmd_log_string)
             # call the function and get the output and the return value
             self.ret, self.output = func(params, self.qualifiers)
+            variables['__last_return__'] = str(self.ret)
         except KeyboardInterrupt:
+            variables['__last_return__'] = 'cancelled'
             while 1:
                 LOG.error(
                     "Step cancelled - Terminate script execution? [Y/n]")
@@ -1604,6 +1608,7 @@ def PopulateVariables(script_file, cmd_line_vars):
         variables[var] = val
 
     variables.update({
+        '__last_return__': '0',
         '__script_dir__': os.path.abspath(os.path.dirname(script_file)),
         '__script_filename__': os.path.basename(script_file),
         '__working_dir__': os.path.abspath(os.getcwd())})
