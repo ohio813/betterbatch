@@ -106,7 +106,7 @@ class ErrorCollectionTests(unittest.TestCase):
 
 
 class ParseVariableDefinitionTests(unittest.TestCase):
-    "Unit tests for the commands"
+    "Unit tests for variable definitions"
 
     def test_simple_var_def(self):
         self.assertEquals(
@@ -179,6 +179,35 @@ class ParseVariableDefinitionTests(unittest.TestCase):
 
         v.execute(vars, "test")
         #self.assertEquals(vars['x'], '')
+
+
+class ParseMappingVariableDefinitionTests(unittest.TestCase):
+    "Unit tests for mapping variables"
+
+    def test_simple_correct(self):
+        parsed = ParseComplexStep({"set x": ['a -> 1', 'b -> 2'] } )
+        self.assertEquals(len(parsed), 4)
+
+    def test_no_values(self):
+        self.assertRaises(
+            RuntimeError,
+            ParseComplexStep,
+                {"set x": None} )
+
+    def test_broken_sub_def(self):
+        self.assertRaises(
+            RuntimeError,
+            ParseComplexStep,
+                {"set x": ['a', 'b'] })
+
+    def test_multiple_keys(self):
+        self.assertRaises(
+            RuntimeError,
+            ParseComplexStep,
+                {"set x": ['here -> there'], "set y": ['this -> that']} )
+
+    def test_parse_steps_can_handle_multiple(self):
+        ParseSteps([{"set x": ['here -> there']}])
 
 
 class FindVariableReferencesTests(unittest.TestCase):
