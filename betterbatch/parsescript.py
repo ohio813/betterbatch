@@ -506,7 +506,11 @@ def ParseSteps(steps):
         if step is None:
             continue
 
-        parsed_steps.append(ParseStep(step))
+        tmp_steps = ParseStep(step)
+        if isinstance(tmp_steps, list):
+            parsed_steps.extend(tmp_steps)
+        else:
+            parsed_steps.append(tmp_steps)
 
     return parsed_steps
 
@@ -693,6 +697,9 @@ def ParseComplexStep(step):
     elif 'function' in clean_keys:
         return ParseFunctionDefinition(step, statements)
 
+    elif 'set' in clean_keys:
+        return ParseMappingVariableDefinition(step, statements)
+
     elif set(clean_keys).intersection(['else', 'or', 'and']):
         raise RuntimeError(
             "'%s' without 'if'. Please ensure that you do *not* have "
@@ -718,6 +725,65 @@ class Step(object):
 
     def __repr__(self):
         return "<%s %s>"% (self.__class__.__name__, self.raw_step)
+
+
+def ParseMappingVariableDefinition(step, statements):
+    """Parse a mapping variable definition
+
+    A mapping variable is defined like:
+        - set var_name:
+            - key1 -> value 1
+            - key2 -> value 2
+            - key3 -> value 3
+
+    Usage is like <var_name.key1>
+
+    There is also a special method <var_name.keys> which allows you to iterate
+    over the items e.g.
+
+    - for key in <var_name.keys>:
+        - echo KEY: <key> with VALUE: <var_name.<key> >
+    """
+
+    if len(step.keys()) > 1:
+        raise RuntimeError(
+            "Cannot have more than one key in "
+            "a mapping variable definition: '%s'"% step)
+
+    var_name = step.keys()[0].split()[1]
+    key_values = statements[0][2]
+    variable_defs = [VariableDefinition(
+        "set %s = %s"% (var_name, key_values))]
+    keys = []
+
+    if not key_values:
+        raise RuntimeError(
+            "Mapping variable has no key, value pairs: '%s'"% step)
+
+    for item in key_values:
+
+        # ensure that the key -> value is defined correctly
+        if '->' not in item:
+            raise RuntimeError(
+                "Mapping variable item is not defined "
+                "correctly - it must be in the form key -> value. '%s' (%s)"%(
+                    step, item))
+
+        # split the key and value up
+        key_name, value = [i.strip() for i in item.split("->")]
+
+        # add  a variable defintion for this key
+        variable_defs.append(VariableDefinition("set %s.%s = %s"%(
+            var_name, key_name, value)))
+
+        # Keep the keys as we need to add the .keys variable also
+        keys.append(key_name)
+
+    # add the 'keys' values
+    variable_defs.append(
+        VariableDefinition("set %s.keys = %s"%(var_name, "\n".join(keys))) )
+
+    return variable_defs
 
 
 class VariableDefinition(Step):
