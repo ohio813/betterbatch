@@ -506,13 +506,7 @@ def ParseSteps(steps):
         if step is None:
             continue
 
-        try:
-            parsed_steps.append(ParseStep(step))
-        except ErrorCollection, e:
-            errors.extend(e.errors)
-
-    if errors:
-        raise ErrorCollection(errors)
+        parsed_steps.append(ParseStep(step))
 
     return parsed_steps
 
