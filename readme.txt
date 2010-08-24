@@ -55,7 +55,7 @@ favourite python package installation method.
 If you want to associate the BetterBatch extension ".bb" with bbrun.py then you
 can run::
 
-    bbrun associate_filetype.bb
+    associate_bb_filetype.py
 
 This expects that python is on the path - but you can update it to your
 python installation if python is not on the path.
