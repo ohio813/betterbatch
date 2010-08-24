@@ -44,6 +44,10 @@ def ParseComparisonOperator(op_text):
     return op
 
 def RunComparison(str1, operator, str2):
+    if isinstance(str1, basestring):
+        str1 = unicode(str1)
+    if isinstance(str2, basestring):
+        str2 = unicode(str2)
     return operator(str1, str2)
 
 if __name__ == "__main__":
