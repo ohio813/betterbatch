@@ -300,7 +300,7 @@ def PopulateFromToolsFolder(tools_folder, dummy = None):
     return 0, ""
 
 
-def Compare(text, qualifiers):
+def Compare(text, qualifiers = None):
     """Compare the two strings
 
     text should be
@@ -315,6 +315,9 @@ def Compare(text, qualifiers):
         str1, op_text, str2 = shlex.split(text)
     except ValueError:
         raise RuntimeError("Comparison was not defined correctly: '%s'"% text)
+
+    if qualifiers is None:
+        qualifiers = []
 
     if "nocase" in qualifiers:
         str1 = str1.lower()
@@ -334,12 +337,12 @@ def Compare(text, qualifiers):
         return 1, ""
 
 
-def UpperCase(text, qualifiers):
+def UpperCase(text, qualifiers = None):
     "return the string uppercased"
     return 0, text.upper()
 
 
-def LowerCase(text, qualifiers):
+def LowerCase(text, qualifiers = None):
     "return the string lowercased"
     return 0, text.lower()
 
