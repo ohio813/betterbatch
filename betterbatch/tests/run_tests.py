@@ -15,8 +15,9 @@ cov.start()
 import cmd_line
 import built_in_commands
 import parsescript
+import compare
 
-modules_to_test = [cmd_line, built_in_commands, parsescript]
+modules_to_test = [cmd_line, built_in_commands, parsescript, compare]
 
 
 def run_tests():
