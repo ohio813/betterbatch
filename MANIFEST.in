@@ -3,7 +3,7 @@ recursive-include betterbatch/tests *
 recursive-include betterbatch/tools *
 prune betterbatch/docs/.doctrees
 prune *.pyc
-prune copy of *.*
+prune betterbatch/Copy*.py
 prune relnotes*.txt
 
 include example.bb
