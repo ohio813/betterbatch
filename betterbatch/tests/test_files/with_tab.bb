@@ -1,0 +1,4 @@
+	
+-	set	Hello	=	.
+-	cd	<hello>	
+	

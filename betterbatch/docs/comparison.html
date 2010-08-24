@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Comparing BetterBatch to ... &mdash; BetterBatch v1.1.0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="BetterBatch v1.1.0 documentation" href="index.html" />
+    <link rel="next" title="The available built-in commands are:" href="built_in_commands.html" />
+    <link rel="prev" title="BetterBatch Readme" href="readme.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="built_in_commands.html" title="The available built-in commands are:"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="readme.html" title="BetterBatch Readme"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">BetterBatch v1.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="comparing-betterbatch-to">
+<h1>Comparing BetterBatch to ...<a class="headerlink" href="#comparing-betterbatch-to" title="Permalink to this headline">¶</a></h1>
+<p>BetterBatch is similar to other things already out there so why use it?</p>
+<div class="section" id="dos-batch-files">
+<h2>DOS Batch files<a class="headerlink" href="#dos-batch-files" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="safer-error-checking">
+<h3>Safer (Error checking)<a class="headerlink" href="#safer-error-checking" title="Permalink to this headline">¶</a></h3>
+<p>BetterBatch by default checks the return value for every command. If a command
+fails then the script will stop. Batch files make it very easy to ignore that
+an individual step has failed.</p>
+</div>
+<div class="section" id="assign-the-output-of-a-command-to-a-variable">
+<h3>Assign the output of a command to a variable<a class="headerlink" href="#assign-the-output-of-a-command-to-a-variable" title="Permalink to this headline">¶</a></h3>
+<p>This may sound like a minor improvement but it makes a huge difference. It
+allows individual bits of functionality to be easily broken up.</p>
+<p>If you want to avoid having to specify a variable that can be
+reasonably calculated from another variable you can easily factor this out to
+a simple script. In the following example I show how to set the ISO 639 Language
+code (used in XML) from the language name.</p>
+<p>DOS Batch:</p>
+<div class="highlight-python"><pre>if /i "%lang_name%"== 'ABHAZIAN' set lang_iso_639=AB
+if /i "%lang_name%"== 'AFAN (OROMO)' set lang_iso_639=OM
+...
+if /i "%lang_name%"== 'ZHUANG' set lang_iso_639=ZA
+if /i "%lang_name%"== 'ZULU' set lang_iso_639=ZU</pre>
+</div>
+<p>BetterBatch:</p>
+<div class="highlight-python"><pre>lang_iso_639 = (system) Get_iso_639_lang.pl &lt;lang_name&gt;</pre>
+</div>
+<p>This perl file of course has to have the language table coded into it also
+but not it can be called easily from anywhere else too. And as the funcitonality
+is broken up - it will be easier to test for errors.</p>
+</div>
+<div class="section" id="easier-to-add-other-checks">
+<h3>Easier to add other checks<a class="headerlink" href="#easier-to-add-other-checks" title="Permalink to this headline">¶</a></h3>
+<p>It is very easy to add checks at any point in the process. Compare the following
+two methods of checking if a file exists...</p>
+<p>DOS Batch:</p>
+<div class="highlight-python"><pre>if not exist somefile goto Some_Error_Condition</pre>
+</div>
+<p>BetterBatch:</p>
+<div class="highlight-python"><pre>- exists: somefile</pre>
+</div>
+<p>Any other check can be easily added by calling a batch/exe/script that returns 0
+for sucess and a non-zero value for failure.</p>
+</div>
+<div class="section" id="verifies-variables-are-defined">
+<h3>Verifies variables are defined<a class="headerlink" href="#verifies-variables-are-defined" title="Permalink to this headline">¶</a></h3>
+<p>In Dos batch files if a variable does not exist then no error message will
+shown, and the variable will be replaced with &#8220;&#8221; (empty string). If you want to
+check variables then you have to add code for every variable you want to check.</p>
+<p>In BetterBatch all used variable definitions are checked before anything is run.</p>
+</div>
+<div class="section" id="output-is-logged">
+<h3>Output is logged<a class="headerlink" href="#output-is-logged" title="Permalink to this headline">¶</a></h3>
+<p>Once you specify the logfile variable then all output is logged there, so it
+will be easier to track down where something went wrong (but as most errors
+will stop the script anyway - it is unlikely that you will have too many
+unforseen errors</p>
+</div>
+<div class="section" id="easier-to-read">
+<h3>Easier to read<a class="headerlink" href="#easier-to-read" title="Permalink to this headline">¶</a></h3>
+<p>BetterBatch files are simpler than DOS Batch files in many ways which makes
+them easier to understand.</p>
+<p>Variable references are also easier to read. In Batch files variable references
+are defined using %% for both start and end tags while in BetterBatch files
+they are defined using &lt; and &gt; for hte start and end tags respetively. If there
+are multiple variables in a line - then it makes it much simpler to see all the
+variable references</p>
+<p>DOS Batch:</p>
+<div class="highlight-python"><pre>set build_folder=%PROJECT_FOLDER%\%BUILD%\%LANG%</pre>
+</div>
+<p>BetterBatch:</p>
+<div class="highlight-python"><pre>build_folder:  &lt;PROJECT_FOLDER&gt;\&lt;BUILD&gt;\&lt;LANG&gt;</pre>
+</div>
+</div>
+<div class="section" id="include-other-configuration-files">
+<h3>Include other configuration files<a class="headerlink" href="#include-other-configuration-files" title="Permalink to this headline">¶</a></h3>
+<p>In Batch files it can be difficult to create another batch file that defines
+all the variables required. It can be done - but as there is no checking for
+undefined variables - it makes it difficult to track down errors. Commands and
+Variables can be used in other YAML files making it possible to define common
+YAML files that have no project nor machine specific information.</p>
+</div>
+<div class="section" id="allow-long-lines-to-be-split">
+<h3>Allow long lines to be split<a class="headerlink" href="#allow-long-lines-to-be-split" title="Permalink to this headline">¶</a></h3>
+<p>In DOS batch files you cannot split a long line over multiple lines (to aid
+readability). In BetterBatch there are a number of ways of doing it:</p>
+<p>Specify value as a YAML string (starting on the first line - automatically
+continued on the following lines - as long as they are more indented:</p>
+<div class="highlight-python"><pre>- run: echo this is a very
+    long string that will treated after parsing a single line
+    by BetterBatch - this is a feature of YAML.</pre>
+</div>
+<dl class="docutils">
+<dt>By using a YAML string block::</dt>
+<dd><ul class="first last">
+<li><dl class="first docutils">
+<dt>run: &gt;</dt>
+<dd><p class="first last">echo this is a very
+long string that will treated after parsing a single line
+by BetterBatch - this is a feature of YAML.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="python-perl-lua-or-other-scripting-languages">
+<h2>Python/Perl/LUA or other scripting languages<a class="headerlink" href="#python-perl-lua-or-other-scripting-languages" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="simpler">
+<h3>Simpler<a class="headerlink" href="#simpler" title="Permalink to this headline">¶</a></h3>
+<p>The main reason for using BetterBatch rather than a full fledged scripting
+language is that the YAML configuration files are much simpler.</p>
+<p>If a user does not know Python/Perl/Ruby/Lua/etc. it would be a significant
+effort for them to learn that language to do what they can do easily using
+BetterBatch.</p>
+</div>
+<div class="section" id="language-agnositc">
+<h3>Language Agnositc<a class="headerlink" href="#language-agnositc" title="Permalink to this headline">¶</a></h3>
+<p>You can create tools/checks/etc for BetterBatch in any language you want. As
+long as it can be executed on the command line - it can be used by BetterBatch.</p>
+<p>This means that in a single YAML file you could set variables from PERL files,
+call a check written in Python, and execute a script in a BATCH file</p>
+</div>
+<div class="section" id="foster-re-use-and-modularization">
+<h3>Foster re-use and modularization<a class="headerlink" href="#foster-re-use-and-modularization" title="Permalink to this headline">¶</a></h3>
+<p>BetterBatch files act as a glue between different components. BetterBatch does
+not apply force restrictions on these components other than they can be run on
+the command line and that they return 0 on success. This means that anything
+written for a BetterBatch process will also work (and can be debugged) outside
+of BetterBatch.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Comparing BetterBatch to ...</a><ul>
+<li><a class="reference internal" href="#dos-batch-files">DOS Batch files</a><ul>
+<li><a class="reference internal" href="#safer-error-checking">Safer (Error checking)</a></li>
+<li><a class="reference internal" href="#assign-the-output-of-a-command-to-a-variable">Assign the output of a command to a variable</a></li>
+<li><a class="reference internal" href="#easier-to-add-other-checks">Easier to add other checks</a></li>
+<li><a class="reference internal" href="#verifies-variables-are-defined">Verifies variables are defined</a></li>
+<li><a class="reference internal" href="#output-is-logged">Output is logged</a></li>
+<li><a class="reference internal" href="#easier-to-read">Easier to read</a></li>
+<li><a class="reference internal" href="#include-other-configuration-files">Include other configuration files</a></li>
+<li><a class="reference internal" href="#allow-long-lines-to-be-split">Allow long lines to be split</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#python-perl-lua-or-other-scripting-languages">Python/Perl/LUA or other scripting languages</a><ul>
+<li><a class="reference internal" href="#simpler">Simpler</a></li>
+<li><a class="reference internal" href="#language-agnositc">Language Agnositc</a></li>
+<li><a class="reference internal" href="#foster-re-use-and-modularization">Foster re-use and modularization</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="readme.html"
+                        title="previous chapter">BetterBatch Readme</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="built_in_commands.html"
+                        title="next chapter">The available built-in commands are:</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/comparison.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="built_in_commands.html" title="The available built-in commands are:"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="readme.html" title="BetterBatch Readme"
+             >previous</a> |</li>
+        <li><a href="index.html">BetterBatch v1.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Mark Mc Mahon.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.2.
+    </div>
+  </body>
+</html>
