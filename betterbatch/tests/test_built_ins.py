@@ -165,21 +165,23 @@ class BuiltInCommandsTests(unittest.TestCase):
         self.assertNotEquals(ret, 0)
         
     def test_ExternalCommand_pass(self):
-        tool_path = os.path.join(package_root, "tools", "compare.py")
+        tool_path = os.path.join(package_root, "tools", "GetLanguage.py")
         ec = ExternalCommand(tool_path)
         
         #print tool_path
         #print ec(["a", "=", "A", "nocase"])
         
-        expected_ret = (0, '')
-        self.assertEquals(ec("a = A nocase"), expected_ret)
-        self.assertEquals(ec("a = A", ["nocase"]), expected_ret)
+        expected_ret = (0, 'de-DE\r\n')
+        self.assertEquals(ec("deu  dotnet"), expected_ret)
+        self.assertEquals(ec("deu dotnet", ["nocase"]), expected_ret)
         self.assertRaises(
-            RuntimeError,ec,
-                ["a", "=", "A", "nocase"])
+            RuntimeError,
+            ec,
+                ("a", "=", "A", "nocase"))
         self.assertRaises(
-            RuntimeError,ec,
-            ["a", "=", "A"], ["nocase"])
+            RuntimeError,
+            ec, 
+                ["a", "=", "A"], ["nocase"])
             
     def test_ExternalCommand_missing_cmd(self):
         """Test external path with tool that doesn't exitst"""
@@ -192,7 +194,7 @@ class BuiltInCommandsTests(unittest.TestCase):
 
     def test_ExternalCommand_fail2(self):
         "   "
-        tool_path = os.path.join(package_root, "tools", "compare.py")
+        tool_path = os.path.join(package_root, "tools", "getlanguage.py")
         ec = ExternalCommand(tool_path)
         
         self.assertRaises(
@@ -227,7 +229,72 @@ class BuiltInCommandsTests(unittest.TestCase):
     def test_EscapeNewLines_basic(self):
         self.assertEquals(EscapeNewlines("some\ntext"), (0, r"some\\ntext"))
 
+    def test_uppercase(self):
+        self.assertEquals(UpperCase("Some\nTexT"), (0, "SOME\nTEXT"))
 
+    def test_lowercase(self):
+        self.assertEquals(LowerCase("Some\nTexT"), (0, "some\ntext"))
+
+    def test_compare_equal(self):
+        self.assertEquals(Compare("a = a"), (0, ""))
+        self.assertEquals(Compare("a = A"), (1, ""))
+        self.assertEquals(Compare("a = A", ['nocase']), (0, ""))
+
+        self.assertEquals(Compare("099 = 99", ['asint']), (0, ""))
+        self.assertEquals(Compare("099 = 99", ), (1, ""))
+
+    def test_compare_broken(self):
+        self.assertRaises(
+            RuntimeError,
+            Compare,
+                "a = =  a")
+
+    def test_compare_ge(self):
+        self.assertEquals(Compare("1 >= 1"), (0, ""))
+        self.assertEquals(Compare("1 >= 2"), (1, ""))
+
+    def test_compare_gt(self):
+        self.assertEquals(Compare("a > a"), (1, ""))
+        self.assertEquals(Compare("a > A"), (0, ""))
+
+    def test_compare_le(self):
+        self.assertEquals(Compare("a <= a"), (0, ""))
+        self.assertEquals(Compare("a <= A"), (1, ""))
+
+    def test_compare_lt(self):
+        self.assertEquals(Compare("a < a"), (1, ""))
+        self.assertEquals(Compare("A < a"), (0, ""))
+
+    def test_compare_eq(self):
+        self.assertEquals(Compare("a = a"), (0, ""))
+        self.assertEquals(Compare("a == a"), (0, ""))
+        self.assertEquals(Compare("A = a"), (1, ""))
+
+    def test_compare_ne(self):
+        self.assertEquals(Compare("a != a"), (1, ""))
+        self.assertEquals(Compare("a != A"), (0, ""))
+
+    def test_compare_startswith(self):
+        self.assertEquals(Compare("abc startswith ab"), (0, ""))
+        self.assertEquals(Compare("abc startswith bc"), (1, ""))
+
+    def test_compare_endswith(self):
+        self.assertEquals(Compare("abc endswith ab"), (1, ""))
+        self.assertEquals(Compare("abc endswith bc"), (0, ""))
+
+    def test_compare_contains(self):
+        self.assertEquals(Compare("abc contains x"), (1, ""))
+        self.assertEquals(Compare("abc contains abc"), (0, ""))
+
+    def test_compare_matchesregex(self):
+        self.assertEquals(Compare("abc matches_regex ^a..$"), (0, ""))
+        self.assertEquals(Compare("abc matches_regex ^z.*$"), (1, ""))
+
+    def test_compare_unknown_op(self):
+        self.assertRaises(
+            RuntimeError,
+            Compare,
+                "abc blah ^a..$")
 
 
 
