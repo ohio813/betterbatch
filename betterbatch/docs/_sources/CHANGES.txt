@@ -2,6 +2,16 @@
 CHANGES
 ************************************
 
+1.1.1 Some external command cleanup
+---------------------------------------------------------------------------
+24-August-2010
+
+ * Moved Compare, Uppercase, Lowercase, tools from external commands to 
+   internal commands
+ * Added some more external tools: replace_in_file, find_in_file, 
+   ListFilesMatchingPattern, GetLanguage
+
+
 1.1.0 Mapping values, able to get the value of the last command return code
 ---------------------------------------------------------------------------
 23-August-2010
