@@ -1,38 +1,13 @@
 """
 Return language information from the 'database' langinfo.csv
 
-
+Usage GetLanguage.py langname format, specify an invalid 
 
 """
 
 import sys
 import os
 import csv
-
-##class Langauge(object):
-##    def __init__(self, data):
-##        self.data = data
-##        
-##        self.data['culture'] = self.dotnet[:2]
-##
-##    def __getattr__(self, attr):
-##        return self[attr]
-##        
-##    def __getitem__(self, attr):
-##        # if the attribute requested is a key in the dictionary
-##        if attr in self.data:
-##            return self.data[attr]
-##        
-##            
-##        # is the attribute all upper case and the lower case in the data
-##        elif attr == attr.upper() and attr.lower() in self.data:
-##            # then return the value upper cased
-##            return self.data[attr.lower()].upper()
-##        
-##        # not an attribute we know about - raise an error
-##        raise AttributeError(
-##            "Language has no attribute: '%s' - %s"% (attr, self.data.keys()))
-##
 
 
 def ReadLangInfoDB(lang_info_filepath = None):
