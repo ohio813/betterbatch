@@ -12,6 +12,9 @@ import glob
 import subprocess
 import tempfile
 import sys
+import re
+import shlex
+import compare
 
 RESULT_SUCCESS = 0
 RESULT_FAILURE = 1
@@ -297,6 +300,50 @@ def PopulateFromToolsFolder(tools_folder, dummy = None):
     return 0, ""
 
 
+def Compare(text, qualifiers):
+    """Compare the two strings
+
+    text should be
+        str1 op str2
+    e.g.
+        About == about
+        "Beautiful Day" contains day
+
+    see compare.py for a full list of operators
+    """
+    try:
+        str1, op_text, str2 = shlex.split(text)
+    except ValueError:
+        raise RuntimeError("Comparison was not defined correctly: '%s'"% text)
+
+    if "nocase" in qualifiers:
+        str1 = str1.lower()
+        str2 = str2.lower()
+
+    if "asint" in qualifiers:
+        str1 = int(str1)
+        str2 = int(str2)
+
+    op = compare.ParseComparisonOperator(op_text)
+
+    matches = compare.RunComparison(str1, op, str2)
+
+    if matches:
+        return 0, ""
+    else:
+        return 1, ""
+
+
+def UpperCase(text, qualifiers):
+    "return the string uppercased"
+    return 0, text.upper()
+
+
+def LowerCase(text, qualifiers):
+    "return the string lowercased"
+    return 0, text.lower()
+
+
 NAME_ACTION_MAPPING = {
     #'run'    : SystemCommand,
     #'execute': SystemCommand,
@@ -326,6 +373,12 @@ NAME_ACTION_MAPPING = {
     'escapenewlines' : EscapeNewlines,
     'replace' :        Replace,
     'split' :          Split,
+
+    'compare' :      Compare,
+    'upper' :        UpperCase,
+    'uppercase' :    UpperCase,
+    'lower' :        LowerCase,
+    'lowercase' :    LowerCase,
 
     'add_tools_dir'   : PopulateFromToolsFolder,
 }
