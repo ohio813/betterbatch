@@ -257,9 +257,32 @@ def EscapeNewlines(text, qualifiers = ''):
 #
 def Replace(text, qualifiers = None):
     "Replace a string in the input"
-    to_find = unescape_text(qualifiers[0])
-    replace_with = unescape_text(qualifiers[1])
-    replaced = text.replace(to_find, replace_with)
+    flags = 0
+    if 'nocase' in qualifiers:
+        flags |= re.IGNORECASE
+        del qualifiers[qualifiers.index('nocase')]
+
+    use_re = False
+    if 're' in qualifiers:
+        del qualifiers[qualifiers.index('re')]
+        use_re = True
+
+    require = False
+    if 'require' in qualifiers:
+        del qualifiers[qualifiers.index('require')]
+        require = True
+
+    to_find = qualifiers[0]
+    replace_with = qualifiers[1]
+    if not use_re:
+        to_find = re.escape(to_find)
+
+    search_re = re.compile(to_find, flags)
+    replaced, count = search_re.subn(replace_with, text)
+
+    if require and not count:
+        raise RuntimeError(
+            "Required replace in '%s' in '%s' but not found"% (to_find, text))
 
     return 0, replaced
 
