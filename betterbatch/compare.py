@@ -29,7 +29,7 @@ def ParseComparisonOperator(op_text):
     elif op_text.lower() == "startswith":
         op = unicode.startswith
 
-    elif  op_text.lower() == "endsswith":
+    elif  op_text.lower() == "endswith":
         op = unicode.endswith
 
     elif  op_text.lower() == "contains":
@@ -44,6 +44,10 @@ def ParseComparisonOperator(op_text):
     return op
 
 def RunComparison(str1, operator, str2):
+    if isinstance(str1, basestring):
+        str1 = unicode(str1)
+    if isinstance(str2, basestring):
+        str2 = unicode(str2)
     return operator(str1, str2)
 
 if __name__ == "__main__":
