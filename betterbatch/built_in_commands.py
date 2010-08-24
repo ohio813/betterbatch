@@ -153,7 +153,7 @@ def SystemCommand(command, qualifiers = None):
     # if we can turn shell off for some/all of the commands then it will
     # allow us to better handle catastrophic issues (e.g. command not found)
 
-    # for some reason when passing to the shell - we need to quote the 
+    # for some reason when passing to the shell - we need to quote the
     # WHOLE command with ""
     command = '"%s"'% command
     ret_value = subprocess.call(
@@ -184,7 +184,7 @@ def abspath(path, dummy = None):
 
 def ChangeCurrentDirectory(path, dummy = None):
     """Try to change to the directory
-    
+
     Replaces 'cd' command which would not achieve anything as the shell that
     it executes in would dissapear immediately"""
     try:
@@ -265,7 +265,7 @@ def Replace(text, qualifiers = None):
 
 def Split(text, split_text = None):
     """Split the input on the split_text text
-    
+
     if split_text is not defined then it will split on all whitespace"""
     if not split_text:
         split_text = None
@@ -277,7 +277,7 @@ def Split(text, split_text = None):
 
 def PopulateFromToolsFolder(tools_folder, dummy = None):
     """Make the commands in the specified tools_folder easy to call
-    
+
     All executable programs will be added to the list of available tools
     they can be called without specifying the path to the tool
     """
