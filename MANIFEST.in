@@ -3,8 +3,9 @@ recursive-include betterbatch/tests *
 recursive-include betterbatch/tools *
 prune betterbatch/docs/.doctrees
 prune *.pyc
+prune copy of *.*
 prune relnotes*.txt
 
 include example.bb
-include associate_filetype.py
+include associate_bb_filetype.py
 include makedocs.bb
