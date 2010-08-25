@@ -1,16 +1,20 @@
 """
-Return language information from the 'database' langinfo.csv
+Return language information from the database - "langinfo.csv"
 
-Usage GetLanguage.py langname format, specify an invalid 
-
+Usage:
+    GetLanguage.py langname format
+Where:
+    langname is the 3 letter identifier e.g. deu, fra, jpn, kor, etc
+    format is one of the headers from langinfo.csv, e.g. dotnet, hex_lcid, etc.
 """
 
-import sys
 import os
 import csv
 
 
 def ReadLangInfoDB(lang_info_filepath = None):
+    "Load the CSV file with the language information"
+    
     # if no file specified then default to langinfo.csv in the same 
     # folder as the script
     if lang_info_filepath is None:
@@ -34,26 +38,38 @@ def ReadLangInfoDB(lang_info_filepath = None):
     return lang_info   
 
 
-if __name__ == "__main__":
-    
-    lang = sys.argv[1].lower()
-    format = sys.argv[2].lower()
+def GetLangInfo(lang, requested_format):
+    "Return  the information "
 
     languages_db = ReadLangInfoDB()
     
     if lang not in languages_db:
-        print "Unknown language: '%s'"% lang
-        print "Known languages: %s"% ", ".join(languages_db.keys())
-        sys.exit(1)
+        raise RuntimeError ("Unknown language: '%s' Known languages: %s"% 
+            (lang, ", ".join(languages_db.keys()) ) )
 
     language_data = languages_db[lang]
     
-    if format not in language_data:
-        print "Unknown format: '%s'"% format
-        print "Known formats: %s"% ", ".join(language_data.keys())
-        sys.exit(1)
+    if requested_format not in language_data:
+        raise RuntimeError ("Unknown format: '%s' Known formats: %s"% 
+            (requested_format, ", ".join(language_data.keys()) ) )
     
-    print language_data[format]
+    return language_data[requested_format]
+
+if __name__ == "__main__":
+    import sys
+    
+    try:
+        req_lang = sys.argv[1].lower()
+        req_format = sys.argv[2].lower()
+    except IndexError:
+        print __doc__
+        sys.exit(1)
+
+    try:
+        print GetLangInfo(req_lang, req_format)
+    except RuntimeError, e:
+        print e
+        sys.exit(1)
     
     # successfully done
     sys.exit(0)
