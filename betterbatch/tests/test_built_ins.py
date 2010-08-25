@@ -296,6 +296,36 @@ class BuiltInCommandsTests(unittest.TestCase):
             Compare,
                 "abc blah ^a..$")
 
+    def test_replace(self):
+        self.assertEquals(
+            Replace("here", ['e', 'b']),
+            (0, 'hbrb'))
+
+    def test_replace_nocase(self):
+        self.assertEquals(
+            Replace("hErE", ['e', 'b']),
+            (0, 'hErE'))
+
+        self.assertEquals(
+            Replace("hErE", ['e', 'b', 'nocase']),
+            (0, 'hbrb'))
+
+    def test_replace_re(self):
+        self.assertEquals(
+            Replace("here", ['e(?!r)', 'b', 're']),
+            (0, 'herb'))
+
+    def test_replace_require(self):
+        self.assertEquals(
+            Replace("herf", ['require', 'f', 'b']),
+            (0, 'herb'))
+
+        self.assertRaises(
+            RuntimeError,
+            Replace,
+                "here", ['f', 'b', 'require'])
+
+
 
 
 if __name__ == "__main__":
