@@ -53,6 +53,7 @@ setup(
     author_email =  "mark.m.mcmahon@gmail.com",
     
     packages = ["betterbatch", "betterbatch.tests"],
+    package_data={'betterbatch': ['tools/*.*']},
     scripts = ['bbrun.py', 'associate_bb_filetype.py'],
     requires=['yaml'],
     
