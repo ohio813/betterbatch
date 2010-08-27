@@ -1,0 +1,1 @@
+- "c:\program files\sdl passolo 2009\pslcmd.exe" C:\_projects\2011_Tavarua\Tavarua\T036\locFiles\__DEU_Tavarua_msi.lpu /runmacro adskstatisticstrn.bas

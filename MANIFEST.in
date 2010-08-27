@@ -1,0 +1,11 @@
+recursive-include betterbatch/docs *
+recursive-include betterbatch/tests *
+recursive-include betterbatch/tools *
+prune betterbatch/docs/.doctrees
+prune *.pyc
+prune betterbatch/Copy*.py
+prune relnotes*.txt
+
+include example.bb
+include associate_bb_filetype.py
+include makedocs.bb
