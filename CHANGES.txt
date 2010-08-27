@@ -2,6 +2,14 @@
 CHANGES
 ************************************
 
+1.1.2 Some external command cleanup
+---------------------------------------------------------------------------
+27-August-2010
+
+ * Fixed a fairly serious issue with setup.py where the betterbatch\tools 
+   folder was not being installed.
+
+
 1.1.1 Some external command cleanup
 ---------------------------------------------------------------------------
 24-August-2010
