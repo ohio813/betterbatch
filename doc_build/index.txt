@@ -11,8 +11,8 @@ Contents
    :maxdepth: 2
    
    readme
-   comparison.txt
    built_in_commands.txt
+   comparison.txt
    CHANGES.txt
    LICENSE.txt
 
