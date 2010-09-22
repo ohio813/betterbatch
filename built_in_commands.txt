@@ -1,20 +1,29 @@
 ******************************************************
 The available built-in commands are:
 ******************************************************
-------------------------------------------------------
+
+.. contents::
+
+
+======================================================
+Running shell/external commands
+======================================================
+
 run (aliases: execute, system). (default)
 ------------------------------------------------------
 Execute a single command on the command line shell.
+This is the default command - you do not need to and should not use
+the ``run`` command itself - just call the command.
 
-It can take the following qualifiers
+It can take the following qualifiers:
 
 **ui**
     output will not be captured, but will be shown on the screen
     immediately - this allows the user to
     interact with the command. This may be necessary when the command
-    expects input from the user. For example the dos command "dir /p" 
+    expects input from the user. For example the dos command "dir /p"
     will pause after each screen, without **ui** qualifier the script
-    would appear to hang (as the message to press any key would not be 
+    would appear to hang (as the message to press any key would not be
     displayed).
 
 **nocheck**
@@ -25,54 +34,119 @@ It can take the following qualifiers
     Output is echo'ed to the terminal window after the process
     has finished executing.
 
-------------------------------------------------------
+
+======================================================
+Path Manipulation
+======================================================
+
 dirname
 ------------------------------------------------------
-Return the directory (or parent directory for a directory) of the 
+Return the directory (or parent directory for a directory) of the
 path passed in.
 
-------------------------------------------------------
 filename    (aliases basename)
 ------------------------------------------------------
-Return the filename (or directory name for a directory) of the 
+Return the filename (or directory name for a directory) of the
 path passed in.
 
-------------------------------------------------------
 abspath
 ------------------------------------------------------
-Return the absolute path of the file. 
+Return the absolute path of the file.
 
+ShortPathName
 ------------------------------------------------------
-count 
-------------------------------------------------------
+Return the short path name of the filename
 
+
+======================================================
+File Manipulation
+======================================================
+
+find_in_file
 ------------------------------------------------------
+Return true if the text is in the file. It will output the found items
+one per line.
+
+Usage: $prog [-r] file text_to_find [text_to_find...]
+
+ Options:
+  -h, --help        show this help message and exit
+  -r, --regex       search and replacement are regular expressions
+  -n, --noerr       do not report an error if the text is not found
+  -i, --ignorecase  ignore case when searching
+
+
+replace_in_file
+------------------------------------------------------
+Replace text in file
+
+Usage: $prog [-r] file to_find replace_with
+
+ Options:
+  -h, --help   show this help message and exit
+  -r, --regex  search and replacement are regular expressions
+  -n, --noerr  do not report an error if the text is not found
+
+
+ListFilesMatchingPattern
+------------------------------------------------------
+Output a list of all the files matching the supplied pattern.
+
+Usage: ListFilesMatchingPattern.py [options] (path) (patern1) (pattern2) ...
+
+Options:
+  -h, --help       show this help message and exit
+  -s, --recursive  scan recursively
+
+This is especially useful in a loop to iterate over a particular set of files.
+
+Example::
+
+  - for file in {{{ ListFilesMatchingPattern.py -s <xml_folder> *.xml *.xsl }}}:
+     - echo <file>
+
+
+
+count
+------------------------------------------------------
+Verify that the file count is as specified
+
+It takes the following parameters:
+ * ``filepattern`` is a glob for the files to count
+ * ``count`` is a specification for how many, it can be
+   >=X, <=X, >X, <X, =X or just X (which is equivalent to =X) where X is any
+   whole number.
+
+
 exists  (aliases exist)
 ------------------------------------------------------
-check if the path (file or directory) exists or not. 
-If the path exists - then it returns true. 
+check if the path (file or directory) exists or not.
+If the path exists - then it returns true.
 example::
 
   # if there is machine specific configuration then load it
   - if exists <shell.computername>.bb:
       - include <shell.computername>.bb
-    
 
-------------------------------------------------------
+
 notexists  (aliases notexist)
 ------------------------------------------------------
-check if the path (file or directory) exists or not. 
+check if the path (file or directory) exists or not.
 If the path does not exist - then it returns true. This can be useful
 if you want to raise an error becuase one or more files does not exist.
 
-------------------------------------------------------
+
+
+======================================================
+String/text Manipulation
+======================================================
+
 escapenewlines  (aliases escape_newlines)
 ------------------------------------------------------
 \r and \n characters in the input will be replaced with \\r and \\n
 respectively.
 
 
-------------------------------------------------------
 replace
 ------------------------------------------------------
 Allows you to replace text in a string
@@ -86,12 +160,85 @@ Example::
     # get the contents of the text file
     - ser serverlocation = http://code.google.com/p/betterbatch/
     - set mail_contents = {{{ type email_template.txt }}}
-    
+
     # replace the text 'SERVERLOCATION' in the email templaet
     # with 'http://code.google.com/p/betterbatch/'
     - echo {{{replace <mail_contents> {*SERVERLOCATION*} {*<serverlocation>*} }}}
 
 
+compare
 ------------------------------------------------------
+The compare functionality is usually used in if statements. The examples
+give will show them in that context.
+
+Usage::
+
+    compare text1 OPERATOR text2
+
+Operators can be one of::
+
+    >=
+    <=
+    >
+    <
+    =
+    !=
+    startswith
+    endswith
+    contains
+    matches_regex
+
+Example::
+
+    - set answer = {{{ get answer from somewhere }}}
+    - if compare <answer> = no:
+       - Do something when it is no
+
+
+It can take the following qualifiers:
+
+**nocase**
+    Ignore case of the strings being compared.
+
+**asint**
+    Treat both parameters as integers. Comparison of some items
+    will be different if they are treated as integers. For example
+    ``01 = 1`` will return false when treated as strings but true when
+    treated as integers.
+
+
+upper  (aliases uppercase)
+------------------------------------------------------
+Return an uppercase version of the string
+
+
+lower  (aliases lowercase)
+------------------------------------------------------
+Return an lowercase version of the string
+
+
+======================================================
+Miscelaneous commands
+======================================================
+
+GetLanguage
+------------------------------------------------------
+Return language information from the database - "langinfo.csv" (included in the
+betterbatch/tools folder along with GetLanguage.py)
+
+Usage:
+    GetLanguage.py langname format
+Where:
+    langname is the 3 letter identifier e.g. deu, fra, jpn, kor, etc
+    format is one of the headers from langinfo.csv, e.g. dotnet, hex_lcid, etc.
+
 add_tools_dir
 ------------------------------------------------------
+The betterbatch/tools directory is added as a 'tools' directory by default.
+
+You can add other directories to be used as 'tools' directories by using this 
+command.
+
+Adding a tools directory means you do not have to specify the path to the 
+command.
+
