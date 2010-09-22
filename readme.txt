@@ -364,6 +364,6 @@ then the values of the special variables will be::
 
 
 ====================================
-Troubleshooting:
+Troubleshooting
 ====================================
 
