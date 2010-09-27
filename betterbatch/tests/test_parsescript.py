@@ -1315,10 +1315,9 @@ class FunctionDefinitionTests(unittest.TestCase):
 
         self.assertRaises(
             ErrorCollection,
-            func.execute,
-                vars, "test")
+            func.call_function,
+                ({'a': '123'}), vars, "test")
 
-        func.execute(vars, "run")
 
 
 class FunctionCallTests(unittest.TestCase):
