@@ -1203,19 +1203,9 @@ class FunctionDefinition(Step):
         FunctionDefinition.all_functions[name.lower()] = self
 
     def execute(self, variables, phase):
-        """Only run the steps in test mode - they are not
-        executed in run mode - because they should only run when called"""
-        if phase == "test":
-            vars_copy = copy.deepcopy(variables)
-            for arg_name, arg_val in self.args:
-                vars_copy[arg_name] = arg_val or 'dummy val'
-
-            # don't propagate function returns up the stack
-            # at this point - we are only validating the steps are valid
-            try:
-                ExecuteSteps(self.steps, vars_copy, phase)
-            except FunctionReturnWrapper:
-                pass
+        """Nothing needs to be done here as both testing and execution
+        will be done during calling"""
+        pass
 
     def call_function(self, arg_values, variables, phase):
 
