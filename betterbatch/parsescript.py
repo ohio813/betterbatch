@@ -899,7 +899,7 @@ class CommandStep(Step):
         "Run this step"
 
         command_text = RenderVariableValue(self.step_data, variables, phase)
-        
+
         variables['__last_return__'] = '0'
 
         if phase == "test":
