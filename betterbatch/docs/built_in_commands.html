@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The available built-in commands are: &mdash; BetterBatch v1.1.2 documentation</title>
+    <title>The available built-in commands are: &mdash; BetterBatch v1.1.3 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.1.2',
+        VERSION:     '1.1.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -22,9 +22,9 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="BetterBatch v1.1.2 documentation" href="index.html" />
-    <link rel="next" title="CHANGES" href="CHANGES.html" />
-    <link rel="prev" title="Comparing BetterBatch to ..." href="comparison.html" /> 
+    <link rel="top" title="BetterBatch v1.1.3 documentation" href="index.html" />
+    <link rel="next" title="Comparing BetterBatch to ..." href="comparison.html" />
+    <link rel="prev" title="BetterBatch Readme" href="readme.html" /> 
   </head>
   <body>
     <div class="related">
@@ -34,12 +34,12 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="CHANGES.html" title="CHANGES"
+          <a href="comparison.html" title="Comparing BetterBatch to ..."
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="comparison.html" title="Comparing BetterBatch to ..."
+          <a href="readme.html" title="BetterBatch Readme"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">BetterBatch v1.1.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v1.1.3 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -53,38 +53,38 @@
 <div class="contents topic" id="contents">
 <p class="topic-title first">Contents</p>
 <ul class="simple">
-<li><a class="reference internal" href="#the-available-built-in-commands-are" id="id1">The available built-in commands are:</a><ul>
-<li><a class="reference internal" href="#running-shell-external-commands" id="id2">Running shell/external commands</a><ul>
-<li><a class="reference internal" href="#run-aliases-execute-system-default" id="id3">run (aliases: execute, system). (default)</a></li>
+<li><a class="reference external" href="#the-available-built-in-commands-are" id="id1">The available built-in commands are:</a><ul>
+<li><a class="reference external" href="#running-shell-external-commands" id="id2">Running shell/external commands</a><ul>
+<li><a class="reference external" href="#run-aliases-execute-system-default" id="id3">run (aliases: execute, system). (default)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#path-manipulation" id="id4">Path Manipulation</a><ul>
-<li><a class="reference internal" href="#dirname" id="id5">dirname</a></li>
-<li><a class="reference internal" href="#filename-aliases-basename" id="id6">filename    (aliases basename)</a></li>
-<li><a class="reference internal" href="#abspath" id="id7">abspath</a></li>
-<li><a class="reference internal" href="#shortpathname" id="id8">ShortPathName</a></li>
+<li><a class="reference external" href="#path-manipulation" id="id4">Path Manipulation</a><ul>
+<li><a class="reference external" href="#dirname" id="id5">dirname</a></li>
+<li><a class="reference external" href="#filename-aliases-basename" id="id6">filename    (aliases basename)</a></li>
+<li><a class="reference external" href="#abspath" id="id7">abspath</a></li>
+<li><a class="reference external" href="#shortpathname" id="id8">ShortPathName</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#file-manipulation" id="id9">File Manipulation</a><ul>
-<li><a class="reference internal" href="#find-in-file" id="id10">find_in_file</a></li>
-<li><a class="reference internal" href="#replace-in-file" id="id11">replace_in_file</a></li>
-<li><a class="reference internal" href="#listfilesmatchingpattern" id="id12">ListFilesMatchingPattern</a></li>
-<li><a class="reference internal" href="#count" id="id13">count</a></li>
-<li><a class="reference internal" href="#exists-aliases-exist" id="id14">exists  (aliases exist)</a></li>
-<li><a class="reference internal" href="#notexists-aliases-notexist" id="id15">notexists  (aliases notexist)</a></li>
+<li><a class="reference external" href="#file-manipulation" id="id9">File Manipulation</a><ul>
+<li><a class="reference external" href="#find-in-file" id="id10">find_in_file</a></li>
+<li><a class="reference external" href="#replace-in-file" id="id11">replace_in_file</a></li>
+<li><a class="reference external" href="#listfilesmatchingpattern" id="id12">ListFilesMatchingPattern</a></li>
+<li><a class="reference external" href="#count" id="id13">count</a></li>
+<li><a class="reference external" href="#exists-aliases-exist" id="id14">exists  (aliases exist)</a></li>
+<li><a class="reference external" href="#notexists-aliases-notexist" id="id15">notexists  (aliases notexist)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#string-text-manipulation" id="id16">String/text Manipulation</a><ul>
-<li><a class="reference internal" href="#escapenewlines-aliases-escape-newlines" id="id17">escapenewlines  (aliases escape_newlines)</a></li>
-<li><a class="reference internal" href="#replace" id="id18">replace</a></li>
-<li><a class="reference internal" href="#compare" id="id19">compare</a></li>
-<li><a class="reference internal" href="#upper-aliases-uppercase" id="id20">upper  (aliases uppercase)</a></li>
-<li><a class="reference internal" href="#lower-aliases-lowercase" id="id21">lower  (aliases lowercase)</a></li>
+<li><a class="reference external" href="#string-text-manipulation" id="id16">String/text Manipulation</a><ul>
+<li><a class="reference external" href="#escapenewlines-aliases-escape-newlines" id="id17">escapenewlines  (aliases escape_newlines)</a></li>
+<li><a class="reference external" href="#replace" id="id18">replace</a></li>
+<li><a class="reference external" href="#compare" id="id19">compare</a></li>
+<li><a class="reference external" href="#upper-aliases-uppercase" id="id20">upper  (aliases uppercase)</a></li>
+<li><a class="reference external" href="#lower-aliases-lowercase" id="id21">lower  (aliases lowercase)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#miscelaneous-commands" id="id22">Miscelaneous commands</a><ul>
-<li><a class="reference internal" href="#getlanguage" id="id23">GetLanguage</a></li>
-<li><a class="reference internal" href="#add-tools-dir" id="id24">add_tools_dir</a></li>
+<li><a class="reference external" href="#miscelaneous-commands" id="id22">Miscelaneous commands</a><ul>
+<li><a class="reference external" href="#getlanguage" id="id23">GetLanguage</a></li>
+<li><a class="reference external" href="#add-tools-dir" id="id24">add_tools_dir</a></li>
 </ul>
 </li>
 </ul>
@@ -394,11 +394,11 @@ command.</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="comparison.html"
-                        title="previous chapter">Comparing BetterBatch to ...</a></p>
+  <p class="topless"><a href="readme.html"
+                        title="previous chapter">BetterBatch Readme</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="CHANGES.html"
-                        title="next chapter">CHANGES</a></p>
+  <p class="topless"><a href="comparison.html"
+                        title="next chapter">Comparing BetterBatch to ...</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/built_in_commands.txt"
@@ -428,17 +428,17 @@ command.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="CHANGES.html" title="CHANGES"
+          <a href="comparison.html" title="Comparing BetterBatch to ..."
              >next</a> |</li>
         <li class="right" >
-          <a href="comparison.html" title="Comparing BetterBatch to ..."
+          <a href="readme.html" title="BetterBatch Readme"
              >previous</a> |</li>
-        <li><a href="index.html">BetterBatch v1.1.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v1.1.3 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2010, Mark Mc Mahon.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.4.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.2.
     </div>
   </body>
 </html>

@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>CHANGES &mdash; BetterBatch v1.1.2 documentation</title>
+    <title>CHANGES &mdash; BetterBatch v1.1.3 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.1.2',
+        VERSION:     '1.1.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -22,9 +22,9 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="BetterBatch v1.1.2 documentation" href="index.html" />
+    <link rel="top" title="BetterBatch v1.1.3 documentation" href="index.html" />
     <link rel="next" title="BetterBatches License - MIT" href="LICENSE.html" />
-    <link rel="prev" title="The available built-in commands are:" href="built_in_commands.html" /> 
+    <link rel="prev" title="Comparing BetterBatch to ..." href="comparison.html" /> 
   </head>
   <body>
     <div class="related">
@@ -37,9 +37,9 @@
           <a href="LICENSE.html" title="BetterBatches License - MIT"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="built_in_commands.html" title="The available built-in commands are:"
+          <a href="comparison.html" title="Comparing BetterBatch to ..."
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">BetterBatch v1.1.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v1.1.3 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -51,7 +51,23 @@
   <div class="section" id="changes">
 <h1>CHANGES<a class="headerlink" href="#changes" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="some-external-command-cleanup">
-<h2>1.1.2 Some external command cleanup<a class="headerlink" href="#some-external-command-cleanup" title="Permalink to this headline">¶</a></h2>
+<h2>1.1.3 Some external command cleanup<a class="headerlink" href="#some-external-command-cleanup" title="Permalink to this headline">¶</a></h2>
+<p>05-October-2010</p>
+<blockquote>
+<ul class="simple">
+<li>Only test function calls at point of execution (still in test run though).
+Variables may not be defined at the point of definition - but they may be
+defined at the point of call.</li>
+<li>Small improvements to GetLanguage.py</li>
+<li>Updated Documentation for built in commands and some re-organization</li>
+<li>Better handling of replacement text (Replace built-in) which may cause a
+problem as a regular expression replacement.</li>
+<li>Better error reporting for mismatched {{{ and }}}.</li>
+</ul>
+</blockquote>
+</div>
+<div class="section" id="id1">
+<h2>1.1.2 Some external command cleanup<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>27-August-2010</p>
 <blockquote>
 <ul class="simple">
@@ -60,8 +76,8 @@ folder was not being installed.</li>
 </ul>
 </blockquote>
 </div>
-<div class="section" id="id1">
-<h2>1.1.1 Some external command cleanup<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id2">
+<h2>1.1.1 Some external command cleanup<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <p>24-August-2010</p>
 <blockquote>
 <ul class="simple">
@@ -238,8 +254,8 @@ and reduces some duplication. Testing is now done by using
 </ul>
 </blockquote>
 </div>
-<div class="section" id="id2">
-<h2>0.9.4 Added For loops and Parallel sections<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id3">
+<h2>0.9.4 Added For loops and Parallel sections<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <p>17-February-2010</p>
 <blockquote>
 <ul class="simple">
@@ -275,8 +291,9 @@ use Thread.isAlive() rather than Thread.is_alive() ).</li>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">CHANGES</a><ul>
-<li><a class="reference internal" href="#some-external-command-cleanup">1.1.2 Some external command cleanup</a></li>
-<li><a class="reference internal" href="#id1">1.1.1 Some external command cleanup</a></li>
+<li><a class="reference internal" href="#some-external-command-cleanup">1.1.3 Some external command cleanup</a></li>
+<li><a class="reference internal" href="#id1">1.1.2 Some external command cleanup</a></li>
+<li><a class="reference internal" href="#id2">1.1.1 Some external command cleanup</a></li>
 <li><a class="reference internal" href="#mapping-values-able-to-get-the-value-of-the-last-command-return-code">1.1.0 Mapping values, able to get the value of the last command return code</a></li>
 <li><a class="reference internal" href="#multiline-and-nested-code-blocks-various-clean-ups-and-more-tests">1.0.0 multiline and Nested code blocks, various clean-ups and more tests</a></li>
 <li><a class="reference internal" href="#improved-processing-more-error-checking">0.9.9 Improved processing, More error checking</a></li>
@@ -284,15 +301,15 @@ use Thread.isAlive() rather than Thread.is_alive() ).</li>
 <li><a class="reference internal" href="#functions-negative-conditions-setup-installer-and-test-fixes">0.9.7 Functions, negative conditions, Setup/Installer and test fixes</a></li>
 <li><a class="reference internal" href="#fixed-some-critical-issues-with-variable-references">0.9.6 Fixed Some critical issues with variable references</a></li>
 <li><a class="reference internal" href="#added-for-loops-and-parallel-sections">0.9.5 Added For loops and Parallel sections</a></li>
-<li><a class="reference internal" href="#id2">0.9.4 Added For loops and Parallel sections</a></li>
+<li><a class="reference internal" href="#id3">0.9.4 Added For loops and Parallel sections</a></li>
 <li><a class="reference internal" href="#path-handling-documentation-shell-references">0.9.3 Path handling, documentation, shell references</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="built_in_commands.html"
-                        title="previous chapter">The available built-in commands are:</a></p>
+  <p class="topless"><a href="comparison.html"
+                        title="previous chapter">Comparing BetterBatch to ...</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="LICENSE.html"
                         title="next chapter">BetterBatches License - MIT</a></p>
@@ -328,14 +345,14 @@ use Thread.isAlive() rather than Thread.is_alive() ).</li>
           <a href="LICENSE.html" title="BetterBatches License - MIT"
              >next</a> |</li>
         <li class="right" >
-          <a href="built_in_commands.html" title="The available built-in commands are:"
+          <a href="comparison.html" title="Comparing BetterBatch to ..."
              >previous</a> |</li>
-        <li><a href="index.html">BetterBatch v1.1.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v1.1.3 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2010, Mark Mc Mahon.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.4.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.2.
     </div>
   </body>
 </html>
