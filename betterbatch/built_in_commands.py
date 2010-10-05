@@ -274,11 +274,16 @@ def Replace(text, qualifiers = None):
 
     to_find = qualifiers[0]
     replace_with = qualifiers[1]
-    if not use_re:
-        to_find = re.escape(to_find)
-
-    search_re = re.compile(to_find, flags)
-    replaced, count = search_re.subn(replace_with, text)
+    if use_re:
+        search_re = re.compile(to_find, flags)
+        replaced, count = search_re.subn(replace_with, text)
+    else:
+        search_re = re.compile(re.escape(to_find), flags)
+        count = 0
+        replaced = text
+        for found in search_re.findall(text):
+            replaced = text.replace(found, replace_with)
+            count += 1
 
     if require and not count:
         raise RuntimeError(
