@@ -123,6 +123,11 @@ def ParseYAMLFile(yaml_file):
                 "         They have been replaced by spaces for processing:\n"
                 "         '%s'"% yaml_file)
 
+        # ensure that all opening braces are also closed
+        if yaml_data.count('{{{') != yaml_data.count('}}}'):
+            raise RuntimeError(
+                "Mismatched opening {{{ and closing }}} in '%s'"% yaml_file)
+
         # only allow mapping at the end of a string
         re_non_end_colon = re.compile(r":( *)(?!\s*$)", re.MULTILINE)
         yaml_data = re_non_end_colon.sub(r"+++++colon+++++\1", yaml_data)
