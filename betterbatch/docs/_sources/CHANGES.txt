@@ -2,6 +2,20 @@
 CHANGES
 ************************************
 
+1.1.3 Some external command cleanup
+---------------------------------------------------------------------------
+05-October-2010
+
+ * Only test function calls at point of execution (still in test run though). 
+   Variables may not be defined at the point of definition - but they may be
+   defined at the point of call.
+ * Small improvements to GetLanguage.py
+ * Updated Documentation for built in commands and some re-organization
+ * Better handling of replacement text (Replace built-in) which may cause a 
+   problem as a regular expression replacement.
+ * Better error reporting for mismatched {{{ and }}}.
+
+
 1.1.2 Some external command cleanup
 ---------------------------------------------------------------------------
 27-August-2010
