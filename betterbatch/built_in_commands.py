@@ -55,6 +55,10 @@ def VerifyFileCount(file_pattern, count = None):
         count = str(count)
 
     count = count.strip()
+
+    # strip quotes from around the file pattern
+    file_pattern = file_pattern.strip('"')
+
     num_files = len(glob.glob(file_pattern))
 
     op = operator.eq
