@@ -100,7 +100,7 @@ def PathNotExists(path, dummy = None):
 
     #strip leading and trailing quote characters
     path = path.strip('"')
-    if os.path.exists(path):
+    if glob.glob(path):
         return RESULT_FAILURE, "Path exists: '%s'"% path
     else:
         return RESULT_SUCCESS, "Path does not exist: '%s'"% path
@@ -112,7 +112,7 @@ def PathExists(path, dummy = None):
 
     #strip leading and trailing quote characters
     path = path.strip('"')
-    if os.path.exists(path):
+    if glob.glob(path):
         return RESULT_SUCCESS, "Path exists: '%s'"% path
     else:
         return RESULT_FAILURE, "Path does not exist: '%s'"% path
