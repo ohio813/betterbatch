@@ -1,0 +1,2 @@
+- dir <__script_dir__>
+- dir <__working_dir__>
