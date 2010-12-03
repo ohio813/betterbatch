@@ -1409,6 +1409,19 @@ class FunctionCallTests(unittest.TestCase):
             ExecuteSteps,
                 steps, vars, "test")
 
+    # bug reported by Jan Svoboda
+    # value passed directly to a function (not through a variable)
+    # was always showing in lowercase - they shouldn't be
+    def test_BUG_values_passed_as_lowercase(self):
+        vars = {}
+        steps = [
+            {"function test(xYz, AbCd)": ["return <XyZ> <aBcD>"], },
+            "set x = {{{ call test(TeSt1, tEsT2) }}}",]
+        steps = ParseSteps(steps)
+        ExecuteSteps(steps, vars, "run")
+        print vars
+        self.assertEquals(vars['x'], "TeSt1 tEsT2")
+
 
 class FunctionReturnTests(unittest.TestCase):
     def test_single_step(self):
@@ -1471,6 +1484,22 @@ class FunctionReturnTests(unittest.TestCase):
 class ParseStepsTests(unittest.TestCase):
     def test_single_step(self):
         ParseSteps(["set z = <a>", "set n = <b>",])
+
+
+class IntegrationTests(unittest.TestCase):
+
+    def test_mixed_case_variable_usage(self):
+        # validate that variables defined in one case can be used
+        # in any case
+        vars = {}
+        steps = ParseSteps(["set A = Abc", "set n = <a>", "echo <n>"])
+        ExecuteSteps(steps, vars, "run")
+        
+        self.assertEquals(vars['n'], "Abc")
+
+        steps = ParseSteps(["set a = Abc", "set n = <A>", "echo <n>"])
+        ExecuteSteps(steps, vars, "run")
+
 
 
 if __name__ == "__main__":

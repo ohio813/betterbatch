@@ -221,7 +221,7 @@ def ParseVariableDefinition(var_def, allow_no_value = False):
         raise RuntimeError(
             "Variable name missing in variable definition: '%s'")
 
-    return name.lower(), value
+    return name, value
 
 
 def SplitStatementAndData(step):
@@ -802,6 +802,7 @@ class VariableDefinition(Step):
 
         try:
             self.name, self.value = ParseVariableDefinition(self.step_data)
+            self.name = self.name.lower()
         except RuntimeError, e:
             raise RuntimeError(str(e)% self.raw_step)
 
