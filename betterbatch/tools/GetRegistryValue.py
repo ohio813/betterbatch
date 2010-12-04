@@ -2,32 +2,62 @@
 
 Usage: GetRegistryValue Path [value]
 
-Path should start with one of the standard keys 
+Path should start with one of the standard keys
     (e.g. HKLM, HKEY_CURRENT_USER, etc)
-    
+
 Leave Value blank to get the default value.
 """
 
-from _winreg import *
+import _winreg as winreg
 import sys
 import os
+import re
+from optparse import OptionParser
 
-# add the shortcuts
-HKLM = HKEY_LOCAL_MACHINE
-HKCU = HKEY_CURRENT_USER
 
-if __name__ == "__main__":
+def parse_args():
+    "Parse and check the command line arguments"
+
+    parser = OptionParser(
+        usage = "%prog [options] (keypath) [value_name]")
+
+    parser.add_option(
+        "-e", "--expand", default = False, action ="store_true",
+        help = "if the registry type is REG_EXPAND_SZ - then expand variables")
+
+    options, args = parser.parse_args()
+
+    if len(args) == 0:
+        parser.print_help()
+        sys.exit()
+
+    if len(args) > 2:
+        parser.print_help()
+        # some args were supplied
+        print "**ERROR** Too many arguments were supplied!"
+
+        sys.exit(1)
+
+    if len(args) == 1:
+        args.append('')
+
+    return options, args
+
+
+def main():
+    "Retrieve and print a registry value"
+
     # parse the arguments
-    reg_value_path = sys.argv[1]
-    value = ""
-    if len(sys.argv) > 2:
-        value = sys.argv[2]
+    options, (reg_value_path, value_name) = parse_args()
 
     # get the root key separate from the rest of the path
     root_key, path = reg_value_path.split('\\', 1)
 
     # get the handle to the root key
-    root_key_handle = locals().get(root_key.upper(), None)
+    # add the shortcuts
+    winreg.HKLM = winreg.HKEY_LOCAL_MACHINE
+    winreg.HKCU = winreg.HKEY_CURRENT_USER
+    root_key_handle = winreg.__dict__.get(root_key.upper(), None)
 
     # and validate that it was found correctly
     if root_key_handle is None:
@@ -35,11 +65,24 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # open the key
-    opened_key = OpenKey(root_key_handle, path)
+    opened_key = winreg.OpenKey(root_key_handle, path)
 
     # get the value
-    value, val_type = QueryValueEx(opened_key, value)
+    value, val_type = winreg.QueryValueEx(opened_key, value_name)
+    
+    if val_type == winreg.REG_EXPAND_SZ and options.expand:
+        # mimic ExpandEnvironmentStrings in python
+        env_var = re.compile(r"%([^%]+)%")
+        for var in env_var.finditer(value):
+            var_val = os.environ.get(var.group(1), None)
+            if var_val:
+                value = value.replace(var.group(0), var_val)
 
     # print it out :)
     print value
+
+
+if __name__ == "__main__":
+    main()
+
 
