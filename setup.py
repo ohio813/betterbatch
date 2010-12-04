@@ -34,6 +34,8 @@ Tested with python 2.5.1 and 2.6.4
 Current test coverage: 93%
 
 """
+import os
+import sys
 
 try:
     from setuptools import setup
@@ -79,3 +81,11 @@ setup(
     entry_points = {
         'console_scripts': ['bbrun = betterbatch.parsescript:Main',],}
     )
+
+if sys.argv[1].lower() == 'install':
+    cmd = '""%s" "%s""'% (
+        os.path.join(sys.prefix, "python.exe"),
+        os.path.join(os.path.dirname(__file__), 'associate_bb_filetype.py'))
+    
+    print cmd
+    os.system(cmd)
