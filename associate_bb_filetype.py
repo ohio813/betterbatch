@@ -24,6 +24,9 @@ def ParseOptions():
         options.bbrun = os.path.abspath(options.bbrun)
     else:
         options.bbrun = os.path.join(sys.prefix, 'scripts', 'bbrun.py')
+        if not os.path.exists(options.bbrun):
+            options.bbrun = os.path.join(
+                sys.prefix, 'scripts', 'bbrun-script.py')
         
     return options
     
