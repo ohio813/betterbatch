@@ -4,7 +4,7 @@ CHANGES
 
 1.1.4 Small bug fix and functions for getting/setting registry
 ---------------------------------------------------------------------------
-04-December-2010
+06-December-2010
 
 * Fixed: Parameters were being directly to functions (as opposed to being 
   passed in a variable) were being lowercased. 
