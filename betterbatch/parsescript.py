@@ -1144,13 +1144,16 @@ class IfStep(Step):
             self.output = ''
             return
 
-        for cond_type, condition in self.conditions:
+        for cond_type, condition in self.conditions:            
             LOG.debug("Testing Condition: '%s'"% condition)
             try:
                 condition.execute(variables, phase)
             except Exception, e:
                 # swallow exceptions - it just means that the check failed
-                pass
+                # though still output some debug data
+                LOG.debug("Condition raised: '%s'"% e)
+                # and ensure that the failure return value is set
+                condition.ret = 1
 
             ret = condition.ret
             if condition.negative_condition:
