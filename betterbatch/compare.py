@@ -57,8 +57,6 @@ if __name__ == "__main__":
 
     qualifiers = [q.lower() for q in sys.argv[4:]]
 
-    #print "---------------", (str1, op_text, str2, qualifiers)
-
     if "nocase" in qualifiers:
         str1 = str1.lower()
         str2 = str2.lower()
