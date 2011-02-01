@@ -16,8 +16,30 @@ import cmd_line
 
 PARAM_FILE = os.path.join(os.path.dirname(__file__), "param_counts.ini")
 
+# Copied and adapted from http://stackoverflow.com/questions/384076#2205909
+class ColoredConsoleHandler(logging.StreamHandler):
+    def emit( self, record ):
+        # Need to make a actual copy of the record
+        # to prevent altering the message for other loggers
+        myrecord = copy.copy( record )
+        levelno = myrecord.levelno
+        if(levelno >= 50): # CRITICAL / FATAL
+            color = '\x1b[31;1m' # red
+        elif(levelno >= 40): # ERROR
+            color = '\x1b[31m' # red
+        elif(levelno >= 30): # WARNING
+            color = '\x1b[33m' # yellow
+        elif(levelno >= 20): # INFO
+            color = '\x1b[0m' # green
+        elif(levelno >= 10): # DEBUG
+            color = '\x1b[35m' # pink
+        else: # NOTSET and anything else
+            color = '\x1b[0m' # normal
+        myrecord.msg = color + str(myrecord.msg) + '\x1b[0m'  # normal
+        logging.StreamHandler.emit(self, myrecord)
 
-def ConfigLogging():
+
+def ConfigLogging(use_colors = False):
     "Create and set up the logger - returns the new logger"
     # allow the handler to output everything - we will set the actual level
     # through the logger
@@ -29,16 +51,19 @@ def ConfigLogging():
     basic_formatter = logging.Formatter("%(message)s")
 
     if not logger.handlers:
-        stdout_handler = logging.StreamHandler()
+        if use_colors:
+            stdout_handler = ColoredConsoleHandler()
+        else:
+            stdout_handler = logging.StreamHandler()
+
         stdout_handler.setLevel(logging.INFO)
 
         logger.addHandler(stdout_handler)
 
     for handler in logger.handlers:
         handler.setFormatter(basic_formatter)
-
-ConfigLogging()
-LOG = logging.getLogger('betterbatch')
+    
+    return logger
 
 
 class UndefinedVariableError(RuntimeError):
@@ -1740,11 +1765,15 @@ def Main():
 
     start_time = time.time()
 
+    global LOG
     try:
         options = cmd_line.GetValidatedOptions()
     except RuntimeError, e:
-        LOG.info(e)
+        LOG = ConfigLogging()
+        LOG.fatal(e)
         sys.exit(1)
+
+    LOG = ConfigLogging(use_colors = options.colored_output)
 
     # make sure that all handlers print debug messages if verbose has been
     # requested
