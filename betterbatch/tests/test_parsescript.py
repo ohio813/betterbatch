@@ -1245,7 +1245,7 @@ class IfStepTests(unittest.TestCase):
         ifstep = ParseComplexStep(raw_step)
         vars = {'blah': '42'}
         steps = ExecuteSteps([ifstep], vars, 'run')
-        
+
         self.assertEquals(vars['blah'], '42')
 
 
@@ -1505,7 +1505,7 @@ class IntegrationTests(unittest.TestCase):
         vars = {}
         steps = ParseSteps(["set A = Abc", "set n = <a>", "echo <n>"])
         ExecuteSteps(steps, vars, "run")
-        
+
         self.assertEquals(vars['n'], "Abc")
 
         steps = ParseSteps(["set a = Abc", "set n = <A>", "echo <n>"])
