@@ -78,6 +78,14 @@ class ParseYAMLFileTests(unittest.TestCase):
             ParseYAMLFile,
                 full_path)
 
+    def test_mismatched_braces(self):
+        """"""
+        full_path = os.path.join(TEST_FILES_PATH, 'mismatched_braces.yaml')
+        self.assertRaises(
+            RuntimeError,
+            ParseYAMLFile,
+                full_path)
+
 
 class ErrorCollectionTests(unittest.TestCase):
     def test_LOGErrors(self):
