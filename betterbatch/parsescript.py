@@ -104,7 +104,7 @@ class ErrorCollection(RuntimeError):
             return
 
         LOG.fatal("======== UNDEFINED VARIABLES ========")
-        LOG.info(
+        LOG.error(
             '(Check scripts or pass value on '
             'command line e.g. "var=value")')
         for var, strings in sorted(undef_var_errs.items()):
@@ -1791,7 +1791,10 @@ def Main():
             LOG.exception(e)
         sys.exit(1)
     except EndExecution, e:
-        LOG.info(e.msg)
+        if e.ret == 0:
+            LOG.info(e.msg)
+        else:
+            LOG.fatal(e.msg)
         sys.exit(e.ret)
     except RuntimeError, e:
         LOG.error(e)
