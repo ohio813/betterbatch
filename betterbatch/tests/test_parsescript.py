@@ -15,6 +15,8 @@ TEST_PATH = os.path.dirname(__file__)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
 
+parsescript.LOG = parsescript.ConfigLogging()
+
 class ParseYAMLFileTests(unittest.TestCase):
 
     def test_simple_file(self):
@@ -376,14 +378,35 @@ class SplitStatementAndDataTests(unittest.TestCase):
         self.assertEquals(data, "= var  = here")
 
 
-def CloserAndRemoveLogHanlderwithPath(path):
-    for h in LOG.handlers:
-        if hasattr(h, 'baseFilename') and h.baseFilename == path:
-            h.flush()
-            LOG.removeHandler(h)
-            h.stream.close()
+#def CloserAndRemoveLogHanlderwithPath(path):
+#    for h in LOG.handlers:
+#        if hasattr(h, 'baseFilename') and h.baseFilename == path:
+#            h.flush()
+#            LOG.removeHandler(h)
+#            h.stream.close()
+#
+#            os.unlink(path)
 
-            os.unlink(path)
+class ColoredConsoleHandlerTests(unittest.TestCase):
+    def test_normal(self):
+        """"""
+        handler = ColoredConsoleHandler()
+        class record: pass
+        record.msg = "test"
+        record.lineno = 23
+        record.filename = sys.stdout
+        record.levelno = 50
+        handler.emit(record)
+        record.levelno = 40
+        handler.emit(record)
+        record.levelno = 30
+        handler.emit(record)
+        record.levelno = 20
+        handler.emit(record)
+        record.levelno = 10
+        handler.emit(record)
+        record.levelno = 0
+        handler.emit(record)
 
 
 class SetupLogFileTests(unittest.TestCase):

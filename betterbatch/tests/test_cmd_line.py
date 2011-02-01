@@ -7,6 +7,7 @@ import sys
 package_root = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(package_root)
 
+import cmd_line
 from cmd_line import *
 
 TEST_PATH = os.path.dirname(__file__)
@@ -83,6 +84,41 @@ class CommandLineTests(unittest.TestCase):
         self.assertEquals(
             options.script_file,
             os.path.join(TEST_FILES_PATH, "commands.yaml"))
+
+    def test_defultcolor_options(self):
+        """"""
+        sys.argv = ["prog.py", os.path.join(TEST_FILES_PATH, "commands.yaml")]
+        options = GetValidatedOptions()
+    
+        self.assertEquals(options.colored_output, USE_COLORED_OUTPUT)
+        self.assertEquals(options.no_color, False)
+
+    def test_force_no_color(self):
+        """"""
+        sys.argv = [
+            "prog.py", 
+            os.path.join(TEST_FILES_PATH, "commands.yaml"),
+            "--no-color"]
+        options = GetValidatedOptions()
+    
+        self.assertEquals(options.colored_output, False)
+        self.assertEquals(options.no_color, True)
+
+
+    def test_different_platforms(self):
+        """"""
+        old_plat = sys.platform
+        sys.platform = "win32"
+        import cmd_line as cmd_win32        
+        if cmd_win32.colorama:
+            self.assertEquals(cmd_win32.USE_COLORED_OUTPUT, True)
+        else:
+            self.assertEquals(cmd_win32.USE_COLORED_OUTPUT, True)
+        sys.platform = "unix"
+        import cmd_line as cmd_unix
+        self.assertEquals(cmd_unix.USE_COLORED_OUTPUT, True)
+        sys.platform = old_plat
+
 
 
 if __name__ == "__main__":

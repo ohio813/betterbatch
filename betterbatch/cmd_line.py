@@ -10,6 +10,18 @@ Executes a BetterBatch script file.
 Examples:
     bbrun.py --verbose my_script.bb test_dir=%temp%\there build=H099"""
 
+
+USE_COLORED_OUTPUT = False
+if sys.platform == "win32":
+    try:
+        import colorama
+        colorama.init()
+        import copy
+        USE_COLORED_OUTPUT = True
+    except:
+        pass
+
+
 def ParseArguments():
     "Build up the command line parser and parse the arguments"
 
@@ -66,11 +78,29 @@ def ParseArguments():
         '-v', '--verbose', action = "store_true",
         help='output debug messages to console')
 
+    parser.add_option(
+        '--colored-output',
+        action = "store_true",
+        default = USE_COLORED_OUTPUT,
+        help='Use colored output')
+
+    parser.add_option(
+        '--no-color',
+        action = "store_true",
+        default = False,
+        help='Use colored output')
+
+
     # parse the command line
     options, args = parser.parse_args()
     if not args:
         print USAGE
         sys.exit()
+
+    # no_color is just an override - we will use options.colored_output
+    if options.no_color:
+        options.colored_output = False
+
     return options, args
 
 
