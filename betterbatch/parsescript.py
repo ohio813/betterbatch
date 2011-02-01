@@ -1144,7 +1144,7 @@ class IfStep(Step):
             self.output = ''
             return
 
-        for cond_type, condition in self.conditions:            
+        for cond_type, condition in self.conditions:
             LOG.debug("Testing Condition: '%s'"% condition)
             try:
                 condition.execute(variables, phase)
