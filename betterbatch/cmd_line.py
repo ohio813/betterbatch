@@ -67,7 +67,7 @@ def ParseArguments():
         help='output debug messages to console')
 
     # parse the command line
-    options, args =  parser.parse_args()
+    options, args = parser.parse_args()
     if not args:
         print USAGE
         sys.exit()
