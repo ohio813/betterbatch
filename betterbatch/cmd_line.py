@@ -16,7 +16,6 @@ if sys.platform == "win32":
     try:
         import colorama
         colorama.init()
-        import copy
         USE_COLORED_OUTPUT = True
     except:
         pass
