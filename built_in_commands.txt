@@ -17,22 +17,26 @@ the ``run`` command itself - just call the command.
 
 It can take the following qualifiers:
 
-**ui**
-    output will not be captured, but will be shown on the screen
-    immediately - this allows the user to
-    interact with the command. This may be necessary when the command
-    expects input from the user. For example the dos command "dir /p"
-    will pause after each screen, without **ui** qualifier the script
-    would appear to hang (as the message to press any key would not be
-    displayed).
+**echo**
+    Output is echo'ed to the terminal.
+
+    Prior to BetterBatch 1.2.0 output was echoed AFTER the process
+    finished (unless *ui* qualifier was used).
+    Since 1.2.0 output is echoed as it generated. As such **echo** and **ui**
+    qualifiers have been merged (and **ui** is now just an alias for **echo**.)
+
+**nocapture**
+    Output will not be captured to the log file.
 
 **nocheck**
     Do not check the return value. Default is to raise an
     exception if the return value is not 0 (success)
 
-**echo**
-    Output is echo'ed to the terminal window after the process
-    has finished executing.
+**ui**
+    Alias for **echo** (since 1.2.0)
+
+    To achieve the pre-1.2.0 functionality (where **ui** stopped capturing
+    of output to the log file) specify **nocapture** & **echo** instead.
 
 
 ======================================================
@@ -225,17 +229,17 @@ GetRegistryValue
 ------------------------------------------------------
 Return the value of a registry key
 
-Usage: 
+Usage:
     ``GetRegistryValue.py [options] (keypath) [value_name]``
 
     | Options:
     |  -h, --help    show this help message and exit
     |  -e, --expand  if the registry type is REG_EXPAND_SZ - then expand variables
 
-``keypath`` should begin with one of the standard registry keys HKLM, 
+``keypath`` should begin with one of the standard registry keys HKLM,
 HKEY_CURRENT_USER, etc.
 
-``value_name`` is optional - if not provided then the value for default key will 
+``value_name`` is optional - if not provided then the value for default key will
 be returned.
 
 Example::
@@ -247,7 +251,7 @@ Example::
 SetRegistryValue
 ------------------------------------------------------
 
-Usage: 
+Usage:
     ``SetRegistryValue.py [options] (keypath) (value_name) (new_value)``
 
     | Options:
@@ -263,13 +267,13 @@ Examples::
 
     # Ensure that hidden files are showed
     - SetRegistryValue "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" Hidden 1
-    
+
     # show file extensions
     - SetRegistryValue "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" HideFileExt 0
-    
+
     # do not use the search assistant
     - SetRegistryValue "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState" "Use Search Asst" no
-    
+
 
 ======================================================
 Miscelaneous commands
@@ -295,9 +299,9 @@ add_tools_dir
 ------------------------------------------------------
 The betterbatch/tools directory is added as a 'tools' directory by default.
 
-You can add other directories to be used as 'tools' directories by using this 
+You can add other directories to be used as 'tools' directories by using this
 command.
 
-Adding a tools directory means you do not have to specify the path to the 
+Adding a tools directory means you do not have to specify the path to the
 command.
 

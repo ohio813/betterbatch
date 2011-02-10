@@ -70,6 +70,15 @@ class BuiltInCommandsTests(unittest.TestCase):
     def test_SystemCommand_no_ui(self):
         SystemCommand("echo here", [])
 
+    def test_SystemCommand_nocapture(self):
+        SystemCommand("echo here",  ['nocapture'])    
+    
+    def test_SystemCommand_echo(self):
+        SystemCommand("echo here",  ['echo'])    
+
+    def test_SystemCommand_echo_nocapture(self):
+        SystemCommand("echo here",  ['echo', 'nocapture'])    
+
     def test_SystemCommand_no_too_long(self):
         self.assertRaises(
             RuntimeError,

@@ -978,8 +978,8 @@ class CommandStep(Step):
                 'Non zero return (%d) CMD: %s \n %s'%
                     (self.ret, cmd_log_string, indented_output))
 
-        if 'echo' in self.qualifiers and self.output.strip():
-            LOG.info(self.output.strip())
+        #if 'echo' in self.qualifiers and self.output.strip():
+        #    LOG.info(self.output.strip())
 
         elif indented_output != "\n":
             LOG.debug("Output from command:\n%s"% indented_output)

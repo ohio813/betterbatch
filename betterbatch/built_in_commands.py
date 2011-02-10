@@ -15,6 +15,7 @@ import sys
 import re
 import shlex
 import compare
+import time
 
 RESULT_SUCCESS = 0
 RESULT_FAILURE = 1
@@ -122,11 +123,10 @@ def SystemCommand(command, qualifiers = None):
     """Execute a system command, and optionally capture the output
 
     Allowed qualifiers are:
-        - ui      output will not be captured - this allows the user to
-                  interact with the command (i.e. if it may request the user
-                  to hit a key.
-        - nocheck Do not check the return value. Default is to raise an
-                  exception if the return value is not 0 (success)
+        - echo/ui   Display the command the command output as it happens
+        - nocapture Output will not be captured to the log file
+        - nocheck   Do not check the return value. Default is to raise an
+                    exception if the return value is not 0 (success)
     """
 
     # as [] is a dangerous default - replace the default None with []
@@ -134,15 +134,11 @@ def SystemCommand(command, qualifiers = None):
     if qualifiers is None:
         qualifiers = []
 
+    capture_output = not 'nocapture' in qualifiers
+
     #use_shell = False
     #if command.strip().lower().split()[0] in COMMANDS_REQUIRING_SHELL:
     #    use_shell = True
-
-    # if the 'ui' qualifier has not been specified then
-    # capture the output
-    new_stdout = sys.stdout
-    if 'ui' not in qualifiers:
-        new_stdout = tempfile.TemporaryFile()
 
     command = command.strip()
     command_len = len(command)
@@ -157,21 +153,61 @@ def SystemCommand(command, qualifiers = None):
     # if we can turn shell off for some/all of the commands then it will
     # allow us to better handle catastrophic issues (e.g. command not found)
 
+    # Only capture output if 'nocapture' qualifier has not been specified
+    new_stdout = sys.stdout
+    if capture_output:
+        new_stdout, file_path = tempfile.mkstemp()
+        # open the output for reading also
+        cmd_output = open(file_path, "rb", buffering = 0)
+
+    # if ui or echo qualifiers are not set
+    elif not set(('echo', 'ui')).intersection(qualifiers):
+        # ensure that output is not captured and not output
+        new_stdout = open("null")
+
     # for some reason when passing to the shell - we need to quote the
     # WHOLE command with ""
     command = '"%s"'% command
-    ret_value = subprocess.call(
+    cmd_pipe = subprocess.Popen(
         command,
         shell = True,
         stdout = new_stdout,
-        stderr = new_stdout)
+        stderr = subprocess.STDOUT)
 
-    output = ''
-    if 'ui' not in qualifiers:
-        new_stdout.seek(0)
-        output = new_stdout.read()
+    cmd_data = []
+    while cmd_pipe.returncode is None:
+        # wait just a small bit between checks - avoids too 'busy' a cycle
+        time.sleep(.1)
+        # Ensure that the user knows what is happening and also capture the
+        # output for the logfile
+        if capture_output:
+            step_data = cmd_output.read()
+            # only append data if there is data (otherwise it could use all
+            # available memory)
+            if step_data:
+                # if echo or ui qualifier was set
+                if set(('echo', 'ui')).intersection(qualifiers):
+                    # output the data
+                    sys.stdout.write(step_data)
+                cmd_data.append(step_data)
+        cmd_pipe.poll()
 
-    return ret_value, output
+    # if we were capturing data - then we need to close the capturing
+    # file handle(s) and remove the file
+    if capture_output:
+        #import pdb; pdb.set_trace()
+        os.close(new_stdout)
+        cmd_output.close()
+        os.remove(file_path)
+
+    output = "".join(cmd_data)
+
+    # just in case there were ANSI escape sequences in the output - strip them
+    # the following REGEX was copied from colorama.ansitowin32
+    ANSI_RE = re.compile('\033\[((?:\d|;)*)([a-zA-Z])')
+    output = ANSI_RE.sub('', output)
+
+    return cmd_pipe.returncode, output
 
 
 def dirname(path, dummy = None):
