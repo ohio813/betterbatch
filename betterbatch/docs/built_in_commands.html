@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The available built-in commands are: &mdash; BetterBatch v1.1.3 documentation</title>
+    <title>The available built-in commands are: &mdash; BetterBatch v1.2.0 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.1.3',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -22,7 +22,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="BetterBatch v1.1.3 documentation" href="index.html" />
+    <link rel="top" title="BetterBatch v1.2.0 documentation" href="index.html" />
     <link rel="next" title="Comparing BetterBatch to ..." href="comparison.html" />
     <link rel="prev" title="BetterBatch Readme" href="readme.html" /> 
   </head>
@@ -39,7 +39,7 @@
         <li class="right" >
           <a href="readme.html" title="BetterBatch Readme"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">BetterBatch v1.1.3 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v1.2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -105,20 +105,23 @@ This is the default command - you do not need to and should not use
 the <tt class="docutils literal"><span class="pre">run</span></tt> command itself - just call the command.</p>
 <p>It can take the following qualifiers:</p>
 <dl class="docutils">
-<dt><strong>ui</strong></dt>
-<dd>output will not be captured, but will be shown on the screen
-immediately - this allows the user to
-interact with the command. This may be necessary when the command
-expects input from the user. For example the dos command &#8220;dir /p&#8221;
-will pause after each screen, without <strong>ui</strong> qualifier the script
-would appear to hang (as the message to press any key would not be
-displayed).</dd>
+<dt><strong>echo</strong></dt>
+<dd><p class="first">Output is echo&#8217;ed to the terminal.</p>
+<p class="last">Prior to BetterBatch 1.2.0 output was echoed AFTER the process
+finished (unless <em>ui</em> qualifier was used).
+Since 1.2.0 output is echoed as it generated. As such <strong>echo</strong> and <strong>ui</strong>
+qualifiers have been merged (and <strong>ui</strong> is now just an alias for <strong>echo</strong>.)</p>
+</dd>
+<dt><strong>nocapture</strong></dt>
+<dd>Output will not be captured to the log file.</dd>
 <dt><strong>nocheck</strong></dt>
 <dd>Do not check the return value. Default is to raise an
 exception if the return value is not 0 (success)</dd>
-<dt><strong>echo</strong></dt>
-<dd>Output is echo&#8217;ed to the terminal window after the process
-has finished executing.</dd>
+<dt><strong>ui</strong></dt>
+<dd><p class="first">Alias for <strong>echo</strong> (since 1.2.0)</p>
+<p class="last">To achieve the pre-1.2.0 functionality (where <strong>ui</strong> stopped capturing
+of output to the log file) specify <strong>nocapture</strong> &amp; <strong>echo</strong> instead.</p>
+</dd>
 </dl>
 </div>
 </div>
@@ -151,7 +154,7 @@ path passed in.</p>
 one per line.</p>
 <p>Usage: $prog [-r] file text_to_find [text_to_find...]</p>
 <blockquote>
-<dl class="docutils">
+<div><dl class="docutils">
 <dt>Options:</dt>
 <dd><table class="first last docutils option-list" frame="void" rules="none">
 <col class="option" />
@@ -174,14 +177,14 @@ one per line.</p>
 </table>
 </dd>
 </dl>
-</blockquote>
+</div></blockquote>
 </div>
 <div class="section" id="replace-in-file">
 <h3><a class="toc-backref" href="#id11">replace_in_file</a><a class="headerlink" href="#replace-in-file" title="Permalink to this headline">¶</a></h3>
 <p>Replace text in file</p>
 <p>Usage: $prog [-r] file to_find replace_with</p>
 <blockquote>
-<dl class="docutils">
+<div><dl class="docutils">
 <dt>Options:</dt>
 <dd><table class="first last docutils option-list" frame="void" rules="none">
 <col class="option" />
@@ -200,7 +203,7 @@ one per line.</p>
 </table>
 </dd>
 </dl>
-</blockquote>
+</div></blockquote>
 </div>
 <div class="section" id="listfilesmatchingpattern">
 <h3><a class="toc-backref" href="#id12">ListFilesMatchingPattern</a><a class="headerlink" href="#listfilesmatchingpattern" title="Permalink to this headline">¶</a></h3>
@@ -502,12 +505,12 @@ command.</p>
         <li class="right" >
           <a href="readme.html" title="BetterBatch Readme"
              >previous</a> |</li>
-        <li><a href="index.html">BetterBatch v1.1.3 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v1.2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2010, Mark Mc Mahon.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.5.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
     </div>
   </body>
 </html>
