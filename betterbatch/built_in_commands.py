@@ -134,6 +134,8 @@ def SystemCommand(command, qualifiers = None):
     if qualifiers is None:
         qualifiers = []
 
+    # "not 'nocapture'" is a bit hard to read - so convert it to a positive
+    # process - 'capture_output' 
     capture_output = not 'nocapture' in qualifiers
 
     #use_shell = False
@@ -157,7 +159,8 @@ def SystemCommand(command, qualifiers = None):
     new_stdout = sys.stdout
     if capture_output:
         new_stdout, file_path = tempfile.mkstemp()
-        # open the output for reading also
+        # open the output for reading also in a separate file so that
+        # we can keep different file pointers
         cmd_output = open(file_path, "rb", buffering = 0)
 
     # if ui or echo qualifiers are not set
@@ -175,6 +178,8 @@ def SystemCommand(command, qualifiers = None):
         stderr = subprocess.STDOUT)
 
     cmd_data = []
+    # while the command hasn't finished - keep reading the data from the output
+    # file (if capturing)
     while cmd_pipe.returncode is None:
         # wait just a small bit between checks - avoids too 'busy' a cycle
         time.sleep(.1)
