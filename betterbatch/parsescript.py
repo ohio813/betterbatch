@@ -18,10 +18,12 @@ PARAM_FILE = os.path.join(os.path.dirname(__file__), "param_counts.ini")
 
 # Copied and adapted from http://stackoverflow.com/questions/384076#2205909
 class ColoredConsoleHandler(logging.StreamHandler):
-    def emit( self, record ):
+    "Allow outputing messages in color"
+    def emit(self, record):
+        "Emit the message in color"
         # Need to make a actual copy of the record
         # to prevent altering the message for other loggers
-        myrecord = copy.copy( record )
+        myrecord = copy.copy(record)
         levelno = myrecord.levelno
         if(levelno >= 50): # CRITICAL / FATAL
             color = '\x1b[31;1m' # red
