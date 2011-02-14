@@ -1,4 +1,7 @@
 """Parse a script and return the list of steps ready to executed"""
+
+from __future__ import absolute_import
+
 import re
 import os
 import logging
@@ -11,8 +14,8 @@ import time
 
 import yaml
 
-import built_in_commands
-import cmd_line
+from . import built_in_commands
+from . import cmd_line
 
 PARAM_FILE = os.path.join(os.path.dirname(__file__), "param_counts.ini")
 

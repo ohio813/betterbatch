@@ -6,6 +6,8 @@ e.g. Run: dir /s
 e.g. CountFiles:  <database_dir>\*.lpu 3  # ensure 3 LPU's
 etc
 """
+from __future__ import absolute_import
+
 import operator
 import os
 import glob
@@ -14,8 +16,8 @@ import tempfile
 import sys
 import re
 import shlex
-import compare
 import time
+from . import compare
 
 RESULT_SUCCESS = 0
 RESULT_FAILURE = 1

@@ -1,13 +1,15 @@
+from __future__ import absolute_import
+
 import unittest
 import os
 import sys
 
 # ensure that the package root is on the path
-package_root = os.path.dirname(os.path.dirname(__file__))
+package_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(package_root)
 
-from parsescript import *
-from parsescript import built_in_commands
+from betterbatch.parsescript import *
+from betterbatch import built_in_commands
 
 TEST_PATH = os.path.dirname(__file__)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")

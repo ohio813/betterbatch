@@ -1,10 +1,12 @@
+from __future__ import absolute_import
+
 import os
 import sys
 import coverage
 import unittest
 
 # ensure that the package root is on the path
-package_root = os.path.dirname(os.path.dirname(__file__))
+package_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(package_root)
 
 # needs to be called before importing the modules
@@ -12,10 +14,10 @@ cov = coverage.coverage(branch = True)
 cov.start()
 
 #import betterbatch
-import cmd_line
-import built_in_commands
-import parsescript
-import compare
+from betterbatch import cmd_line
+from betterbatch import built_in_commands
+from betterbatch import parsescript
+from betterbatch import compare
 
 modules_to_test = [cmd_line, built_in_commands, parsescript, compare]
 

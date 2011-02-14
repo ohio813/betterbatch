@@ -1,14 +1,15 @@
+from __future__ import absolute_import
+
 import unittest
 import os
 
-
 import sys
 # ensure that the package root is on the path
-package_root = os.path.dirname(os.path.dirname(__file__))
+package_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(package_root)
 
 import cmd_line
-from cmd_line import *
+from betterbatch.cmd_line import *
 
 TEST_PATH = os.path.dirname(__file__)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
