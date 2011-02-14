@@ -168,7 +168,7 @@ def SystemCommand(command, qualifiers = None):
     # if ui or echo qualifiers are not set
     elif not set(('echo', 'ui')).intersection(qualifiers):
         # ensure that output is not captured and not output
-        new_stdout = open("null")
+        new_stdout = open("nul", "w")
 
     # for some reason when passing to the shell - we need to quote the
     # WHOLE command with ""
