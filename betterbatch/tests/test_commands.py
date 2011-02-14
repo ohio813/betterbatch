@@ -4,10 +4,10 @@ import glob
 
 import sys
 # ensure that the package root is on the path
-package_root = os.path.dirname(os.path.dirname(__file__))
+package_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(package_root)
 
-from parsescript import *
+from betterbatch.parsescript import *
 
 TEST_PATH = os.path.dirname(__file__)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")

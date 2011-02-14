@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import unittest
 import os
 import sys
@@ -6,8 +8,8 @@ import sys
 package_root = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(package_root)
 
-from built_in_commands import *
-import built_in_commands
+from betterbatch.built_in_commands import *
+from betterbatch import built_in_commands
 
 TEST_PATH = os.path.dirname(__file__)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
