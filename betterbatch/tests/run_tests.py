@@ -21,6 +21,8 @@ from betterbatch import compare
 
 modules_to_test = [cmd_line, built_in_commands, parsescript, compare]
 
+parsescript.LOG = parsescript.ConfigLogging()
+
 
 def run_tests():
     excludes = []
