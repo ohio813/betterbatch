@@ -233,7 +233,7 @@ def ChangeCurrentDirectory(path, dummy = None):
     """Try to change to the directory
 
     Replaces 'cd' command which would not achieve anything as the shell that
-    it executes in would dissapear immediately"""
+    it executes in would disappear immediately"""
     try:
         if isinstance(path, list):
             path = path[0]
