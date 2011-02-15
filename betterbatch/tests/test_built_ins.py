@@ -105,6 +105,17 @@ class BuiltInCommandsTests(unittest.TestCase):
         # change it back
         ChangeCurrentDirectory(cur_dir)
 
+    def test_ChangeCurrentDirectory_quotes(self):
+        """Check that it can ignore leading/trailing quotes"""
+        cur_dir = os.path.abspath(os.getcwd())
+        ret, out = ChangeCurrentDirectory('"\\"')
+
+        self.assertEquals((ret, out), (0, ""))
+        self.assertEquals(os.getcwd(), os.path.abspath("\\"))
+
+        # change it back
+        ChangeCurrentDirectory(cur_dir)
+
     def test_ChangeCurrentDirectory_fail(self):
         """Test the "cd" command that will fail"""
         cur_dir = os.path.abspath(os.getcwd())
@@ -142,6 +153,17 @@ class BuiltInCommandsTests(unittest.TestCase):
 
         self.assertNotEquals((ret, out), (0, ""))
         self.assertEquals(os.getcwd(), cur_dir)
+
+    def test_PushDirectory_quotes(self):
+        """Check that it can ignore leading/trailing quotes"""
+        cur_dir = os.path.abspath(os.getcwd())
+        ret, out = PushDirectory('"\\"')
+
+        self.assertEquals((ret, out), (0, ""))
+        self.assertEquals(os.getcwd(), os.path.abspath("\\"))
+
+        # change it back
+        PopDirectory()
 
     def test_PopDirectory_pass(self):
         cur_dir = os.path.abspath(os.getcwd())

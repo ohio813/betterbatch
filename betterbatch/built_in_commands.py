@@ -237,6 +237,8 @@ def ChangeCurrentDirectory(path, dummy = None):
     try:
         if isinstance(path, list):
             path = path[0]
+        # ensure the path doesn't have leading/trailing quotes
+        path = path.strip('"')
         os.chdir(path)
         return 0, ""
     except OSError, e:
@@ -247,6 +249,8 @@ def PushDirectory(path, dummy = None):
     "Change into the directory and store the previous current directory"
     try:
         PUSH_DIRECTORY_LIST.append(os.getcwd())
+        # ensure the path doesn't have leading/trailing quotes
+        path = path.strip('"')
         os.chdir(path)
         return 0, ""
     except OSError, e:
