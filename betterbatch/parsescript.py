@@ -672,7 +672,7 @@ def ParseFunctionNameAndArgs(name_args):
             parsed_args.append(
                 ParseVariableDefinition(arg, allow_no_value = True))
         except Exception, e:
-            raise RuntimeError(str(e)%arg  + " - '%s;"% name_args)
+            raise RuntimeError(str(e)%arg  + " - '%s"% name_args)
 
     # check that no item defined with a default is defined before an
     # item without a default e.g. just like python :)
