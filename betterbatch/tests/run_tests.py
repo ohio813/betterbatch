@@ -13,7 +13,6 @@ sys.path.append(package_root)
 cov = coverage.coverage(branch = True)
 cov.start()
 
-#import betterbatch
 from betterbatch import cmd_line
 from betterbatch import built_in_commands
 from betterbatch import parsescript
