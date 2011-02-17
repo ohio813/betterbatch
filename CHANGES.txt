@@ -1,0 +1,217 @@
+************************************
+CHANGES
+************************************
+
+1.1.4 Small bug fix and functions for getting/setting registry
+---------------------------------------------------------------------------
+06-December-2010
+
+* Fixed: Parameters were being directly to functions (as opposed to being 
+  passed in a variable) were being lowercased. 
+* Added additional tools to get and set registry values =GetRegistryValue=
+  and =SetRegistryValue()=
+* Better error reporting for mismatched {{{ and }}}.
+* Count built-in can handle quotes
+* Automatically call associate_bb_filetype.bb after installation.
+
+ 
+1.1.3 Some external command cleanup
+---------------------------------------------------------------------------
+05-October-2010
+
+* Only test function calls at point of execution (still in test run though). 
+  Variables may not be defined at the point of definition - but they may be
+  defined at the point of call.
+* Small improvements to GetLanguage.py
+* Updated Documentation for built in commands and some re-organization
+* Better handling of replacement text (Replace built-in) which may cause a 
+  problem as a regular expression replacement.
+* Better error reporting for mismatched {{{ and }}}.
+
+
+1.1.2 Some external command cleanup
+---------------------------------------------------------------------------
+27-August-2010
+
+* Fixed a fairly serious issue with setup.py where the betterbatch\tools 
+  folder was not being installed.
+
+
+1.1.1 Some external command cleanup
+---------------------------------------------------------------------------
+24-August-2010
+
+* Moved Compare, Uppercase, Lowercase, tools from external commands to 
+  internal commands
+* Added some more external tools: replace_in_file, find_in_file, 
+  ListFilesMatchingPattern, GetLanguage
+
+
+1.1.0 Mapping values, able to get the value of the last command return code
+---------------------------------------------------------------------------
+23-August-2010
+
+* Mapping variables can now be defined::
+
+        - set mapping_var:
+           - key1 = value 1
+           - key2 = value 2
+        - echo <mapping_var.key1>
+        - for key ih mapping_var.keys:
+           - echo KEY: <key> VALUE: <mapping_var.<key> >
+
+* Added pseudo variable __last_return__ which allows you to check the 
+   return value from the last executed command.
+
+
+1.0.0 multiline and Nested code blocks, various clean-ups and more tests 
+------------------------------------------------------------------------
+19-August-2010
+
+* Allow {{{ }}} blocks to be split over multiple lines
+* Improvements to tests (especially around function calls and returns)
+* Only allow one trailing argument in function calls
+* Improve how function returns are handled - so that they work even when
+  embedded in other structures (e.g. inside an if or for block)
+* Improve how function call values are matched to function variables.
+* Add a debug message when setting a variable value
+* Executeable sections {{{ }}} can now be nested.
+
+
+0.9.9 Improved processing, More error checking
+------------------------------------------------------------------------
+23-July-2010
+
+* Add a check when replacing ``{{{ }}}`` to see if the command had an output value
+  (external commands will always have output - but a function will not have
+  output if there was no return statement executed).
+* Added a return step to allow returning values from functions
+* Improved or added some error messages
+* ``ReplaceVariableReferences()`` (which replaces <var_ref> with the variable
+  reference) will ensure that there are no remaining <var_refs> in the string.
+  Previously if a replacement variable included a <var_ref> (i.e. a
+  {*delayed*} value - then it would not replace those.
+* Functions with no arguments are now allowed
+* Add a new function to call both ``ReplaceVariableReferences()`` and
+  ``ReplaceExecutableSections()``. Also Variable References are replaced first
+  and THEN executable sections - this is a change from the previous
+  implementation.
+* Replaced tabs will default to 4 spaces instead of 2 (maybe I should add
+  a configuration value for this?)
+* Executable Blocks {{{ ... }}} can now span multiple lines.
+* special case ``set usage =``  variable definitions so that they always
+  are treated as preformatted.
+* Replaced ``associate_filetype.bb`` with ``associate_filetype.py`` to enable more
+  complete processing
+* Add support for ``!=`` comparisons in ``compare.py``
+* Realized I never had a time machine - and set the years in ``CHANGES.txt``
+  back to 2010 (not 2011)
+* Lots of small code cleanups
+* More tests
+
+
+0.9.8 Bug fixes, Improve parallelization (and add loop parallelization)
+------------------------------------------------------------------------
+30-March-2010
+
+* Allow parallel steps to include any steps (not just commands, echo steps)
+* Also add a qualifer to for loops to allow all the steps to be run in
+  parallel. This feature should be considered experimental. And is probably
+  not very useful unless used with functions or some other way of ensuring
+  certain commands are not executed out of order. It may also mess up with
+  logging - but not validated yet.
+* Make the loop check time larger (previously it was too small which was
+  causing a lot of CPU overhead - 'busy loop')
+* Split built in command was not working correctly - each item needed to
+  be on a line of its own.
+* Make function name lookup case insensitive
+* Trailing commas in function definitions and function calls looked like an
+  empty parameter - fixed the code so that they are ignored.
+* Improved how missing variables are checked. It was saying that defined
+  variables that used an undefined variable were undefined, fixed so that
+  only really undefined variables are listed as undefined.
+* Echo used to be implemented using the underlying DOS command - replaced
+  with an EchoStep - which can handle multiline strings.
+* Include files now have the correct values for __script_filename__ and
+  __script_dir__ (they have the value of the included file - not the including
+  file)
+* "Script Error!" is written as the last message if there was an error
+  encountered during execution, otherwise it may not be easy to spot at a
+  glance that there was indeed an error.
+* Small tool added to get the short path file/directory name on windows.
+* Improve some error messages
+
+
+0.9.7 Functions, negative conditions, Setup/Installer and test fixes
+-----------------------------------------------------------------------
+07-March-2010
+
+* Add preliminary support for Functions, give it a try and let me know.
+* Add support for negative conditions for IfSteps.  (e.g. if not exists,
+  if not defined, etc)
+* Add a supported qualifier to VariableDefinition Steps to allow delayed
+  resolution for Variable references.
+* Allow defined to use <var_name> as well as var_name. (usability)
+* Due to a case issues (tools/Tools) the betterbatch\tools folder
+  was left out of the distribution. There was also a bug that
+  meant when this folder wasn't found BetterBatch would not run. (fixed in 0.9.6b)
+* Fix the old tests (change what could be changed and comment
+  out the rest)
+* Change setup.py so that Setuptools will be used if it is
+  available - otherwise docutils. (fixed in 0.9.6b)
+* Add a -t/--timed option to print how long the script took
+  to execute.
+* Fix manifest.in to include/exclude more files. (fixed in 0.9.6b)
+* Cleaned up the the output messages of PathExists(), PathNotExists() and
+  VerifyFileCount()
+* Ensured that the Testing phase is more silent (some messages that should
+  only be displayed during execution phase were being logged)
+* Some other small fixes.
+* Many thanks to Yuhui for pointing out many of these issues on the
+  mail list.
+
+
+0.9.6 Fixed Some critical issues with variable references
+------------------------------------------------------------------------
+02-March-2010
+
+* Fixed an issue with how variables are dealt with. I was finding that during
+  the run phase variables would still have values laeft over from the test
+  phase.
+
+
+0.9.5 Added For loops and Parallel sections
+------------------------------------------------------------------------
+01-March-2010
+
+* Huge refactoring of the code. Removed Step.replace_vars() methods and
+  instead added a 'phase' parameter to execute. This makes the code simpler
+  and reduces some duplication. Testing is now done by using
+  ``step.exectute(..., phase = "test")`` and execution by using
+  ``step.exectute(..., phase = "run")``.
+* Escape < and > in the output of commands.
+* Add many new tests overall coverage now 95%.
+* Added debug option (prints tracebacks on error).
+* Fixed `issue 1 <http://code.google.com/p/betterbatch/issues/detail?id=1>`_
+
+
+0.9.4 Added For loops and Parallel sections
+------------------------------------------------------------------------
+17-February-2010
+
+* Added support for basic For loops (though needs improvement)
+* Added support for running steps in Parallel.
+* Documentation updates
+* Added support for python 2.5 (stop using shlex.split with posix argument,
+  use Thread.isAlive() rather than Thread.is_alive() ).
+
+
+0.9.3 Path handling, documentation, shell references
+------------------------------------------------------------------------
+10-February-2010
+
+* Tabs characters are ignored (replaced before passing to YAML parser)
+* All steps are forced to be strings (makes it easier to use - "app with spaces" arg1 arg2 which could otherwise gives errors)
+* Documentation updates
+* Shell variables are available as <shell.varname> rather than just <varname> e.g. <shell.computername> (otherwise there is a risk of an environment variable 'left over' from other script affect a BetterBatch script.
+* Reduce some of the verbosity in default output (variables are not output to the log file, all references of a missing variable are not output unless you use -v/--verbose option)
