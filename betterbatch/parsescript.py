@@ -19,6 +19,7 @@ from . import cmd_line
 
 PARAM_FILE = os.path.join(os.path.dirname(__file__), "param_counts.ini")
 
+
 # Copied and adapted from http://stackoverflow.com/questions/384076#2205909
 class ColoredConsoleHandler(logging.StreamHandler):
     "Allow outputing messages in color"
@@ -28,23 +29,23 @@ class ColoredConsoleHandler(logging.StreamHandler):
         # to prevent altering the message for other loggers
         myrecord = copy.copy(record)
         levelno = myrecord.levelno
-        if(levelno >= 50): # CRITICAL / FATAL
-            color = '\x1b[31;1m' # red
-        elif(levelno >= 40): # ERROR
-            color = '\x1b[31m' # red
-        elif(levelno >= 30): # WARNING
-            color = '\x1b[33m' # yellow
-        elif(levelno >= 20): # INFO
-            color = '\x1b[0m' # green
-        elif(levelno >= 10): # DEBUG
-            color = '\x1b[35m' # pink
-        else: # NOTSET and anything else
-            color = '\x1b[0m' # normal
+        if(levelno >= 50):  # CRITICAL / FATAL
+            color = '\x1b[31;1m'  # red
+        elif(levelno >= 40):  # ERROR
+            color = '\x1b[31m'  # red
+        elif(levelno >= 30):  # WARNING
+            color = '\x1b[33m'  # yellow
+        elif(levelno >= 20):  # INFO
+            color = '\x1b[0m'  # green
+        elif(levelno >= 10):  # DEBUG
+            color = '\x1b[35m'  # pink
+        else:  # NOTSET and anything else
+            color = '\x1b[0m'  # normal
         myrecord.msg = color + str(myrecord.msg) + '\x1b[0m'  # normal
         logging.StreamHandler.emit(self, myrecord)
 
 
-def ConfigLogging(use_colors = False):
+def ConfigLogging(use_colors=False):
     "Create and set up the logger - returns the new logger"
     # allow the handler to output everything - we will set the actual level
     # through the logger
@@ -67,7 +68,7 @@ def ConfigLogging(use_colors = False):
 
     for handler in logger.handlers:
         handler.setFormatter(basic_formatter)
-    
+
     return logger
 
 
@@ -76,7 +77,7 @@ class UndefinedVariableError(RuntimeError):
 
     def __init__(self, variable, string):
         RuntimeError.__init__(
-            self, "Undefined Variable '%s' '%s'"% (variable, string))
+            self, "Undefined Variable '%s' '%s'" % (variable, string))
 
         self.variable = variable
         self.string = string
@@ -86,7 +87,7 @@ class ErrorCollection(RuntimeError):
     "Class used to track many errors "
 
     def __init__(self, errors):
-        RuntimeError.__init__(self, "%d errors"% len(errors))
+        RuntimeError.__init__(self, "%d errors" % len(errors))
         self.errors = errors
 
     def LogErrors(self):
@@ -113,13 +114,13 @@ class ErrorCollection(RuntimeError):
             '(Check scripts or pass value on '
             'command line e.g. "var=value")')
         for var, strings in sorted(undef_var_errs.items()):
-            LOG.fatal("'%s'"% var)
+            LOG.fatal("'%s'" % var)
 
             for string in strings:
-                LOG.debug("    %s"% string)
+                LOG.debug("    %s" % string)
 
     def __repr__(self):
-        return "<ERRCOL %s>"% self.errors
+        return "<ERRCOL %s>" % self.errors
 
     __str__ = __repr__
 
@@ -151,12 +152,12 @@ def ParseYAMLFile(yaml_file):
             LOG.warning(
                 "WARNING: Script contained one or more tab (\\t) characters.\n"
                 "         They have been replaced by spaces for processing:\n"
-                "         '%s'"% yaml_file)
+                "         '%s'" % yaml_file)
 
         # ensure that all opening braces are also closed
         if yaml_data.count('{{{') != yaml_data.count('}}}'):
             raise RuntimeError(
-                "Mismatched opening {{{ and closing }}} in '%s'"% yaml_file)
+                "Mismatched opening {{{ and closing }}} in '%s'" % yaml_file)
 
         # only allow mapping at the end of a string
         re_non_end_colon = re.compile(r":( *)(?!\s*$)", re.MULTILINE)
@@ -166,7 +167,7 @@ def ParseYAMLFile(yaml_file):
         yaml_data = yaml_data.replace('"', '+++++dblquote+++++')
 
         #ensure that USAGE blocks are treated as pre-formatted strings
-        usage_block = re.compile ("^(\s*)-(\s+set\s+usage.*$)", re.I | re.M)
+        usage_block = re.compile("^(\s*)-(\s+set\s+usage.*$)", re.I | re.M)
         yaml_data = usage_block.sub(r"\1- |\n\1 \2", yaml_data)
 
         # allow new-lines in {{{ }}} quoted strings
@@ -208,7 +209,7 @@ def ParseYAMLFile(yaml_file):
                 return new_dict
             if item is None:
                 return None
-            raise RuntimeError("Unknown structure type! '%s'"% item)
+            raise RuntimeError("Unknown structure type! '%s'" % item)
 
         script_data = strip_string_forcers(script_data)
 
@@ -218,13 +219,13 @@ def ParseYAMLFile(yaml_file):
         raise RuntimeError(e)
 
     except yaml.parser.ScannerError, e:
-        raise RuntimeError("%s - %s"% (yaml_file, e))
+        raise RuntimeError("%s - %s" % (yaml_file, e))
 
     except yaml.parser.ParserError, e:
-        raise RuntimeError("%s - %s"% (yaml_file, e))
+        raise RuntimeError("%s - %s" % (yaml_file, e))
 
 
-def ParseVariableDefinition(var_def, allow_no_value = False):
+def ParseVariableDefinition(var_def, allow_no_value=False):
     """Return the variable name and variable value of a variable definition
 
     allow_no_value was added to allow variables to be defined but not have
@@ -304,7 +305,7 @@ def FindVariableReferences(text):
     return variables_referenced
 
 
-def ReplaceVariableReferences(text, variables, loop = None):
+def ReplaceVariableReferences(text, variables, loop=None):
     """Replace all variable references in the string
 
     If there are any variables references in a replaced variable those will
@@ -339,7 +340,7 @@ def ReplaceVariableReferences(text, variables, loop = None):
         # a loop of 1 is OK e.g. x = <x>_ + 1
         if len(loop) > 100:
             errors.append("Loop found in variable definition "
-                "'%s', variables %s"% (original_text, list(set(loop))))
+                "'%s', variables %s" % (original_text, list(set(loop))))
             continue
 
         loop.append(variable)
@@ -356,7 +357,7 @@ def ReplaceVariableReferences(text, variables, loop = None):
         except ErrorCollection, e:
             for err in e.errors:
                 if isinstance(err, UndefinedVariableError):
-                    new_string = "%s -> %s"% (original_text, err.string)
+                    new_string = "%s -> %s" % (original_text, err.string)
 
                     errors.append(
                         UndefinedVariableError(err.variable, new_string))
@@ -378,7 +379,7 @@ def ReplaceVariableReferences(text, variables, loop = None):
     return text
 
 
-def ParseExecSectionTokens(tokens, exe_sections, cur_block = None):
+def ParseExecSectionTokens(tokens, exe_sections, cur_block=None):
     "get the blocks"
 
     if cur_block is None:
@@ -389,7 +390,7 @@ def ParseExecSectionTokens(tokens, exe_sections, cur_block = None):
         if token == '{{{':
 
             # store the ref to the exe section in the current block
-            cur_block.append("{{{%d}}}"% (len(exe_sections)))
+            cur_block.append("{{{%d}}}" % (len(exe_sections)))
 
             # fill up the latest exe section
             exe_sections.append([])
@@ -417,7 +418,7 @@ def TokenizeExecSections(text):
     return EXECUTABLE_SECTION.split(text)
 
 
-def ReplaceExecutableSections(text, variables, phase = "run"):
+def ReplaceExecutableSections(text, variables, phase="run"):
     """If variable has {{{cmd}}} - execute 'cmd' and update value with output
     """
 
@@ -437,7 +438,7 @@ def ReplaceExecutableSections(text, variables, phase = "run"):
         sub_sections = re.findall("\{\{\{(\d+)\}\}\}", recieving)
         for sub_section in sub_sections:
             recieving = recieving.replace(
-                "{{{%s}}}"% (sub_section),
+                "{{{%s}}}" % (sub_section),
                 outputs[int(sub_section)])
         return recieving
 
@@ -459,7 +460,7 @@ def ReplaceExecutableSections(text, variables, phase = "run"):
         if not hasattr(step, 'output') and isinstance(step, FunctionCall):
             raise RuntimeError(
                 "Function call with no return statement, "
-                "No value to retrieve:\n\t'%s'"% text)
+                "No value to retrieve:\n\t'%s'" % text)
 
         # Escape any greater/less than characters in the output of the
         # command
@@ -469,7 +470,7 @@ def ReplaceExecutableSections(text, variables, phase = "run"):
 
         # ensure that the output is stored at teh correct position in the
         # list (a bit more complicated as we are going backwards)
-        outputs[len(exe_sections) - i -1] = output
+        outputs[len(exe_sections) - i - 1] = output
 
     text = PushOutputsIntoString(base_value, outputs)
     text = text.replace("--#QUAL_#--", "{*")
@@ -478,7 +479,7 @@ def ReplaceExecutableSections(text, variables, phase = "run"):
     return text
 
 
-def RenderVariableValue(value, variables, phase, loop = None):
+def RenderVariableValue(value, variables, phase, loop=None):
     value = ReplaceVariableReferences(value, variables)
     value = ReplaceExecutableSections(value, variables, phase)
 
@@ -504,7 +505,7 @@ def SetupLogFile(log_filename):
             return
 
         else:
-            LOG.debug("Changing log file to: '%s'"% log_filename)
+            LOG.debug("Changing log file to: '%s'" % log_filename)
             h.flush()
             h.close()
             LOG.removeHandler(h)
@@ -576,7 +577,7 @@ def ParseIfStep(step, statements, clean_keys):
 
     if 'and' in clean_keys and 'or' in clean_keys:
         raise RuntimeError(
-            "You cannot mix AND and OR statements in a single IF '%s'"%
+            "You cannot mix AND and OR statements in a single IF '%s'" %
                 step)
 
     conditions = []
@@ -593,7 +594,7 @@ def ParseIfStep(step, statements, clean_keys):
                 if if_steps:
                     raise RuntimeError(
                         "Only one of the if/and/or "
-                        "statements can have steps: %s"% step)
+                        "statements can have steps: %s" % step)
                 if_steps = ParseSteps(steps)
 
             # check if NOT is applied to the condition
@@ -618,16 +619,17 @@ def ParseIfStep(step, statements, clean_keys):
 
     if not if_steps + else_steps:
         raise RuntimeError(
-            "IF statement has no 'if_true' or 'else' statements '%s'"%
+            "IF statement has no 'if_true' or 'else' statements '%s'" %
                 conditions)
 
     return IfStep(step, conditions, if_steps, else_steps)
+
 
 def ParseForStep(step, statements):
     "Parse an for complex step"
     if len(statements) > 1:
         raise RuntimeError(
-            "For statements should not have more than one 'key': %s"%
+            "For statements should not have more than one 'key': %s" %
                 statements)
     loop_info, steps = statements[0][1:]
     steps = ParseSteps(steps)
@@ -637,17 +639,19 @@ def ParseForStep(step, statements):
 
     return ForStep(step, loop_info, steps)
 
+
 def ParseParallelStep(step, statements):
     "Parse a parallel complex step"
     if len(statements) > 1:
         raise RuntimeError(
-            "Parallel blocks can have more only one parent: %s"%
+            "Parallel blocks can have more only one parent: %s" %
                 statements)
     # just get the steps
     steps = statements[0][-1]
     steps = ParseSteps(steps)
 
     return ParallelSteps(step, steps)
+
 
 def ParseFunctionNameAndArgs(name_args):
 
@@ -656,7 +660,7 @@ def ParseFunctionNameAndArgs(name_args):
     found = re.search("(.+)\((.*)\)(.*)", name_args)
 
     if not found:
-        raise RuntimeError ("Function defintion seems to be incorrect: '%s'"%
+        raise RuntimeError("Function defintion seems to be incorrect: '%s'" %
             name_args)
 
     name = found.group(1).strip()
@@ -670,9 +674,9 @@ def ParseFunctionNameAndArgs(name_args):
     for arg in args:
         try:
             parsed_args.append(
-                ParseVariableDefinition(arg, allow_no_value = True))
+                ParseVariableDefinition(arg, allow_no_value=True))
         except Exception, e:
-            raise RuntimeError(str(e)%arg  + " - '%s"% name_args)
+            raise RuntimeError(str(e) % arg + " - '%s" % name_args)
 
     # check that no item defined with a default is defined before an
     # item without a default e.g. just like python :)
@@ -686,7 +690,7 @@ def ParseFunctionNameAndArgs(name_args):
                 raise RuntimeError(
                     "In a function defintion or function call you cannot "
                     "define an argument without a default after an argument "
-                    "that has a default. '%s'"% arg_name)
+                    "that has a default. '%s'" % arg_name)
         else:
             default_found = True
 
@@ -697,7 +701,7 @@ def ParseFunctionDefinition(step, statements):
     "Parse a function definition complex step"
     if len(statements) > 1:
         raise RuntimeError(
-            "Function blocks can have more only one header: %s"%
+            "Function blocks can have more only one header: %s" %
                 statements)
 
     # Extract out the various bits of the function header
@@ -739,11 +743,11 @@ def ParseComplexStep(step):
         raise RuntimeError(
             "'%s' without 'if'. Please ensure that you do *not* have "
             "a dash in front of %s, and the first letter of '%s' should be "
-            "indented to the same level as the 'i' of if"%(
+            "indented to the same level as the 'i' of if" % (
                 clean_keys[0], clean_keys[0], clean_keys[0]))
 
     else:
-        raise RuntimeError("Unknown Complex step type: '%s'"%
+        raise RuntimeError("Unknown Complex step type: '%s'" %
             clean_keys)
 
 
@@ -759,7 +763,7 @@ class Step(object):
         return unicode(self.raw_step).encode('mbcs')
 
     def __repr__(self):
-        return "<%s %s>"% (self.__class__.__name__, self.raw_step)
+        return "<%s %s>" % (self.__class__.__name__, self.raw_step)
 
 
 def ParseMappingVariableDefinition(step, statements):
@@ -783,17 +787,17 @@ def ParseMappingVariableDefinition(step, statements):
     if len(step.keys()) > 1:
         raise RuntimeError(
             "Cannot have more than one key in "
-            "a mapping variable definition: '%s'"% step)
+            "a mapping variable definition: '%s'" % step)
 
     var_name = step.keys()[0].split()[1]
     key_values = statements[0][2]
     variable_defs = [VariableDefinition(
-        "set %s = %s"% (var_name, key_values))]
+        "set %s = %s" % (var_name, key_values))]
     keys = []
 
     if not key_values:
         raise RuntimeError(
-            "Mapping variable has no key, value pairs: '%s'"% step)
+            "Mapping variable has no key, value pairs: '%s'" % step)
 
     for item in key_values:
 
@@ -801,14 +805,14 @@ def ParseMappingVariableDefinition(step, statements):
         if '->' not in item:
             raise RuntimeError(
                 "Mapping variable item is not defined "
-                "correctly - it must be in the form key -> value. '%s' (%s)"%(
-                    step, item))
+                "correctly - it must be in the form key -> value. '%s' (%s)" %
+                    (step, item))
 
         # split the key and value up
         key_name, value = [i.strip() for i in item.split("->")]
 
         # add  a variable defintion for this key
-        variable_defs.append(VariableDefinition("set %s.%s = %s"%(
+        variable_defs.append(VariableDefinition("set %s.%s = %s" % (
             var_name, key_name, value)))
 
         # Keep the keys as we need to add the .keys variable also
@@ -816,7 +820,7 @@ def ParseMappingVariableDefinition(step, statements):
 
     # add the 'keys' values
     variable_defs.append(
-        VariableDefinition("set %s.keys = %s"%(var_name, "\n".join(keys))) )
+        VariableDefinition("set %s.keys = %s" % (var_name, "\n".join(keys))))
 
     return variable_defs
 
@@ -834,7 +838,7 @@ class VariableDefinition(Step):
             self.name, self.value = ParseVariableDefinition(self.step_data)
             self.name = self.name.lower()
         except RuntimeError, e:
-            raise RuntimeError(str(e)% self.raw_step)
+            raise RuntimeError(str(e) % self.raw_step)
 
     def execute(self, variables, phase):
         """Set the variable
@@ -855,13 +859,13 @@ class VariableDefinition(Step):
             new_val = ReplaceExecutableSections(new_val, variables, phase)
 
         if phase != "test":
-            LOG.debug("Set variable '%s' to value '%s'"% (
+            LOG.debug("Set variable '%s' to value '%s'" % (
                 self.name, new_val))
 
         variables[self.name] = new_val
 
     def __repr__(self):
-        return '"%s"'% self.value
+        return '"%s"' % self.value
 
 
 def ParseQualifiers(text):
@@ -873,7 +877,7 @@ def ParseQualifiers(text):
     exe_sections = []
     for i, exe_section in enumerate(
             re.findall(r"\{\{\{.+?\}\}\}", text)):
-        text = text.replace(exe_section, "{{{%d}}}"% i)
+        text = text.replace(exe_section, "{{{%d}}}" % i)
         exe_sections.append(exe_section)
 
     qualifier_re = re.compile("""
@@ -886,7 +890,7 @@ def ParseQualifiers(text):
 
     # replace the executable sections
     for i, section in enumerate(exe_sections):
-        text = text.replace("{{{%d}}}"%i, section)
+        text = text.replace("{{{%d}}}" % i, section)
 
     # ensure that the qualifiers are lower case and no extra spaces
     qualifiers = [q.lower().strip() for q in qualifiers]
@@ -916,10 +920,10 @@ class CommandStep(Step):
             command_message = " ".join((cmd, command_message))
 
         if command_message.split() != self.raw_step.split():
-            command_message = "'%s' -> '%s'"% (
+            command_message = "'%s' -> '%s'" % (
                 self.raw_step, command_message)
         else:
-            command_message = "'%s'"% command_message
+            command_message = "'%s'" % command_message
 
         #command_message = command_message.replace('\\', '\\\\')
         command_message = command_message.replace('\r\n', '\\r\\n')
@@ -954,7 +958,7 @@ class CommandStep(Step):
 
         #cmd_log_string = self.command_as_string_for_log(cmd, params)
         try:
-            LOG.debug("Executing command %s"% cmd_log_string)
+            LOG.debug("Executing command %s" % cmd_log_string)
             # call the function and get the output and the return value
             self.ret, self.output = func(params, self.qualifiers)
             variables['__last_return__'] = str(self.ret)
@@ -978,14 +982,14 @@ class CommandStep(Step):
 
         if self.ret and not 'nocheck' in self.qualifiers:
             raise RuntimeError(
-                'Non zero return (%d) CMD: %s \n %s'%
+                'Non zero return (%d) CMD: %s \n %s' %
                     (self.ret, cmd_log_string, indented_output))
 
         #if 'echo' in self.qualifiers and self.output.strip():
         #    LOG.info(self.output.strip())
 
         elif indented_output != "\n":
-            LOG.debug("Output from command:\n%s"% indented_output)
+            LOG.debug("Output from command:\n%s" % indented_output)
 
 
 class EchoStep(Step):
@@ -1028,6 +1032,7 @@ class ParallelSteps(Step):
                 self.step = step
                 self.variables = variables
                 self.exception = None
+
             def run(self):
                 "Run the thread and store any exceptions for later retrieval"
                 try:
@@ -1038,7 +1043,7 @@ class ParallelSteps(Step):
         # start all the threads
         for step in self.steps:
             if phase != "test":
-                LOG.debug("starting step in new thread: '%s'"% step)
+                LOG.debug("starting step in new thread: '%s'" % step)
 
             # define variables immediately
             if isinstance(step, VariableDefinition):
@@ -1061,7 +1066,7 @@ class ParallelSteps(Step):
                 # remove it
                 if not t.isAlive():
                     if phase != "test":
-                        LOG.debug("Thread finished: '%s'"% t.step)
+                        LOG.debug("Thread finished: '%s'" % t.step)
                     threads.remove(t)
                     if t.exception:
                         errs.append(t.exception)
@@ -1100,7 +1105,7 @@ class ForStep(Step):
             # create a variableDefinition for this
             loop_steps.append(
                 VariableDefinition(
-                    "set %s = %s"%(self.variable, val)))
+                    "set %s = %s" % (self.variable, val)))
             loop_steps.extend(self.steps)
 
         if 'parallel' in self.qualifiers:
@@ -1175,13 +1180,13 @@ class IfStep(Step):
             return
 
         for cond_type, condition in self.conditions:
-            LOG.debug("Testing Condition: '%s'"% condition)
+            LOG.debug("Testing Condition: '%s'" % condition)
             try:
                 condition.execute(variables, phase)
             except Exception, e:
                 # swallow exceptions - it just means that the check failed
                 # though still output some debug data
-                LOG.debug("Condition raised: '%s'"% e)
+                LOG.debug("Condition raised: '%s'" % e)
                 # and ensure that the failure return value is set
                 condition.ret = 1
 
@@ -1198,12 +1203,12 @@ class IfStep(Step):
         # or OR and at least one pass
         if ((conditions_type == "and" and not any(condition_values)) or
             (conditions_type == "or" and 0 in condition_values)):
-            LOG.debug("Condition evaluated to true: %s"% condition.output)
+            LOG.debug("Condition evaluated to true: %s" % condition.output)
             self.steps_to_exec = self.if_steps
 
         else:
             LOG.debug(
-                "Condition evaluated to false: %s"% condition.output)
+                "Condition evaluated to false: %s" % condition.output)
             self.steps_to_exec = self.else_steps
 
         # Execute the steps
@@ -1213,7 +1218,7 @@ class IfStep(Step):
                 self.output = self.steps_to_exec[-1].output
 
     def __repr__(self):
-        return "<IF %s...>"% self.conditions
+        return "<IF %s...>" % self.conditions
 
 
 class FunctionDefinition(Step):
@@ -1227,7 +1232,7 @@ class FunctionDefinition(Step):
 
         # don't allow a function with no steps
         if not steps:
-            raise RuntimeError("Function definition with no steps: '%s'"%
+            raise RuntimeError("Function definition with no steps: '%s'" %
                 self.raw_step.keys()[0])
 
         self.name = name
@@ -1250,7 +1255,7 @@ class FunctionDefinition(Step):
 
         if phase != "test":
             LOG.debug(
-                "Function call: '%s' with args %s"% (self.name, arg_values))
+                "Function call: '%s' with args %s" % (self.name, arg_values))
 
         # make a copy of the variables
         vars_copy = copy.deepcopy(variables)
@@ -1283,13 +1288,13 @@ class FunctionCall(Step):
         # ensure that the function name exists
         if not self.name.lower() in FunctionDefinition.all_functions:
             raise RuntimeError(
-                "Attempt to call an unknown function '%s' in call '%s'"%
+                "Attempt to call an unknown function '%s' in call '%s'" %
                     (self.name, self.raw_step))
 
         function = FunctionDefinition.all_functions[self.name.lower()]
 
         if len(self.arg_vals) > len(function.args):
-            raise RuntimeError("Too many arguments passed in function '%s'"%
+            raise RuntimeError("Too many arguments passed in function '%s'" %
                 self.raw_step)
 
         # if the arg is a simple value (i.e. not arg = val) then it will
@@ -1297,11 +1302,13 @@ class FunctionCall(Step):
         args_to_pass = {}
 
         function_args = [arg[0].lower() for arg in function.args]
-        unmatched_args = set(self.keyword_args.keys()).difference(function_args)
+        unmatched_args = set(self.keyword_args.keys()).difference(
+            function_args)
         if unmatched_args:
             raise RuntimeError((
                 "Argument(s) %s are not "
-                "arguments of function '%s'")%(unmatched_args, function.name))
+                "arguments of function '%s'") %
+                    (unmatched_args, function.name))
 
         # for each of the remaining function definition arguments
         # match passed arguments against function arguments
@@ -1315,7 +1322,7 @@ class FunctionCall(Step):
                 if arg_name in self.keyword_args:
                     raise RuntimeError(
                         "Function parameter supplied as both positional "
-                        "and keyword argument: '%s'"% arg_name)
+                        "and keyword argument: '%s'" % arg_name)
                 args_to_pass[arg_name] = self.positional_args[i]
                 continue
 
@@ -1328,11 +1335,10 @@ class FunctionCall(Step):
                 if arg_value is None:
                     raise RuntimeError((
                         "No Value passed for function parameter %d '%s' in "
-                        "function call:\n\t%s")% (
-                            i+1, arg_name, self.raw_step))
+                        "function call:\n\t%s") % (
+                            i + 1, arg_name, self.raw_step))
 
                 args_to_pass[arg_name] = arg_value
-
 
         # If there was a return then set our output value
         try:
@@ -1356,7 +1362,7 @@ class FunctionReturn(Step):
     def execute(self, variables, phase):
         self.output = RenderVariableValue(self.value, variables, phase)
         if phase != "test":
-            message = "Returning from function: %s"% self.output
+            message = "Returning from function: %s" % self.output
             LOG.debug(message)
         # throw ourselves up the stack!
         raise FunctionReturnWrapper(self)
@@ -1377,7 +1383,7 @@ class ExecutionEndStep(Step):
         except ValueError:
             raise RuntimeError(
                 "First item of END should be the error return (number), "
-                "0 for success: '%s'"% raw_step)
+                "0 for success: '%s'" % raw_step)
 
         if len(parts) == 2:
             self.message = parts[1].strip()
@@ -1416,16 +1422,16 @@ class IncludeStep(Step):
         except Exception, e:
             if phase == "test":
                 LOG.debug(
-                    "Could not open include file during testing: %s"%
+                    "Could not open include file during testing: %s" %
                         self.filename)
             else:
                 raise
-        prev_script_dir  = variables.get("__script_dir__", None)
+        prev_script_dir = variables.get("__script_dir__", None)
         prev_script_file = variables.get("__script_filename__", None)
         try:
             if phase != "test":
                 LOG.debug(
-                    "Included steps from: %s"% self.filename)
+                    "Included steps from: %s" % self.filename)
 
             variables["__script_dir__"], variables["__script_filename__"] = \
                 os.path.split(self.filename)
@@ -1464,7 +1470,7 @@ class LogFileStep(Step):
 
         if phase != "test":
             SetupLogFile(filename)
-            LOG.debug('Variables at logfile creation: %s'% variables)
+            LOG.debug('Variables at logfile creation: %s' % variables)
 
 
 class VariableDefinedCheck(Step):
@@ -1490,12 +1496,12 @@ class VariableDefinedCheck(Step):
 
         if key in variables:
             if phase != "test":
-                LOG.debug("Variable is defined: %s : '%s'"%
+                LOG.debug("Variable is defined: %s : '%s'" %
                     (self.variable, variables[key]))
             self.ret = 0
         else:
             if phase != "test":
-                LOG.debug("Variable is not defined: '%s'"% self.variable)
+                LOG.debug("Variable is not defined: '%s'" % self.variable)
             self.ret = 1
         self.output = ''
 
@@ -1505,10 +1511,10 @@ STATEMENT_HANDLERS = {
     'include': IncludeStep,
     'logfile': LogFileStep,
     'defined': VariableDefinedCheck,
-    'call'   : FunctionCall,
-    'echo'   : EchoStep,
-    'return' : FunctionReturn,
-    'end'    : ExecutionEndStep, }
+    'call': FunctionCall,
+    'echo': EchoStep,
+    'return': FunctionReturn,
+    'end': ExecutionEndStep, }
 
 
 def LoadScriptFile(filepath):
@@ -1522,7 +1528,7 @@ def LoadScriptFile(filepath):
     if not isinstance(steps, list):
         raise RuntimeError(
             "Error parsing script file. Expected list of steps got "
-            "'%s'. file: '%s'"% (type(steps).__name__, filepath))
+            "'%s'. file: '%s'" % (type(steps).__name__, filepath))
 
     return ParseSteps(steps)
 
@@ -1665,7 +1671,7 @@ def ValidateArgumentCounts(steps, count_db):
             continue
 
         # posix was not avilable for shlex.split in python 2.5.1
-        parts = list(shlex.shlex(step.step_data, posix = False))
+        parts = list(shlex.shlex(step.step_data, posix=False))
 
         command = os.path.basename(parts[0].lower())
 
@@ -1673,7 +1679,7 @@ def ValidateArgumentCounts(steps, count_db):
         if command in count_db:
 
             # If it is then get the count of it's parameters
-            arg_count = len(parts) -1
+            arg_count = len(parts) - 1
 
             lower_limit, upper_limit = count_db[command]
 
@@ -1682,7 +1688,7 @@ def ValidateArgumentCounts(steps, count_db):
 
                 errors.append(RuntimeError((
                     "Invalid number of parameters '%d'. "
-                    "Expected %d to %d. Command:\n\t%s")% (
+                    "Expected %d to %d. Command:\n\t%s") % (
                         arg_count,
                         lower_limit,
                         upper_limit,
@@ -1706,7 +1712,7 @@ def ReadParamRestrictions(param_file):
             return {}
 
     except ConfigParser.ParsingError, e:
-        LOG.warning("WARNING: "+ str(e))
+        LOG.warning("WARNING: " + str(e))
         return {}
 
     counts_db = {}
@@ -1726,7 +1732,7 @@ def ReadParamRestrictions(param_file):
                     val = int(val)
                 except ValueError:
                     LOG.info(
-                        "Param counts for '%s' are not valid: '%s'"%(
+                        "Param counts for '%s' are not valid: '%s'" % (
                             executable, counts))
                     continue
             parsed_counts.append(val)
@@ -1737,10 +1743,10 @@ def ReadParamRestrictions(param_file):
     return counts_db
 
 
-def ExecuteScriptFile(file_path, cmd_vars, check = False):
+def ExecuteScriptFile(file_path, cmd_vars, check=False):
     "Load and execute the script file"
     variables = PopulateVariables(file_path, cmd_vars)
-    LOG.debug("Environment:"% variables)
+    LOG.debug("Environment:" % variables)
 
     steps = LoadScriptFile(file_path)
 
@@ -1778,7 +1784,7 @@ def Main():
         LOG.fatal(e)
         sys.exit(1)
 
-    LOG = ConfigLogging(use_colors = options.colored_output)
+    LOG = ConfigLogging(use_colors=options.colored_output)
 
     # make sure that all handlers print debug messages if verbose has been
     # requested
@@ -1786,10 +1792,11 @@ def Main():
         for handler in LOG.handlers:
             handler.setLevel(logging.DEBUG)
 
-    LOG.debug("Run Options:"% options)
+    LOG.debug("Run Options:" % options)
 
     try:
-        ExecuteScriptFile(options.script_file, options.variables, options.check)
+        ExecuteScriptFile(
+            options.script_file, options.variables, options.check)
     except ErrorCollection, e:
         e.LogErrors()
         if options.debug:
@@ -1808,7 +1815,7 @@ def Main():
         LOG.fatal("Script Error!")
         sys.exit(1)
     except Exception, e:
-        LOG.critical('Unknown Error: %s'% e)
+        LOG.critical('Unknown Error: %s' % e)
         LOG.exception(e)
         LOG.fatal("Script Error!")
         sys.exit(99)
@@ -1817,7 +1824,7 @@ def Main():
             time_taken = time.time() - start_time
             minutes = time_taken // 60
             secs = time_taken % 60
-            LOG.info("Execution took %d minute(s) and %0.2f seconds"%
+            LOG.info("Execution took %d minute(s) and %0.2f seconds" %
                 (minutes, secs))
 
 
