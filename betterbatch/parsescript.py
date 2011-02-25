@@ -609,7 +609,7 @@ def ParseIfStep(step, statements, clean_keys):
 
         else:
             raise RuntimeError(
-                "If is not correctly defined expected \n"
+                "'If' statement is not correctly defined\n"
                 "- if COND:\n"
                 " [and/or COND:]\n"
                 "    - DO_STEPS\n"
