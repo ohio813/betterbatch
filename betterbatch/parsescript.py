@@ -537,7 +537,6 @@ def ParseSteps(steps):
         steps = [steps]
 
     parsed_steps = []
-    errors = []
     for step in steps:
         if step is None:
             continue
