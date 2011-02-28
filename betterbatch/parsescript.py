@@ -1415,7 +1415,7 @@ class IncludeStep(Step):
             self.steps = LoadScriptFile(self.filename)
         except Exception, e:
             if phase == "test":
-                LOG.debug(
+                LOG.info(
                     "Could not open include file during testing: %s"%
                         self.filename)
             else:
