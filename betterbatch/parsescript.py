@@ -171,7 +171,7 @@ def ParseYAMLFile(yaml_file):
         yaml_data = usage_block.sub(r"\1- |\n\1 \2", yaml_data)
 
         # allow new-lines in {{{ }}} quoted strings
-        brace_quoted = re.compile("{{{.*?}}}", re.DOTALL)
+        brace_quoted = re.compile("\{\{\{.*?\}\}\}", re.DOTALL)
         for quoted in brace_quoted.finditer(yaml_data):
             quoted_text = quoted.group(0)
 

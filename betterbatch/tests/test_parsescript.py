@@ -117,64 +117,64 @@ class ErrorCollectionTests(unittest.TestCase):
         repr(collection)
 
 
-class ParseVariableDefinitionTests(unittest.TestCase):
+class ParseVariableDefinitionsTests(unittest.TestCase):
     "Unit tests for variable definitions"
 
     def test_simple_var_def(self):
         self.assertEquals(
-            ParseVariableDefinition("var_name = var value"),
+            ParseVariableDefinitions("var_name = var value")[0],
             ("var_name", "var value"))
 
         # '=' stuck to the variable name
         self.assertEquals(
-            ParseVariableDefinition('var_name= var value'),
+            ParseVariableDefinitions('var_name= var value')[0],
             ("var_name", "var value"))
 
         # '=' stuck to the variable value
         self.assertEquals(
-            ParseVariableDefinition(' var_name =var value'),
+            ParseVariableDefinitions(' var_name =var value')[0],
             ("var_name", "var value"))
 
         # '=' no spaces
         self.assertEquals(
-            ParseVariableDefinition(' var_name=var value'),
+            ParseVariableDefinitions(' var_name=var value')[0],
             ("var_name", "var value"))
 
     def test_variable_with_space(self):
         # '=' no spaces
         self.assertRaises(
             RuntimeError,
-            ParseVariableDefinition,
+            ParseVariableDefinitions,
                 ' var name=var value')
 
     def test_variable_no_var_name(self):
         # '=' no spaces
         self.assertRaises(
             RuntimeError,
-            ParseVariableDefinition,
+            ParseVariableDefinitions,
                 ' =var value')
 
     def test_only_set(self):
         self.assertRaises(
             RuntimeError,
-            ParseVariableDefinition,
+            ParseVariableDefinitions,
                 ' ')
 
     def test_no_equals(self):
         self.assertRaises(
             RuntimeError,
-            ParseVariableDefinition,
+            ParseVariableDefinitions,
                 'blah')
 
     def test_no_equals_allowed(self):
         self.assertEquals(
             ('blah', None),
-            ParseVariableDefinition('blah', allow_no_value = True))
+            ParseVariableDefinitions('blah', single = False)[0])
 
     def test_no_value_equals_allowed(self):
         self.assertEquals(
             ('blah', ''),
-            ParseVariableDefinition('blah=', allow_no_value = True))
+                ParseVariableDefinitions('blah=', single = False)[0])
 
     def test_with_executable_section(self):
         v = VariableDefinition("set x = {{{abspath .}}}")
@@ -1135,7 +1135,6 @@ class IfStepTests(unittest.TestCase):
         except ErrorCollection, e:
             e.LogErrors()
             print e.errors
-            import pdb; pdb.set_trace()
 
 #
 #    def test_broken_too_few_clauses(self):
@@ -1317,6 +1316,14 @@ class ParseFunctionNameAndArgsTests(unittest.TestCase):
             RuntimeError,
             ParseFunctionNameAndArgs,
                 name_args)
+
+    def test_embedded_paren(self):
+        name_args = 'func_name ("this is() a test")'
+        name, args = ParseFunctionNameAndArgs(name_args, False)
+        
+        self.assertEquals(name, "func_name")
+        self.assertEquals(len(args), 1)
+        self.assertEquals(args[0], ("this is() a test", None))
 
 
 class ParseFunctionDefinitionTests(unittest.TestCase):
