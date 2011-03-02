@@ -229,6 +229,7 @@ def abspath(path, dummy = None):
     "Wrap os.path.abspath"
     return 0, os.path.normpath(os.path.abspath(path))
 
+
 def ChangeCurrentDirectory(path, dummy = None):
     """Try to change to the directory
 
