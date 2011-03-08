@@ -117,64 +117,64 @@ class ErrorCollectionTests(unittest.TestCase):
         repr(collection)
 
 
-class ParseVariableDefinitionsTests(unittest.TestCase):
+class ParseVariableDefinitionTests(unittest.TestCase):
     "Unit tests for variable definitions"
 
     def test_simple_var_def(self):
         self.assertEquals(
-            ParseVariableDefinitions("var_name = var value")[0],
+            ParseVariableDefinition("var_name = var value"),
             ("var_name", "var value"))
 
         # '=' stuck to the variable name
         self.assertEquals(
-            ParseVariableDefinitions('var_name= var value')[0],
+            ParseVariableDefinition('var_name= var value'),
             ("var_name", "var value"))
 
         # '=' stuck to the variable value
         self.assertEquals(
-            ParseVariableDefinitions(' var_name =var value')[0],
+            ParseVariableDefinition(' var_name =var value'),
             ("var_name", "var value"))
 
         # '=' no spaces
         self.assertEquals(
-            ParseVariableDefinitions(' var_name=var value')[0],
+            ParseVariableDefinition(' var_name=var value'),
             ("var_name", "var value"))
 
     def test_variable_with_space(self):
         # '=' no spaces
         self.assertRaises(
             RuntimeError,
-            ParseVariableDefinitions,
+            ParseVariableDefinition,
                 ' var name=var value')
 
     def test_variable_no_var_name(self):
         # '=' no spaces
         self.assertRaises(
             RuntimeError,
-            ParseVariableDefinitions,
+            ParseVariableDefinition,
                 ' =var value')
 
     def test_only_set(self):
         self.assertRaises(
             RuntimeError,
-            ParseVariableDefinitions,
+            ParseVariableDefinition,
                 ' ')
 
     def test_no_equals(self):
         self.assertRaises(
             RuntimeError,
-            ParseVariableDefinitions,
+            ParseVariableDefinition,
                 'blah')
 
     def test_no_equals_allowed(self):
         self.assertEquals(
             ('blah', None),
-            ParseVariableDefinitions('blah', single = False)[0])
+            ParseVariableDefinition('blah', function = "definition"))
 
     def test_no_value_equals_allowed(self):
         self.assertEquals(
             ('blah', ''),
-                ParseVariableDefinitions('blah=', single = False)[0])
+            ParseVariableDefinition('blah=', function = "definition"))
 
     def test_with_executable_section(self):
         v = VariableDefinition("set x = {{{abspath .}}}")
@@ -1285,7 +1285,7 @@ class ParseFunctionNameAndArgsTests(unittest.TestCase):
     def test_basic(self):
         name_args = "func_name (a, b, c=2,)"
 
-        name, args = ParseFunctionNameAndArgs(name_args)
+        name, args = ParseFunctionNameAndArgs(name_args, 'definition')
 
         self.assertEquals(name, "func_name")
         self.assertEquals(len(args), 3)
@@ -1299,7 +1299,7 @@ class ParseFunctionNameAndArgsTests(unittest.TestCase):
         self.assertRaises(
             RuntimeError,
             ParseFunctionNameAndArgs,
-                name_args)
+                name_args, 'definition')
 
     def test_non_default_after_default(self):
         name_args = "func_name (a, b=34, c)"
@@ -1307,23 +1307,31 @@ class ParseFunctionNameAndArgsTests(unittest.TestCase):
         self.assertRaises(
             RuntimeError,
             ParseFunctionNameAndArgs,
-                name_args)
+                name_args, 'definition')
 
-    def test_arg_with_space(self):
+    def test_arg_with_space_def(self):
         name_args = "func_name (this is a test)"
 
         self.assertRaises(
             RuntimeError,
             ParseFunctionNameAndArgs,
-                name_args)
+                name_args, 'definition')
+
+    def test_arg_with_space_call(self):
+        name_args = "func_name (this is a test)"
+
+        name, args = ParseFunctionNameAndArgs(name_args, 'call')
+        self.assertEquals(name, "func_name")
+        self.assertEquals(args[0], (None, "this is a test"))
+        
 
     def test_embedded_paren(self):
-        name_args = 'func_name ("this is() a test")'
-        name, args = ParseFunctionNameAndArgs(name_args, False)
+        name_args = 'func_name (this is() a test)'
+        name, args = ParseFunctionNameAndArgs(name_args, "call")
         
         self.assertEquals(name, "func_name")
         self.assertEquals(len(args), 1)
-        self.assertEquals(args[0], ("this is() a test", None))
+        self.assertEquals(args[0], (None, "this is() a test"))
 
 
 class ParseFunctionDefinitionTests(unittest.TestCase):

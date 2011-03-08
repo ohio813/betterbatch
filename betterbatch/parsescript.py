@@ -659,7 +659,7 @@ def ParseFunctionNameAndArgs(name_args):
     found = re.search("(.+)\((.*)\)(.*)", name_args)
 
     if not found:
-        raise RuntimeError("Function defintion seems to be incorrect: '%s'" %
+        raise RuntimeError("Function definition seems to be incorrect: '%s'" %
             name_args)
 
     name = found.group(1).strip()
@@ -687,7 +687,7 @@ def ParseFunctionNameAndArgs(name_args):
             # and we have already passed one with a default
             if default_found:
                 raise RuntimeError(
-                    "In a function defintion or function call you cannot "
+                    "In a function definition or function call you cannot "
                     "define an argument without a default after an argument "
                     "that has a default. '%s'" % arg_name)
         else:
@@ -810,7 +810,7 @@ def ParseMappingVariableDefinition(step, statements):
         # split the key and value up
         key_name, value = [i.strip() for i in item.split("->")]
 
-        # add  a variable defintion for this key
+        # add  a variable definition for this key
         variable_defs.append(VariableDefinition("set %s.%s = %s" % (
             var_name, key_name, value)))
 
