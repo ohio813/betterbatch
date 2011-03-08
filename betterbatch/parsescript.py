@@ -225,7 +225,7 @@ def ParseYAMLFile(yaml_file):
         raise RuntimeError("%s - %s" % (yaml_file, e))
 
 
-def ParseVariableDefinition(var_def, allow_no_value=False):
+def ParseVariableDefinition(var_def, function=None):
     """Return the variable name and variable value of a variable definition
 
     allow_no_value was added to allow variables to be defined but not have
@@ -236,21 +236,34 @@ def ParseVariableDefinition(var_def, allow_no_value=False):
 
     name_value = [p.strip() for p in var_def.split("=", 1)]
 
-    if len(name_value[0].split()) > 1:
-        raise RuntimeError(
-            "Variable names cannot have spaces: '%s'")
-
     if len(name_value) == 1:
-        if allow_no_value:
-            name, value = name_value[0], None
-        else:
+        if function is None:
             raise RuntimeError("Variable not defined correctly (no '='): '%s'")
+
+        if function == 'definition':
+            #  "= Value" not required
+            name, value = name_value[0], None
+
+        elif function == 'call':
+            # "name =" not required
+            name, value = None, name_value[0]
     else:
         name, value = name_value
 
-    if not name:
-        raise RuntimeError(
-            "Variable name missing in variable definition: '%s'")
+    if 'name' not in locals():
+        raise ValueError(
+            "Call to ParseVariableDefinition() seems to have been "
+            "called with an incorrect value of function: '%s'" % function)
+
+    # perform some sanity checks on the name
+    if name is not None:
+        if len(name.split()) > 1:
+            raise RuntimeError(
+                "Variable names cannot have spaces: '%s'")
+        # empty name (equals was supplied but not text preceding)
+        if not name:
+            raise RuntimeError(
+                "Variable name missing in variable definition: '%s'")
 
     return name, value
 
@@ -652,11 +665,11 @@ def ParseParallelStep(step, statements):
     return ParallelSteps(step, steps)
 
 
-def ParseFunctionNameAndArgs(name_args):
+def ParseFunctionNameAndArgs(name_args, def_or_call):
 
     # we need to parse out the name_args which should be something like:
     # function_name (arg, arg = default, arg = default)
-    found = re.search("(.+)\((.*)\)(.*)", name_args)
+    found = re.search("^([^(]+)\((.*)\)(.*)", name_args)
 
     if not found:
         raise RuntimeError("Function definition seems to be incorrect: '%s'" %
@@ -673,8 +686,8 @@ def ParseFunctionNameAndArgs(name_args):
     for arg in args:
         try:
             parsed_args.append(
-                ParseVariableDefinition(arg, allow_no_value=True))
-        except Exception, e:
+                ParseVariableDefinition(arg, function=def_or_call))
+        except RuntimeError, e:
             raise RuntimeError(str(e) % arg + " - '%s" % name_args)
 
     # check that no item defined with a default is defined before an
@@ -705,7 +718,7 @@ def ParseFunctionDefinition(step, statements):
 
     # Extract out the various bits of the function header
     dummy, name_args, steps = statements[0]
-    name, args = ParseFunctionNameAndArgs(name_args)
+    name, args = ParseFunctionNameAndArgs(name_args, def_or_call="definition")
 
     steps = ParseSteps(steps)
 
@@ -1271,17 +1284,24 @@ class FunctionCall(Step):
 
         name_argvals = SplitStatementAndData(raw_step)[1]
 
-        self.name, self.arg_vals = ParseFunctionNameAndArgs(name_argvals)
+        self.name, self.arg_vals = ParseFunctionNameAndArgs(
+            name_argvals, def_or_call="call")
 
-        # a positional arg is any that has a None value and the
-        # arg name (which is actually the value) is not empty
-        self.positional_args = [
-            arg for (arg, val) in self.arg_vals
-                if (val == None and arg)]
-
-        self.keyword_args = dict([
-            (arg.lower(), val) for (arg, val) in self.arg_vals
-                if val != None])
+        self.positional_args = []
+        self.keyword_args = {}
+        for arg_name, arg_value in self.arg_vals:
+            if arg_name is None:
+                if self.keyword_args:
+                    raise RuntimeError(
+                        "Positional argument after keyword argument(s): '%s'" %
+                        (arg_name))
+                self.positional_args.append(arg_value)
+            else:
+                if arg_name in self.keyword_args:
+                    raise RuntimeError(
+                        "Argument '%s' specified twice in function call: '%s'" %
+                        (arg_name, self.raw_step))
+                self.keyword_args[arg_name] = arg_value
 
     def execute(self, variables, phase):
         # ensure that the function name exists
