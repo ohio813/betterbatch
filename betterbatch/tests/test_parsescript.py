@@ -1326,12 +1326,14 @@ class ParseFunctionNameAndArgsTests(unittest.TestCase):
         
 
     def test_embedded_paren(self):
-        name_args = 'func_name (this is() a test)'
+        name_args = 'func_name (this is() a test, abc=123)'
         name, args = ParseFunctionNameAndArgs(name_args, "call")
         
         self.assertEquals(name, "func_name")
-        self.assertEquals(len(args), 1)
-        self.assertEquals(args[0], (None, "this is() a test"))
+        self.assertEquals(len(args), 2)
+        self.assertEquals(
+            tuple(args), 
+            ((None, "this is() a test"), ("abc", "123")))
 
 
 class ParseFunctionDefinitionTests(unittest.TestCase):
