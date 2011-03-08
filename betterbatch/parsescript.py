@@ -1313,7 +1313,8 @@ class FunctionCall(Step):
         function = FunctionDefinition.all_functions[self.name.lower()]
 
         if len(self.arg_vals) > len(function.args):
-            raise RuntimeError("Too many arguments passed in function '%s'" %
+            raise RuntimeError(
+                "Too many arguments passed in function call '%s'" %
                 self.raw_step)
 
         # if the arg is a simple value (i.e. not arg = val) then it will
@@ -1325,7 +1326,7 @@ class FunctionCall(Step):
             function_args)
         if unmatched_args:
             raise RuntimeError((
-                "Argument(s) %s are not "
+                "Keyword argument(s) %s are not "
                 "arguments of function '%s'") %
                     (unmatched_args, function.name))
 
