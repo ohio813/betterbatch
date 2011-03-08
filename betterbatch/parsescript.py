@@ -19,6 +19,7 @@ from . import cmd_line
 
 PARAM_FILE = os.path.join(os.path.dirname(__file__), "param_counts.ini")
 
+# pylint: disable-msg=C0103
 
 # Copied and adapted from http://stackoverflow.com/questions/384076#2205909
 class ColoredConsoleHandler(logging.StreamHandler):
