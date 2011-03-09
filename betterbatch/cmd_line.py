@@ -134,8 +134,7 @@ def ValidateOptions(options, args):
         raise RuntimeError(
             "The script file does not exist: '%s'"% options.script_file)
 
-    override_vars = ParseVariableOverrides(args[1:])
-    options.variables = override_vars
+    options.variables = ParseVariableOverrides(args[1:])
 
     return options
 
