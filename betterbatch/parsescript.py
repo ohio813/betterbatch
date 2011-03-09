@@ -1775,7 +1775,21 @@ def ExecuteScriptFile(file_path, cmd_vars, check=False):
 
     variables_copy = copy.deepcopy(variables)
     steps_copy = copy.deepcopy(steps)
-    steps = ExecuteSteps(steps_copy, variables_copy, "test")
+    try:
+        steps = ExecuteSteps(steps_copy, variables_copy, "test")
+    except ErrorCollection, errs:
+        # if the following conditions are True
+        #   - usage variable is set
+        #   - there were no variables passed on command line
+        #   - there is at least one 
+        any_undefined_vars = any(
+            [isinstance(e, UndefinedVariableError) for e in errs.errors])
+        if ('usage' in variables_copy and any_undefined_vars and not cmd_vars):
+            LOG.info(variables_copy['usage'])
+            # return empty steps & variables to stop the script
+            return [], {}
+        else:
+            raise
 
     arg_counts_db = ReadParamRestrictions(PARAM_FILE)
     ValidateArgumentCounts(steps, arg_counts_db)
@@ -1816,8 +1830,10 @@ def Main():
     LOG.debug("Run Options:" % options)
 
     try:
-        ExecuteScriptFile(
+        steps, vars = ExecuteScriptFile(
             options.script_file, options.variables, options.check)
+        if not steps and not vars:
+            options.timed = False
     except ErrorCollection, e:
         e.LogErrors()
         if options.debug:
