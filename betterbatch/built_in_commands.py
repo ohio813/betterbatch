@@ -172,7 +172,10 @@ def SystemCommand(command, qualifiers = None):
 
     # for some reason when passing to the shell - we need to quote the
     # WHOLE command with ""
-    command = '"%s"'% command
+    # This should NOT be done on Windows 7
+    windows_version = sys.getwindowsversion()
+    if not (windows_version.major == 6 and windows_version.minor == 1):
+        command = '"%s"'% command
     cmd_pipe = subprocess.Popen(
         command,
         shell = True,
