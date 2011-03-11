@@ -13,16 +13,16 @@ advantages over batch files:
 * automatically checks the return value of executed commands
 * built-in commands to allow easy checking of conditions (e.g. that a file exists)
 * easier to read variable format
-* strongly encourages separation of code and configuration
+* supports separation of code and configuration through includes
 * allow easily and safely using external scripts/executables
 
 BetterBatch's sweet spot is for things that can be done by a batch command and
 need to be maintained over time by different people who may not have the same
-knowledge of scripts nor want the extra complexity of scripts (which are harder
-to maintain).
+knowledge of scripting nor want the extra complexity of scripts (which can be
+more difficult to maintain).
 
-The following example shows how to check if a file exists and copy from a
-location specified on the command line.
+The following example checks if a file exists and if it doesn't exist copy from 
+the filepath specified on the command line to that location.
 
 First of all enter the following text into a new text file named "copyfile.bb" ::
 
@@ -31,7 +31,7 @@ First of all enter the following text into a new text file named "copyfile.bb" :
     - if not exists <file_to_check>:
         - copy <file_to_copy> <file_to_check>
 
-Now run it by running the following at the DOS prompt ::
+Now execute it by running the following at the DOS prompt ::
 
     bbrun.py copyfile.bb file_to_copy=autoexec.bat
 
@@ -44,7 +44,7 @@ BetterBatch does not have to be installed as a Python Package, just download,
 unzip and run bbrun.py.
 
 Note - it does have a requirement on PyYAML (http://pyyaml.org/)
-If you have Setuptools you can use the followin command::
+If you have Setuptools you can use the following command::
 
     easy_install -U pyyaml
 
@@ -70,10 +70,11 @@ YAML
 ------------------------------------------------------
 
 Script files are based on YAML, but don't worry too much about that!
-The major ways that this will affect you are the following:
+Just be careful of the following rules:
 
  * Tab characters should be avoided (BetterBatch actually will replace them
    and print a warning when it loads a file with tab characters)
+ * Start each command with a '- '
 
 Note - while a YAML parser is being used to parse the file, some things which
 would fail if parsing as YAML directly will pass with betterbatch. This is
@@ -83,21 +84,24 @@ to the YAML parser.
 ------------------------------------------------------
 Statements
 ------------------------------------------------------
-Script files are made up of statements.
+BetterBatch script files are made up of statements.
 
-A simple statement starts with a dash (-), whitespace and then the statement.
+A simple statement starts with a dash (-), whitespace and then the command
+to execute.
 
-For example the typical Hello World! BetterBatch script is::
+For example the typical first programming example - Hello World! - is::
 
     - echo Hello World!
 
 ------------------------------------------------------
 Command Statements
 ------------------------------------------------------
-Unless a statement is one of the other types it is an Executable Statement
+Unless a statement is one of the other types (see below) it is an Command 
+Statement
 
-If the executable statement is not a built-in command then it will be
-executed in the shell, just as if you typed it at the command line.
+If the executable statement is not a `built-in command <built_in_commands.html>`_ 
+then it will be executed in the shell, just as if you typed it at the command 
+line.
 
 Note - by default BetterBatch captures the output of the command
 (output and error output) and adds it to the logfile (if set). It will
@@ -106,18 +110,23 @@ error value (return code other than zero(0)). This behaviour can be modified
 by qualifiers.
 
 The following qualifiers are available:
-   **echo**
-        output will still be captured - but it will be echoed to the terminal
-        after the command has finished running
-   **nocheck**
+   **{*echo*}** (or **{*UI*}** )
+        command output will be captured by BetterBatch. The output will also
+        go directly to the terminal. This is useful if the command requires
+        some interaction or you want to display the output as well as capture
+        to the log file.
+   **{*nocheck*}**
         an error return value from the command will not cause the script to
         terminate. A warning will be output in this case - but the script will
         continue.
-   **ui**
-        command output will not be captured by BetterBatch. The output will
-        go directly to the terminal. This is useful if the command requires
-        some interaction. For example dir /p requires the user to press a key
-        after each screen of output.
+   **{*nocapture*}**
+        do not capture the output to the log file. If ``{*echo*}`` qualifier is 
+        also set the output will be shown to the user as it is generated.
+
+.. versionchanged:: 1.2.0
+   Added ``{*nocapture*}`` qualifier and made ``{*echo*}`` and ``{*ui*}`` 
+   qualifiers the same.
+   
 
 ------------------------------------------------------
 Variable Definitions Statements
@@ -135,7 +144,7 @@ example::
 By default any variable you reference and any executable sections will be
 executed when the variable definition is encountered in the script.
 You can specify that variables and executable sections should not be replaced
-until the variable is used by spedifing the {*delayed*} qualifier for example::
+until the variable is used by spedifing the ``{*delayed*}`` qualifier for example::
 
    - set later_var = This <variable> and {{{executable section}}} will be replaced only when used {*delayed*}
 
@@ -144,9 +153,8 @@ escape them. This is done by doubling them.
 
 
 See Also
-
-    :ref:`executable-sections` - more information on executable sections
-    :ref:`variable-references` - more information on referring to variables
+ * :ref:`executable-sections` - more information on executable sections
+ * :ref:`variable-references` - more information on referring to variables
 
 ------------------------------------------------------
 Include statements
@@ -155,7 +163,7 @@ Example::
 
    - include path\to\includefile.bb
 
-The steps in the included file will be executed at the point of inclusion as
+The steps in the file will be subsituted for the include statement as
 if they were defined in the including file.
 
 
@@ -171,7 +179,7 @@ If a previous logfile statement was given then that logfile will be closed
 
 
 ------------------------------------------------------
-IF statements
+If statements
 ------------------------------------------------------
 These statements allow you to branch based on conditions that you specify.
 
@@ -185,10 +193,10 @@ Example::
 
 "and" or "or" can be used with the "if" part of the statement. You cannot
 mix "and" and "or" in the same if statement (it should be consistently "or"
-or "and" in a single statement).
+or consistently "and" in a single statement).
 
-CAREFUL - the if/and/or/else all have to line up vertically - or the
-statement will not be parsed correctly.
+CAREFUL - the first letter of the ``if``/``and``/``or``/``else`` all have to 
+line up vertically - or the statement will not be parsed correctly.
 
 For example the following will actually be wrong::
 
@@ -198,9 +206,10 @@ For example the following will actually be wrong::
       else:
         - echo Lets continue then
 
-The "or" and the "else" are not lined up with the "if" statement.
+The ``or`` and the ``else`` are not lined up with the ``if`` statement.
 
-The "defined variable_name" is a condition worth mentioning in more detail e.g. ::
+The construct ``defined variable_name`` is a condition worth mentioning 
+in more detail e.g. ::
 
     - if defined build:
         - echo Value for build is <build>
@@ -210,17 +219,21 @@ The "defined variable_name" is a condition worth mentioning in more detail e.g. 
 This is the best way of using optional variables. (often passed on the command
 line by passing ``var_name=var_value``.
 
+.. _for-statement:
+
 ------------------------------------------------------
 For statements
 ------------------------------------------------------
-For statements are extremely basic at the moment in betterbatch and should be
-used with care.
+For statements iterate over a list of items. Internally it uses uses the 
+newline character \n to delimit the items. The ``split`` command can be easily
+used to convert a list of values into the format required for the ``for`` 
+statement.
 
 The format of the step is::
 
     - for LOOP_VARIABLE in INPUT:
         - exectute steps
-        - which can use <LOOP_VARIABLE>
+        - which optionally using <LOOP_VARIABLE>
 
 The block of statements is executed once per line in the input, so for example
 the general case of iterating over files in a directory that match a pattern::
@@ -229,6 +242,17 @@ the general case of iterating over files in a directory that match a pattern::
         - echo working on "<file>"
         - Curl - upload <file> to site..
 
+Another example could be the following::
+
+    - set components = Server,Client,Database,Registry
+
+    # split the components variable on comma
+    - for component in {{{ split <components> {*,*} }}}:
+        - echo working on Component "<component>"
+        - Do work on <component>
+
+See Also
+ * :ref:`split-built-in` - The ``split`` built in
 
 ------------------------------------------------------
 Parallel statements
@@ -294,6 +318,9 @@ Matching this against the example function defintion above
 ``arg2`` will have value ``there``,
 ``arg3`` will have value ``123`` (the default value),   
 ``arg4`` will have value ``some value``.
+
+.. versionchanged:: 1.2.0
+   allowed function arguments to contain spaces.
 
 
 .. _variable-references:
