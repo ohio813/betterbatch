@@ -152,7 +152,8 @@ def SystemCommand(command, qualifiers = None):
         raise RuntimeError(
             "The command is %d characters long. "
             "It cannot be longer than %d characters. '%s...'"% (
-                command_len, subprocess_safe_command_limit, str(command)[:80]))
+                command_len, 
+                subprocess_safe_command_limit, str(command)[:80]))
 
     # if we can turn shell off for some/all of the commands then it will
     # allow us to better handle catastrophic issues (e.g. command not found)
@@ -183,8 +184,8 @@ def SystemCommand(command, qualifiers = None):
         stderr = subprocess.STDOUT)
 
     cmd_data = []
-    # while the command hasn't finished - keep reading the data from the output
-    # file (if capturing)
+    # while the command hasn't finished - keep reading the data from the 
+    # output file (if capturing)
     while cmd_pipe.returncode is None:
         # wait just a small bit between checks - avoids too 'busy' a cycle
         time.sleep(.1)
@@ -212,8 +213,8 @@ def SystemCommand(command, qualifiers = None):
 
     output = "".join(cmd_data)
 
-    # just in case there were ANSI escape sequences in the output - strip them
-    # the following REGEX was copied from colorama.ansitowin32
+    # just in case there were ANSI escape sequences in the output - strip 
+    # them the following REGEX was copied from colorama.ansitowin32
     ANSI_RE = re.compile('\033\[((?:\d|;)*)([a-zA-Z])')
     output = ANSI_RE.sub('', output)
 
