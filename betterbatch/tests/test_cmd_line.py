@@ -8,7 +8,7 @@ import sys
 package_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(package_root)
 
-import cmd_line
+from betterbatch import cmd_line
 from betterbatch.cmd_line import *
 
 TEST_PATH = os.path.dirname(__file__)
@@ -110,13 +110,13 @@ class CommandLineTests(unittest.TestCase):
         """"""
         old_plat = sys.platform
         sys.platform = "win32"
-        import cmd_line as cmd_win32        
-        if cmd_win32.colorama:
+        cmd_win32 = reload(cmd_line)
+        if hasattr(cmd_line, 'colorama'):
             self.assertEquals(cmd_win32.USE_COLORED_OUTPUT, True)
         else:
-            self.assertEquals(cmd_win32.USE_COLORED_OUTPUT, True)
+            self.assertEquals(cmd_win32.USE_COLORED_OUTPUT, False)
         sys.platform = "unix"
-        import cmd_line as cmd_unix
+        cmd_unix = reload(cmd_line)
         self.assertEquals(cmd_unix.USE_COLORED_OUTPUT, True)
         sys.platform = old_plat
 

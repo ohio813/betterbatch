@@ -11,14 +11,14 @@ Examples:
     bbrun.py --verbose my_script.bb test_dir=%temp%\there build=H099"""
 
 
-USE_COLORED_OUTPUT = False
+USE_COLORED_OUTPUT = True
 if sys.platform == "win32":
     try:
         import colorama
         colorama.init()
         USE_COLORED_OUTPUT = True
     except:
-        pass
+        USE_COLORED_OUTPUT = False
 
 
 def ParseArguments():
