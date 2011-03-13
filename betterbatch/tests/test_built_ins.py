@@ -5,7 +5,7 @@ import os
 import sys
 
 # ensure that the package root is on the path
-package_root = os.path.dirname(os.path.dirname(__file__))
+package_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(package_root)
 
 from betterbatch.built_in_commands import *
@@ -198,7 +198,7 @@ class BuiltInCommandsTests(unittest.TestCase):
         self.assertNotEquals(ret, 0)
         
     def test_ExternalCommand_pass(self):
-        tool_path = os.path.join(package_root, "tools", "GetLanguage.py")
+        tool_path = os.path.join(package_root, "betterbatch\\tools", "GetLanguage.py")
         ec = ExternalCommand(tool_path)
 
         #print tool_path
@@ -218,8 +218,8 @@ class BuiltInCommandsTests(unittest.TestCase):
 
     def test_ExternalCommand_missing_cmd(self):
         """Test external path with tool that doesn't exitst"""
-        
-        tool_path = os.path.join(package_root, "tools", "compare_not_here.py")
+
+        tool_path = os.path.join(package_root, "betterbatch\\tools", "compare_not_here.py")
         self.assertRaises(
             RuntimeError,
             ExternalCommand,
@@ -227,7 +227,7 @@ class BuiltInCommandsTests(unittest.TestCase):
 
     def test_ExternalCommand_fail2(self):
         "   "
-        tool_path = os.path.join(package_root, "tools", "getlanguage.py")
+        tool_path = os.path.join(package_root, "betterbatch\\tools", "getlanguage.py")
         ec = ExternalCommand(tool_path)
 
         self.assertRaises(
@@ -240,7 +240,7 @@ class BuiltInCommandsTests(unittest.TestCase):
         PopulateFromToolsFolder(package_root)
 
     def test_PopulateFromToolsFolder_fail(self):
-        tools_dir = os.path.join(package_root, "tools")
+        tools_dir = os.path.join(package_root, "bethterbatch\\tools")
 
         built_in_commands.NAME_ACTION_MAPPING['compare'] = lambda x=1, y=1: (0,"")
         self.assertRaises(
