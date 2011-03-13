@@ -243,15 +243,17 @@ class BuiltInCommandsTests(unittest.TestCase):
         PopulateFromToolsFolder(package_root)
 
     def test_PopulateFromToolsFolder_fail(self):
-        tools_dir = os.path.join(package_root, "bethterbatch\\tools")
+        tools_dir = os.path.join(package_root, "betterbatch\\tools")
 
-        built_in_commands.NAME_ACTION_MAPPING['compare'] = lambda x=1, y=1: (0,"")
-        self.assertRaises(
-            RuntimeError,
-            PopulateFromToolsFolder,
-                tools_dir)
-
-        del(built_in_commands.NAME_ACTION_MAPPING['compare'])
+        compare_func = built_in_commands.NAME_ACTION_MAPPING['compare']
+        try:
+            built_in_commands.NAME_ACTION_MAPPING['compare'] = lambda x=1, y=1: (0,"")
+            self.assertRaises(
+                RuntimeError,
+                PopulateFromToolsFolder,
+                    tools_dir)
+        finally:
+            built_in_commands.NAME_ACTION_MAPPING['compare'] = compare_func
 
     def test_Split_no_split_text(self):
         self.assertEquals(Split("1 2"), (0, "1\n2"))
