@@ -210,6 +210,8 @@ def SystemCommand(command, qualifiers = None):
         os.close(new_stdout)
         cmd_output.close()
         os.remove(file_path)
+    elif not set(('echo', 'ui')).intersection(qualifiers):
+        new_stdout.close()
 
     output = "".join(cmd_data)
 
