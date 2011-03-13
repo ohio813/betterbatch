@@ -133,6 +133,7 @@ class BuiltInCommandsTests(unittest.TestCase):
 
         self.assertEquals(ret, 0)
         self.assertEquals(os.path.splitdrive(os.getcwd())[1], "\\" )
+        os.chdir(cur_dir)
 
     def test_PushDirectory_pass(self):
         cur_dir = os.path.abspath(os.getcwd())
@@ -192,11 +193,13 @@ class BuiltInCommandsTests(unittest.TestCase):
         # been removed since
 
         built_in_commands.PUSH_DIRECTORY_LIST.append("not_here_at_all")
-        
+        cur_dir = os.getcwd()
+
         ret, out = PopDirectory()
 
         self.assertNotEquals(ret, 0)
-        
+        self.assertEquals(cur_dir, os.getcwd())
+
     def test_ExternalCommand_pass(self):
         tool_path = os.path.join(package_root, "betterbatch\\tools", "GetLanguage.py")
         ec = ExternalCommand(tool_path)
