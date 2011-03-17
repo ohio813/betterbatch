@@ -56,7 +56,7 @@ def run_tests():
     print cov.report(modules_to_test)
     cov.html_report(
         modules_to_test, 
-        directory = os.path.join(package_root, "..", "Coverage_report"))
+        directory = os.path.join(package_root, "Coverage_report"))
 
 if __name__ == '__main__':
     run_tests()
