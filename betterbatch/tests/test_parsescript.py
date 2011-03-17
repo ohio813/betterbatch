@@ -192,6 +192,12 @@ class ParseVariableDefinitionTests(unittest.TestCase):
         v.execute(vars, "test")
         #self.assertEquals(vars['x'], '')
 
+    def test_wrong_function_value(self):
+        self.assertRaises(
+            ValueError,
+            ParseVariableDefinition,
+                'blah=here', function = "wrong")
+
 
 class ParseMappingVariableDefinitionTests(unittest.TestCase):
     "Unit tests for mapping variables"
@@ -1003,6 +1009,26 @@ class IncludeStepTests(unittest.TestCase):
         step.execute(variables, "test")
         step.execute(variables, "run")
 
+    def test_include_file_with_execute_errors(self):
+        variables =  {
+            "__script_dir__": TEST_FILES_PATH,
+        }
+        inc_step = IncludeStep(
+            "include <__script_dir__>\include_with_errors.bb")
+         
+        self.assertRaises(
+            RuntimeError,
+            inc_step.execute,
+                variables, 'run')
+
+        inc_step.execute(variables, 'test')
+
+#    def test_include_without_script_dir(self):
+#        inc_step = IncludeStep(
+#            "include %s" % os.path.join(TEST_FILES_PATH, "basic.yaml"))
+#        
+#        inc_step.execute({}, 'test')
+
 
 class LogFileStepTests(IncludeStepTests):
     class_under_test = LogFileStep
@@ -1437,6 +1463,16 @@ class FunctionCallTests(unittest.TestCase):
             RuntimeError,
             ExecuteSteps,
                 steps, vars, "test")
+
+    def test_arg_supplied_as_keyword_twice(self):
+        vars = {"c": 'here'}
+        steps = [
+            {"function test(a, b)": ["echo <a>", 'echo 2'], },
+            "call test(a = 2, a = 3)",]
+        self.assertRaises(
+            RuntimeError,
+            ParseSteps,
+                steps)
 
     def test_unmatched_args(self):
         vars = {"c": 'here'}
