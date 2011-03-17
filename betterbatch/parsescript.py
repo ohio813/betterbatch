@@ -237,11 +237,17 @@ def ParseVariableDefinition(var_def, function=None):
 
     name_value = [p.strip() for p in var_def.split("=", 1)]
 
+    if function not in (None, 'definition', 'call'):
+        raise ValueError(
+            "Call to ParseVariableDefinition() seems to have been "
+            "called with an incorrect value of function: '%s'" % function)
+            
     if len(name_value) == 1:
         if function is None:
-            raise RuntimeError("Variable not defined correctly (no '='): '%s'")
+            raise RuntimeError(
+                "Variable not defined correctly (no '='): '%s'")
 
-        if function == 'definition':
+        elif function == 'definition':
             #  "= Value" not required
             name, value = name_value[0], None
 
@@ -251,10 +257,6 @@ def ParseVariableDefinition(var_def, function=None):
     else:
         name, value = name_value
 
-    if 'name' not in locals():
-        raise ValueError(
-            "Call to ParseVariableDefinition() seems to have been "
-            "called with an incorrect value of function: '%s'" % function)
 
     # perform some sanity checks on the name
     if name is not None:
