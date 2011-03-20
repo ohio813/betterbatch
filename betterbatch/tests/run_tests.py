@@ -8,6 +8,7 @@ import unittest
 # ensure that the package root is on the path
 package_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(package_root)
+sys.path.append(os.path.join(package_root, "betterbatch\\tools"))
 
 # needs to be called before importing the modules
 cov = coverage.coverage(branch = True)
@@ -17,8 +18,10 @@ from betterbatch import cmd_line
 from betterbatch import built_in_commands
 from betterbatch import parsescript
 from betterbatch import compare
+import replace_in_file
 
-modules_to_test = [cmd_line, built_in_commands, parsescript, compare]
+modules_to_test = [
+    cmd_line, built_in_commands, parsescript, compare, replace_in_file]
 
 parsescript.LOG = parsescript.ConfigLogging()
 
