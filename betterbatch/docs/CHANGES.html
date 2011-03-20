@@ -50,6 +50,36 @@
             
   <div class="section" id="changes">
 <h1>CHANGES<a class="headerlink" href="#changes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="color-output-windows-7-support-spaces-in-function-args-usage-info">
+<h2>1.2.0 Color output, Windows 7 support, spaces in function args, Usage info<a class="headerlink" href="#color-output-windows-7-support-spaces-in-function-args-usage-info" title="Permalink to this headline">¶</a></h2>
+<p>12-March-2010</p>
+<ul class="simple">
+<li>Significantly enhanced how output is captured from commands and displayed
+to the user. Output is now captured and displayed as it is generated, so
+the {<em>ui</em>} qualifier is no longer necessary. (it is now just an
+alternative spelling of {<em>echo</em>}). By default output from all commands is
+captured to the log file; you can explicitly override that by using the
+new {<em>nocapture</em>} qualifier.</li>
+<li>Added support for color output (on windows the colorama module has to be
+installed). This led to the log level (debug/info etc.) of some messages
+being changed.</li>
+<li>To Make it a bit easier to debug situations where an &#8216;if&#8217; statement condition
+is incorrectly programmed the information on condition failure is output
+as a debug message.</li>
+<li>Improve the replace_in_file helper tool to support files encoded in different
+encodings (not just treat the file as binary).</li>
+<li>Some modules use Python absolute imports to help translation to Python 3.0</li>
+<li>Allowed &#8216;pushd&#8217; and &#8216;cd&#8217; commands to handle double quotes around the path
+(any double quotes are stripped before setting the current directory)</li>
+<li>Includes which cannot be found during testing will generate an info message
+rather than a debug message to raise visibility (as it may be the reason
+for test failures)</li>
+<li>Allow parameters to functions to have a spaces.</li>
+<li>Add support for the USAGE variable to be output automatically if no
+arguments are defined and there are undefined variable errors.</li>
+<li>Some documentation improvements.</li>
+</ul>
+</div>
 <div class="section" id="small-bug-fix-and-functions-for-getting-setting-registry">
 <h2>1.1.4 Small bug fix and functions for getting/setting registry<a class="headerlink" href="#small-bug-fix-and-functions-for-getting-setting-registry" title="Permalink to this headline">¶</a></h2>
 <p>06-December-2010</p>
@@ -280,6 +310,7 @@ use Thread.isAlive() rather than Thread.is_alive() ).</li>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">CHANGES</a><ul>
+<li><a class="reference internal" href="#color-output-windows-7-support-spaces-in-function-args-usage-info">1.2.0 Color output, Windows 7 support, spaces in function args, Usage info</a></li>
 <li><a class="reference internal" href="#small-bug-fix-and-functions-for-getting-setting-registry">1.1.4 Small bug fix and functions for getting/setting registry</a></li>
 <li><a class="reference internal" href="#some-external-command-cleanup">1.1.3 Some external command cleanup</a></li>
 <li><a class="reference internal" href="#id1">1.1.2 Some external command cleanup</a></li>

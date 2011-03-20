@@ -2,6 +2,36 @@
 CHANGES
 ************************************
 
+1.2.0 Color output, Windows 7 support, spaces in function args, Usage info
+---------------------------------------------------------------------------
+12-March-2010
+
+* Significantly enhanced how output is captured from commands and displayed 
+  to the user. Output is now captured and displayed as it is generated, so 
+  the {*ui*} qualifier is no longer necessary. (it is now just an 
+  alternative spelling of {*echo*}). By default output from all commands is 
+  captured to the log file; you can explicitly override that by using the 
+  new {*nocapture*} qualifier.
+* Added support for color output (on windows the colorama module has to be 
+  installed). This led to the log level (debug/info etc.) of some messages 
+  being changed.
+* To Make it a bit easier to debug situations where an 'if' statement condition 
+  is incorrectly programmed the information on condition failure is output
+  as a debug message.
+* Improve the replace_in_file helper tool to support files encoded in different
+  encodings (not just treat the file as binary).
+* Some modules use Python absolute imports to help translation to Python 3.0
+* Allowed 'pushd' and 'cd' commands to handle double quotes around the path 
+  (any double quotes are stripped before setting the current directory)
+* Includes which cannot be found during testing will generate an info message 
+  rather than a debug message to raise visibility (as it may be the reason
+  for test failures)
+* Allow parameters to functions to have a spaces.
+* Add support for the USAGE variable to be output automatically if no
+  arguments are defined and there are undefined variable errors.
+* Some documentation improvements.
+  
+
 1.1.4 Small bug fix and functions for getting/setting registry
 ---------------------------------------------------------------------------
 06-December-2010

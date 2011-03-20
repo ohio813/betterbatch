@@ -73,7 +73,7 @@ one per line.
 
 Usage: $prog [-r] file text_to_find [text_to_find...]
 
- Options:
+Options:
   -h, --help        show this help message and exit
   -r, --regex       search and replacement are regular expressions
   -n, --noerr       do not report an error if the text is not found
@@ -84,13 +84,21 @@ replace_in_file
 ------------------------------------------------------
 Replace text in file
 
-Usage: $prog [-r] file to_find replace_with
+Usage: $prog [-rn] [--encoding enc] filepath to_find replace_with
 
- Options:
-  -h, --help   show this help message and exit
-  -r, --regex  search and replacement are regular expressions
-  -n, --noerr  do not report an error if the text is not found
-
+Options:
+  -h, --help            show this help message and exit
+  -r, --regex           search and replacement are regular expressions
+  -n, --noerr           do not report an error if the text is not found
+  --encoding
+                        (auto,none,...)
+                        specify the encoding of the text. A value of 'AUTO'
+                        will have the script try and find out the encoding -
+                        based on any BOMs present. A value of 'NONE' (default)
+                        will not decode the contents. The contents will be
+                        processed as 'binary'. Any other value should be a
+                        valid Python encoding see
+                        http://docs.python.org/library/codecs.html#standard-encodings.
 
 ListFilesMatchingPattern
 ------------------------------------------------------
@@ -305,3 +313,40 @@ command.
 Adding a tools directory means you do not have to specify the path to the
 command.
 
+.. _split-built-in:
+
+split
+------------------------------------------------------
+This command takes a list of items and 'splits' them up. This is especially
+useful in conjunction with the ``for`` statement.
+
+Here is a simple example::
+
+    - set names = John Mary Wilbur
+
+    - echo {{{ split <names>}}}
+
+The output will be::
+
+    John
+    Mary
+    Wilbur
+
+By default is splits on any whitespace character, but you can specify any 
+text to be used to split on:
+
+    - set names = John is connected to Mary is connected to Wilbur
+
+    - echo {{{ split <names> {*is connected to*} }}}
+
+The output will (still) be::
+
+    John
+    Mary
+    Wilbur
+
+The split command is not very useful on it's own - but it is very useful when 
+used with ``for`` statements.
+
+See Also
+ * :ref:`for-statement` - The ``for`` statement

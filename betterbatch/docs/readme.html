@@ -60,22 +60,22 @@ advantages over batch files:</p>
 <li>automatically checks the return value of executed commands</li>
 <li>built-in commands to allow easy checking of conditions (e.g. that a file exists)</li>
 <li>easier to read variable format</li>
-<li>strongly encourages separation of code and configuration</li>
+<li>supports separation of code and configuration through includes</li>
 <li>allow easily and safely using external scripts/executables</li>
 </ul>
 <p>BetterBatch&#8217;s sweet spot is for things that can be done by a batch command and
 need to be maintained over time by different people who may not have the same
-knowledge of scripts nor want the extra complexity of scripts (which are harder
-to maintain).</p>
-<p>The following example shows how to check if a file exists and copy from a
-location specified on the command line.</p>
+knowledge of scripting nor want the extra complexity of scripts (which can be
+more difficult to maintain).</p>
+<p>The following example checks if a file exists and if it doesn&#8217;t exist copy from
+the filepath specified on the command line to that location.</p>
 <p>First of all enter the following text into a new text file named &#8220;copyfile.bb&#8221;</p>
 <div class="highlight-python"><pre>- set file_to_check=&lt;shell.temp&gt;\testing_betterbatch.txt
 
 - if not exists &lt;file_to_check&gt;:
     - copy &lt;file_to_copy&gt; &lt;file_to_check&gt;</pre>
 </div>
-<p>Now run it by running the following at the DOS prompt</p>
+<p>Now execute it by running the following at the DOS prompt</p>
 <div class="highlight-python"><pre>bbrun.py copyfile.bb file_to_copy=autoexec.bat</pre>
 </div>
 </div>
@@ -84,7 +84,7 @@ location specified on the command line.</p>
 <p>BetterBatch does not have to be installed as a Python Package, just download,
 unzip and run bbrun.py.</p>
 <p>Note - it does have a requirement on PyYAML (<a class="reference external" href="http://pyyaml.org/">http://pyyaml.org/</a>)
-If you have Setuptools you can use the followin command:</p>
+If you have Setuptools you can use the following command:</p>
 <div class="highlight-python"><pre>easy_install -U pyyaml</pre>
 </div>
 <p>BetterBatch can also be installed as a Python module (if you want to import
@@ -103,11 +103,12 @@ python installation if python is not on the path.</p>
 <div class="section" id="yaml">
 <h3>YAML<a class="headerlink" href="#yaml" title="Permalink to this headline">¶</a></h3>
 <p>Script files are based on YAML, but don&#8217;t worry too much about that!
-The major ways that this will affect you are the following:</p>
+Just be careful of the following rules:</p>
 <blockquote>
 <div><ul class="simple">
 <li>Tab characters should be avoided (BetterBatch actually will replace them
 and print a warning when it loads a file with tab characters)</li>
+<li>Start each command with a &#8216;- &#8216;</li>
 </ul>
 </div></blockquote>
 <p>Note - while a YAML parser is being used to parse the file, some things which
@@ -117,17 +118,20 @@ to the YAML parser.</p>
 </div>
 <div class="section" id="statements">
 <h3>Statements<a class="headerlink" href="#statements" title="Permalink to this headline">¶</a></h3>
-<p>Script files are made up of statements.</p>
-<p>A simple statement starts with a dash (-), whitespace and then the statement.</p>
-<p>For example the typical Hello World! BetterBatch script is:</p>
+<p>BetterBatch script files are made up of statements.</p>
+<p>A simple statement starts with a dash (-), whitespace and then the command
+to execute.</p>
+<p>For example the typical first programming example - Hello World! - is:</p>
 <div class="highlight-python"><pre>- echo Hello World!</pre>
 </div>
 </div>
 <div class="section" id="command-statements">
 <h3>Command Statements<a class="headerlink" href="#command-statements" title="Permalink to this headline">¶</a></h3>
-<p>Unless a statement is one of the other types it is an Executable Statement</p>
-<p>If the executable statement is not a built-in command then it will be
-executed in the shell, just as if you typed it at the command line.</p>
+<p>Unless a statement is one of the other types (see below) it is an Command
+Statement</p>
+<p>If the executable statement is not a <a class="reference external" href="built_in_commands.html">built-in command</a>
+then it will be executed in the shell, just as if you typed it at the command
+line.</p>
 <p>Note - by default BetterBatch captures the output of the command
 (output and error output) and adds it to the logfile (if set). It will
 also by default stop execution of the script if the command returns an
@@ -136,21 +140,24 @@ by qualifiers.</p>
 <dl class="docutils">
 <dt>The following qualifiers are available:</dt>
 <dd><dl class="first last docutils">
-<dt><strong>echo</strong></dt>
-<dd>output will still be captured - but it will be echoed to the terminal
-after the command has finished running</dd>
-<dt><strong>nocheck</strong></dt>
+<dt><strong>{*echo*}</strong> (or <strong>{*UI*}</strong> )</dt>
+<dd>command output will be captured by BetterBatch. The output will also
+go directly to the terminal. This is useful if the command requires
+some interaction or you want to display the output as well as capture
+to the log file.</dd>
+<dt><strong>{*nocheck*}</strong></dt>
 <dd>an error return value from the command will not cause the script to
 terminate. A warning will be output in this case - but the script will
 continue.</dd>
-<dt><strong>ui</strong></dt>
-<dd>command output will not be captured by BetterBatch. The output will
-go directly to the terminal. This is useful if the command requires
-some interaction. For example dir /p requires the user to press a key
-after each screen of output.</dd>
+<dt><strong>{*nocapture*}</strong></dt>
+<dd>do not capture the output to the log file. If <tt class="docutils literal"><span class="pre">{*echo*}</span></tt> qualifier is
+also set the output will be shown to the user as it is generated.</dd>
 </dl>
 </dd>
 </dl>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 1.2.0: </span>Added <tt class="docutils literal"><span class="pre">{*nocapture*}</span></tt> qualifier and made <tt class="docutils literal"><span class="pre">{*echo*}</span></tt> and <tt class="docutils literal"><span class="pre">{*ui*}</span></tt>
+qualifiers the same.</p>
 </div>
 <div class="section" id="variable-definitions-statements">
 <h3>Variable Definitions Statements<a class="headerlink" href="#variable-definitions-statements" title="Permalink to this headline">¶</a></h3>
@@ -164,22 +171,26 @@ example:</p>
 <p>By default any variable you reference and any executable sections will be
 executed when the variable definition is encountered in the script.
 You can specify that variables and executable sections should not be replaced
-until the variable is used by spedifing the {<em>delayed</em>} qualifier for example:</p>
+until the variable is used by spedifing the <tt class="docutils literal"><span class="pre">{*delayed*}</span></tt> qualifier for example:</p>
 <div class="highlight-python"><pre>- set later_var = This &lt;variable&gt; and {{{executable section}}} will be replaced only when used {*delayed*}</pre>
 </div>
 <p>If you need to include &#8216;&lt;&#8217; or &#8216;&gt;&#8217; characters in the variable value - you need to
 escape them. This is done by doubling them.</p>
-<p>See Also</p>
-<blockquote>
-<div><a class="reference internal" href="#executable-sections"><em>Executable Sections</em></a> - more information on executable sections
-<a class="reference internal" href="#variable-references"><em>Variable References</em></a> - more information on referring to variables</div></blockquote>
+<dl class="docutils">
+<dt>See Also</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="#executable-sections"><em>Executable Sections</em></a> - more information on executable sections</li>
+<li><a class="reference internal" href="#variable-references"><em>Variable References</em></a> - more information on referring to variables</li>
+</ul>
+</dd>
+</dl>
 </div>
 <div class="section" id="include-statements">
 <h3>Include statements<a class="headerlink" href="#include-statements" title="Permalink to this headline">¶</a></h3>
 <p>Example:</p>
 <div class="highlight-python"><pre>- include path\to\includefile.bb</pre>
 </div>
-<p>The steps in the included file will be executed at the point of inclusion as
+<p>The steps in the file will be subsituted for the include statement as
 if they were defined in the including file.</p>
 </div>
 <div class="section" id="logfile-specification">
@@ -191,7 +202,7 @@ if they were defined in the including file.</p>
 (if it can be) and all logging information will be written to the new logfile.</p>
 </div>
 <div class="section" id="if-statements">
-<h3>IF statements<a class="headerlink" href="#if-statements" title="Permalink to this headline">¶</a></h3>
+<h3>If statements<a class="headerlink" href="#if-statements" title="Permalink to this headline">¶</a></h3>
 <p>These statements allow you to branch based on conditions that you specify.</p>
 <p>Example:</p>
 <div class="highlight-python"><pre>- if exists required_files\file.abc:
@@ -202,9 +213,9 @@ if they were defined in the including file.</p>
 </div>
 <p>&#8220;and&#8221; or &#8220;or&#8221; can be used with the &#8220;if&#8221; part of the statement. You cannot
 mix &#8220;and&#8221; and &#8220;or&#8221; in the same if statement (it should be consistently &#8220;or&#8221;
-or &#8220;and&#8221; in a single statement).</p>
-<p>CAREFUL - the if/and/or/else all have to line up vertically - or the
-statement will not be parsed correctly.</p>
+or consistently &#8220;and&#8221; in a single statement).</p>
+<p>CAREFUL - the first letter of the <tt class="docutils literal"><span class="pre">if</span></tt>/<tt class="docutils literal"><span class="pre">and</span></tt>/<tt class="docutils literal"><span class="pre">or</span></tt>/<tt class="docutils literal"><span class="pre">else</span></tt> all have to
+line up vertically - or the statement will not be parsed correctly.</p>
 <p>For example the following will actually be wrong:</p>
 <div class="highlight-python"><pre>- if not defined &lt;var&gt;:
  or not exists required_files\file.zxy:
@@ -212,8 +223,9 @@ statement will not be parsed correctly.</p>
    else:
      - echo Lets continue then</pre>
 </div>
-<p>The &#8220;or&#8221; and the &#8220;else&#8221; are not lined up with the &#8220;if&#8221; statement.</p>
-<p>The &#8220;defined variable_name&#8221; is a condition worth mentioning in more detail e.g.</p>
+<p>The <tt class="docutils literal"><span class="pre">or</span></tt> and the <tt class="docutils literal"><span class="pre">else</span></tt> are not lined up with the <tt class="docutils literal"><span class="pre">if</span></tt> statement.</p>
+<p>The construct <tt class="docutils literal"><span class="pre">defined</span> <span class="pre">variable_name</span></tt> is a condition worth mentioning
+in more detail e.g.</p>
 <div class="highlight-python"><pre>- if defined build:
     - echo Value for build is &lt;build&gt;
   else:
@@ -223,13 +235,15 @@ statement will not be parsed correctly.</p>
 line by passing <tt class="docutils literal"><span class="pre">var_name=var_value</span></tt>.</p>
 </div>
 <div class="section" id="for-statements">
-<h3>For statements<a class="headerlink" href="#for-statements" title="Permalink to this headline">¶</a></h3>
-<p>For statements are extremely basic at the moment in betterbatch and should be
-used with care.</p>
+<span id="for-statement"></span><h3>For statements<a class="headerlink" href="#for-statements" title="Permalink to this headline">¶</a></h3>
+<p>For statements iterate over a list of items. Internally it uses uses the
+newline character n to delimit the items. The <tt class="docutils literal"><span class="pre">split</span></tt> command can be easily
+used to convert a list of values into the format required for the <tt class="docutils literal"><span class="pre">for</span></tt>
+statement.</p>
 <p>The format of the step is:</p>
 <div class="highlight-python"><pre>- for LOOP_VARIABLE in INPUT:
     - exectute steps
-    - which can use &lt;LOOP_VARIABLE&gt;</pre>
+    - which optionally using &lt;LOOP_VARIABLE&gt;</pre>
 </div>
 <p>The block of statements is executed once per line in the input, so for example
 the general case of iterating over files in a directory that match a pattern:</p>
@@ -237,6 +251,21 @@ the general case of iterating over files in a directory that match a pattern:</p
     - echo working on "&lt;file&gt;"
     - Curl - upload &lt;file&gt; to site..</pre>
 </div>
+<p>Another example could be the following:</p>
+<div class="highlight-python"><pre>- set components = Server,Client,Database,Registry
+
+# split the components variable on comma
+- for component in {{{ split &lt;components&gt; {*,*} }}}:
+    - echo working on Component "&lt;component&gt;"
+    - Do work on &lt;component&gt;</pre>
+</div>
+<dl class="docutils">
+<dt>See Also</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="built_in_commands.html#split-built-in"><em>split</em></a> - The <tt class="docutils literal"><span class="pre">split</span></tt> built in</li>
+</ul>
+</dd>
+</dl>
 </div>
 <div class="section" id="parallel-statements">
 <h3>Parallel statements<a class="headerlink" href="#parallel-statements" title="Permalink to this headline">¶</a></h3>
@@ -289,6 +318,8 @@ added at a later stage.</p>
 <tt class="docutils literal"><span class="pre">arg2</span></tt> will have value <tt class="docutils literal"><span class="pre">there</span></tt>,
 <tt class="docutils literal"><span class="pre">arg3</span></tt> will have value <tt class="docutils literal"><span class="pre">123</span></tt> (the default value),
 <tt class="docutils literal"><span class="pre">arg4</span></tt> will have value <tt class="docutils literal"><span class="pre">some</span> <span class="pre">value</span></tt>.</p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 1.2.0: </span>allowed function arguments to contain spaces.</p>
 </div>
 <div class="section" id="variable-references">
 <span id="id1"></span><h3>Variable References<a class="headerlink" href="#variable-references" title="Permalink to this headline">¶</a></h3>
@@ -365,7 +396,7 @@ that the BetterBatch script is going to use the environment value.</p>
 <li><a class="reference internal" href="#variable-definitions-statements">Variable Definitions Statements</a></li>
 <li><a class="reference internal" href="#include-statements">Include statements</a></li>
 <li><a class="reference internal" href="#logfile-specification">Logfile specification</a></li>
-<li><a class="reference internal" href="#if-statements">IF statements</a></li>
+<li><a class="reference internal" href="#if-statements">If statements</a></li>
 <li><a class="reference internal" href="#for-statements">For statements</a></li>
 <li><a class="reference internal" href="#parallel-statements">Parallel statements</a></li>
 <li><a class="reference internal" href="#function-definitions">Function Definitions</a></li>
