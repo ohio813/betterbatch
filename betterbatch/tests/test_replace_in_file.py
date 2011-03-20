@@ -25,9 +25,21 @@ TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
 class DummyOptions(object):
     def __init__(self):
-        self.encoding = 'AUTO'
+        self.encoding = None
         self.regex = False
         self.noerr = False
+
+
+def get_file_contents(filepath):
+    f = open(filepath, "rb")
+    contents = f.read()
+    f.close()
+    return contents
+
+def reset_file_contents(filepath, contents):
+    f = open(filepath, "wb")
+    f.write(contents)
+    f.close()
 
 
 class ReplaceInFileTests(unittest.TestCase):
@@ -109,13 +121,18 @@ class ReplaceInFileTests(unittest.TestCase):
     def test_working_with_wrong_encoding(self):
         "return non zero when file is not in the same encoding"
         options = DummyOptions()
-        options.encoding = "utf-32"
-        ret = replace_in_file.main(
-            os.path.join(TEST_FILES_PATH, 'replace_in_file_test_ansi.txt'),
-            '',
-            '',
-            options)
-        self.assertEquals(ret, 20)
+        options.encoding = "utf-8"
+        test_file = os.path.join(TEST_FILES_PATH, 'replace_in_file_test_utf_16_le.txt')
+        prev_contents = get_file_contents(test_file)
+        try:
+            ret = replace_in_file.main(
+                test_file,
+                '',
+                '',
+                options)
+            self.assertEquals(ret, 20)
+        finally:
+            reset_file_contents(test_file, prev_contents)
 
     def test_perform_replacements_not_found(self):
         options = DummyOptions()
@@ -148,24 +165,38 @@ class ReplaceInFileTests(unittest.TestCase):
             options = DummyOptions()
             test_file = os.path.join(
                 TEST_FILES_PATH, 'replace_in_file_test_%s.txt' % encoding)
-            f = open(test_file, "rb")
-            prev_contents = f.read()
-            f.close()
+            prev_contents = get_file_contents(test_file)
             try:
                 ret = replace_in_file.main(test_file, 'a', 'b', options)
                 self.assertEquals(ret, 0)
 
-                f = open(test_file, "rb")
-                new_contents = f.read()
-                f.close()
+                new_contents = get_file_contents(test_file)
 
                 self.assertEquals(
                     prev_contents.replace('a', 'b'), new_contents)
 
             finally:
-                f = open(test_file, "wb")
-                f.write(prev_contents)
-                f.close()
+                reset_file_contents(test_file, prev_contents)
+
+    def test_ensure_bom_is_added(self):
+        test_file = os.path.join(
+            TEST_FILES_PATH, 'replace_in_file_test_ansi.txt')
+
+        options = DummyOptions()
+        options.regex = True
+        options.encoding = 'utf-16-be'
+
+        prev_contents = get_file_contents(test_file)
+        try:
+            encoded_contents = prev_contents.decode('mbcs').encode('utf-16-be')
+            reset_file_contents(test_file, encoded_contents)
+
+            ret = replace_in_file.main(test_file, r'([a-z ])', r'\1', options)
+            
+            new_contents = get_file_contents(test_file)
+            self.assertEquals(new_contents, codecs.BOM_UTF16_BE + encoded_contents)
+        finally:
+            reset_file_contents(test_file, prev_contents)
 
     def test_replacing_in_file_regex(self):
         # test that it fails if the file doesn't exist
@@ -174,16 +205,12 @@ class ReplaceInFileTests(unittest.TestCase):
             options.regex = True
             test_file = os.path.join(
                 TEST_FILES_PATH, 'replace_in_file_test_%s.txt' % encoding)
-            f = open(test_file, "rb")
-            prev_contents = f.read()
-            f.close()
+            prev_contents = get_file_contents(test_file)
             try:
                 ret = replace_in_file.main(test_file, r'([a-z ])', r'\1', options)
                 self.assertEquals(ret, 0)
 
-                f = open(test_file, "rb")
-                new_contents = f.read()
-                f.close()
+                new_contents = get_file_contents(test_file)
 
                 #emulated = []
                 #for c in prev_contents:
@@ -196,18 +223,21 @@ class ReplaceInFileTests(unittest.TestCase):
                 self.assertEquals(prev_contents, new_contents)
 
             finally:
-                f = open(test_file, "wb")
-                f.write(prev_contents)
-                f.close()
+                reset_file_contents(test_file, prev_contents)
 
     def test_replacing_noerr_false(self):
         options = DummyOptions()
         #options.noerr = True
         test_file = os.path.join(
             TEST_FILES_PATH, 'replace_in_file_test_ansi.txt')
-        ret = replace_in_file.main(
-            test_file, 'not found', r'doesnt matter', options)
-        self.assertEquals(ret, 40)
+
+        prev_contents = get_file_contents(test_file)
+        try:
+            ret = replace_in_file.main(
+                test_file, 'not found', r'doesnt matter', options)
+            self.assertEquals(ret, 40)
+        finally:
+            reset_file_contents(test_file, prev_contents)
 
     def test_ansi_encoding(self):
         options = DummyOptions()
@@ -215,18 +245,13 @@ class ReplaceInFileTests(unittest.TestCase):
         test_file = os.path.join(
             TEST_FILES_PATH, 'replace_in_file_test_ansi.txt')
 
-        f = open(test_file, "rb")
-        prev_contents = f.read()
-        f.close()
+        prev_contents = get_file_contents(test_file)
         try:
             ret = replace_in_file.main(
                 test_file, 'a', 'b', options)
             self.assertEquals(ret, 0)
         finally:
-            f = open(test_file, "wb")
-            f.write(prev_contents)
-            f.close()
-
+            reset_file_contents(test_file, prev_contents)
 
 if __name__ == "__main__":
     unittest.main()
