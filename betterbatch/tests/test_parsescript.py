@@ -6,15 +6,16 @@ import logging
 import glob
 
 import sys
+TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
+
 # ensure that the package root is on the path
-package_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+package_root = os.path.dirname(os.path.dirname(TESTS_DIR))
 sys.path.append(package_root)
 
 from betterbatch import parsescript
 from betterbatch. parsescript import *
 
-TEST_PATH = os.path.dirname(__file__)
-TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
+TEST_FILES_PATH = os.path.join(TESTS_DIR, "test_files")
 
 
 parsescript.LOG = parsescript.ConfigLogging()

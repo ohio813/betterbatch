@@ -6,14 +6,21 @@ import sys
 import codecs
 
 # ensure that the package root is on the path
-TOOLS_FOLDER = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)), 'tools')
+TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
+PACKAGE_ROOT = os.path.dirname(os.path.dirname(TESTS_DIR))
+sys.path.append(PACKAGE_ROOT)
+
+TOOLS_FOLDER = os.path.abspath(os.path.join(
+    os.path.dirname(TESTS_DIR), 'tools'))
 FILE_UNDER_TEST = os.path.join(TOOLS_FOLDER, 'replace_in_file.py')
 sys.path.append(TOOLS_FOLDER)
 
 import replace_in_file
 
-TEST_PATH = os.path.dirname(__file__)
+from betterbatch import parsescript
+parsescript.LOG = parsescript.ConfigLogging()
+
+TEST_PATH = os.path.abspath(TESTS_DIR)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
 class DummyOptions(object):

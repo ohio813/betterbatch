@@ -5,14 +5,16 @@ import os
 import sys
 
 # ensure that the package root is on the path
-package_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
+# ensure that the package root is on the path
+package_root = os.path.dirname(os.path.dirname(TESTS_DIR))
 sys.path.append(package_root)
 
 from betterbatch.built_in_commands import *
 from betterbatch import built_in_commands
 
-TEST_PATH = os.path.dirname(__file__)
-TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
+
+TEST_FILES_PATH = os.path.join(TESTS_DIR, "test_files")
 
 
 class BuiltInCommandsTests(unittest.TestCase):
@@ -44,7 +46,7 @@ class BuiltInCommandsTests(unittest.TestCase):
 
     def test_count_passes(self):
         """"""
-        test_file = os.path.join(TEST_PATH, "run_tests.py")
+        test_file = os.path.join(TESTS_DIR, "run_tests.py")
         VerifyFileCount(test_file, [1])
         VerifyFileCount(test_file, 1)
         VerifyFileCount(test_file, ">0")
