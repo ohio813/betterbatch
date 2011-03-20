@@ -238,6 +238,25 @@ class BuiltInCommandsTests(unittest.TestCase):
             ec,
                 None)
 
+    def test_ExternalCommand_qualifier(self):
+        """All qualifiers were being passed to external tools as arguments
+
+        so we need to validate that only 'non-standard' qualifiers are passed
+        as args, and standard qualifiers are passed as qualifers.
+        """
+        tool_path = os.path.join(package_root, "betterbatch\\tools", "getlanguage.py")
+
+        ec = ExternalCommand(tool_path)
+
+        #let's try a bit of monkey patching ;)
+        old_SystemCommand = built_in_commands.SystemCommand
+        built_in_commands.SystemCommand = lambda cmd, quals: (cmd, quals)
+        cmd, quals = ec("my_command", ['ui', 'test'])
+        self.assertEquals(quals, ['ui'])
+        self.assertEquals(cmd, "%s my_command test" % tool_path)
+
+        built_in_commands.SystemCommand = old_SystemCommand
+
     def test_PopulateFromToolsFolder_pass(self):
         tools_dir = os.path.join(package_root, "tools")
         PopulateFromToolsFolder(package_root)
