@@ -4,7 +4,7 @@ CHANGES
 
 1.2.0 Color output, Windows 7 support, spaces in function args, Usage info
 ---------------------------------------------------------------------------
-12-March-2010
+20-March-2010
 
 * Significantly enhanced how output is captured from commands and displayed 
   to the user. Output is now captured and displayed as it is generated, so 
