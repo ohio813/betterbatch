@@ -147,7 +147,7 @@ def main(filename, to_find, replace_with, options):
             bom = [bn[0] for bn in BOM_ENCODING_NAMES
                     if bn[1] == options.encoding][0]
             if not contents.startswith(bom):
-                contents = BOM + contents
+                contents = bom + contents
 
     # write out the updated contents
     f = open(filename, "wb")
