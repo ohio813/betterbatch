@@ -81,7 +81,7 @@ def perform_replacements(contents, to_find, replace_with, options):
         if count == 0:
             if not options.noerr:
                 raise RuntimeError(
-                        "Regex '%s' not in the file: '%%s'" % to_find)
+                        "Regex '%s' not in the file: '%%s'" % to_find.pattern)
             else:
                 print "Regex not found: %s" % to_find
         else:
