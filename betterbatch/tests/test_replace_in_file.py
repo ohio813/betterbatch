@@ -141,21 +141,24 @@ class ReplaceInFileTests(unittest.TestCase):
             options = DummyOptions()
             test_file = os.path.join(
                 TEST_FILES_PATH, 'replace_in_file_test_%s.txt' % encoding)
-            with open(test_file, "rb") as f:
-                prev_contents = f.read()
+            f = open(test_file, "rb")
+            prev_contents = f.read()
+            f.close()
             try:
                 ret = replace_in_file.main(test_file, 'a', 'b', options)
                 self.assertEquals(ret, 0)
 
-                with open(test_file, "rb") as f:
-                    new_contents = f.read()
+                f = open(test_file, "rb")
+                new_contents = f.read()
+                f.close()
 
                 self.assertEquals(
                     prev_contents.replace('a', 'b'), new_contents)
 
             finally:
-                with open(test_file, "wb") as f:
-                    f.write(prev_contents)
+                f = open(test_file, "wb")
+                f.write(prev_contents)
+                f.close()
 
     def test_replacing_in_file_regex(self):
         # test that it fails if the file doesn't exist
@@ -164,14 +167,16 @@ class ReplaceInFileTests(unittest.TestCase):
             options.regex = True
             test_file = os.path.join(
                 TEST_FILES_PATH, 'replace_in_file_test_%s.txt' % encoding)
-            with open(test_file, "rb") as f:
-                prev_contents = f.read()
+            f = open(test_file, "rb")
+            prev_contents = f.read()
+            f.close()
             try:
                 ret = replace_in_file.main(test_file, r'([a-z ])', r'\1', options)
                 self.assertEquals(ret, 0)
 
-                with open(test_file, "rb") as f:
-                    new_contents = f.read()
+                f = open(test_file, "rb")
+                new_contents = f.read()
+                f.close()
 
                 #emulated = []
                 #for c in prev_contents:
@@ -184,8 +189,9 @@ class ReplaceInFileTests(unittest.TestCase):
                 self.assertEquals(prev_contents, new_contents)
 
             finally:
-                with open(test_file, "wb") as f:
-                    f.write(prev_contents)
+                f = open(test_file, "wb")
+                f.write(prev_contents)
+                f.close()
 
     def test_replacing_noerr_false(self):
         options = DummyOptions()
@@ -202,15 +208,17 @@ class ReplaceInFileTests(unittest.TestCase):
         test_file = os.path.join(
             TEST_FILES_PATH, 'replace_in_file_test_ansi.txt')
 
-        with open(test_file, "rb") as f:
-            prev_contents = f.read()
+        f = open(test_file, "rb")
+        prev_contents = f.read()
+        f.close()
         try:
             ret = replace_in_file.main(
                 test_file, 'a', 'b', options)
             self.assertEquals(ret, 0)
         finally:
-            with open(test_file, "wb") as f:
-                f.write(prev_contents)
+            f = open(test_file, "wb")
+            f.write(prev_contents)
+            f.close()
 
 
 if __name__ == "__main__":
