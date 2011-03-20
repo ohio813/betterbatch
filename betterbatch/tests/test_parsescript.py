@@ -1015,7 +1015,7 @@ class IncludeStepTests(unittest.TestCase):
         }
         inc_step = IncludeStep(
             "include <__script_dir__>\include_with_errors.bb")
-         
+
         self.assertRaises(
             RuntimeError,
             inc_step.execute,
@@ -1026,7 +1026,7 @@ class IncludeStepTests(unittest.TestCase):
 #    def test_include_without_script_dir(self):
 #        inc_step = IncludeStep(
 #            "include %s" % os.path.join(TEST_FILES_PATH, "basic.yaml"))
-#        
+#
 #        inc_step.execute({}, 'test')
 
 
@@ -1349,16 +1349,16 @@ class ParseFunctionNameAndArgsTests(unittest.TestCase):
         name, args = ParseFunctionNameAndArgs(name_args, 'call')
         self.assertEquals(name, "func_name")
         self.assertEquals(args[0], (None, "this is a test"))
-        
+
 
     def test_embedded_paren(self):
         name_args = 'func_name (this is() a test, abc=123)'
         name, args = ParseFunctionNameAndArgs(name_args, "call")
-        
+
         self.assertEquals(name, "func_name")
         self.assertEquals(len(args), 2)
         self.assertEquals(
-            tuple(args), 
+            tuple(args),
             ((None, "this is() a test"), ("abc", "123")))
 
 
