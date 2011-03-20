@@ -175,8 +175,12 @@ def SystemCommand(command, qualifiers = None):
     # WHOLE command with ""
     # This should NOT be done on Windows 7
     windows_version = sys.getwindowsversion()
-    if not (windows_version.major == 6 and windows_version.minor == 1):
+    major_index = 0
+    minor_index = 1
+    if not (windows_version[major_index] == 6 and
+            windows_version[minor_index] == 1):
         command = '"%s"'% command
+
     cmd_pipe = subprocess.Popen(
         command,
         shell = True,
