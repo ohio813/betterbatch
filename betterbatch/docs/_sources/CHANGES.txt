@@ -2,6 +2,14 @@
 CHANGES
 ************************************
 
+1.2.1 Fix Python 2.7 only code for checking OS version
+---------------------------------------------------------------------------
+20-March-2010
+
+* Changed dependence on the return value from ``sys.getwindowsversion()``
+  being a named tuple (which was only available since Python 2.7).
+
+
 1.2.0 Color output, Windows 7 support, spaces in function args, Usage info
 ---------------------------------------------------------------------------
 20-March-2010
