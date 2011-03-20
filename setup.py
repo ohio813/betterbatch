@@ -29,9 +29,9 @@ Here is an example script::
     
     - copy <project_root>\*.xyz <shell.tmp>\backup
 
-Tested with python 2.5.1 and 2.6.4
+Tested with python 2.7.1
 
-Current test coverage: 93%
+Test coverage for most releases is over 90%
 
 """
 import os
