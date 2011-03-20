@@ -293,12 +293,18 @@ class ExternalCommand(object):
         if qualifiers is None:
             qualifiers = []
 
+        arg_qualifiers = []
+        for qualifier in reversed(qualifiers):
+            if qualifier not in ['ui', 'echo', 'nocheck', "nocapture"]:
+                qualifiers.remove(qualifier)
+                arg_qualifiers.append(qualifier)
+
         if isinstance(params, basestring):
-            params = " ".join([self.full_path, params] + qualifiers)
+            params = " ".join([self.full_path, params] + arg_qualifiers)
         else:
             raise RuntimeError(
                 "ExternalCommand.__call__ only accepts strings")
-        return SystemCommand(params)
+        return SystemCommand(params, qualifiers)
 
 
 def EscapeNewlines(text, qualifiers = ''):
