@@ -8,11 +8,16 @@ from optparse import OptionParser
 
 
 BOM_ENCODING_NAMES = [
-    (getattr(codecs, "BOM_UTF32_BE"), 'utf-32-be'),
-    (getattr(codecs, "BOM_UTF32_LE"), 'utf-32-le'),
     (getattr(codecs, "BOM_UTF16_BE"), 'utf-16-be'),
     (getattr(codecs, "BOM_UTF16_LE"), 'utf-16-le'),
     (getattr(codecs, "BOM_UTF8"),  'utf-8-sig'),]
+
+# python 2.5 does not have utf-32 encodings
+if not (sys.version_info[0] == 2 and sys.version_info[1] == 5):
+    BOM_ENCODING_NAMES.insert(
+        0, (getattr(codecs, "BOM_UTF32_BE"), 'utf-32-be'))
+    BOM_ENCODING_NAMES.insert(
+        1, (getattr(codecs, "BOM_UTF32_LE"), 'utf-32-le'))
 
 
 def get_arguments():
