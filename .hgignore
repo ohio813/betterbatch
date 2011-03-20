@@ -16,4 +16,5 @@ glob:*.pptx
 glob:*.mnk
 glob:copy of*
 glob:antlr\*
+glob:.tox\*
 
