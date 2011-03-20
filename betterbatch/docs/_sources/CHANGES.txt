@@ -2,6 +2,18 @@
 CHANGES
 ************************************
 
+
+1.2.2 Fix Python 2.7 only code for checking OS version
+---------------------------------------------------------------------------
+20-March-2010
+
+* Made sure that the code and tests work with Python 2.5 (supporting python
+  2.4 would be difficult becuase of aboslute imports).
+* Fix an issue reported where qualifiers were being passed as arguments
+  to built_in_commands (where they were implemented as ExternalCommand's)
+* Fixed a bug in replace_in_file command (there was wrongly named variable)
+
+
 1.2.1 Fix Python 2.7 only code for checking OS version
 ---------------------------------------------------------------------------
 20-March-2010
@@ -14,55 +26,55 @@ CHANGES
 ---------------------------------------------------------------------------
 20-March-2010
 
-* Significantly enhanced how output is captured from commands and displayed 
-  to the user. Output is now captured and displayed as it is generated, so 
-  the {*ui*} qualifier is no longer necessary. (it is now just an 
-  alternative spelling of {*echo*}). By default output from all commands is 
-  captured to the log file; you can explicitly override that by using the 
+* Significantly enhanced how output is captured from commands and displayed
+  to the user. Output is now captured and displayed as it is generated, so
+  the {*ui*} qualifier is no longer necessary. (it is now just an
+  alternative spelling of {*echo*}). By default output from all commands is
+  captured to the log file; you can explicitly override that by using the
   new {*nocapture*} qualifier.
-* Added support for color output (on windows the colorama module has to be 
-  installed). This led to the log level (debug/info etc.) of some messages 
+* Added support for color output (on windows the colorama module has to be
+  installed). This led to the log level (debug/info etc.) of some messages
   being changed.
-* To Make it a bit easier to debug situations where an 'if' statement condition 
+* To Make it a bit easier to debug situations where an 'if' statement condition
   is incorrectly programmed the information on condition failure is output
   as a debug message.
 * Improve the replace_in_file helper tool to support files encoded in different
   encodings (not just treat the file as binary).
 * Some modules use Python absolute imports to help translation to Python 3.0
-* Allowed 'pushd' and 'cd' commands to handle double quotes around the path 
+* Allowed 'pushd' and 'cd' commands to handle double quotes around the path
   (any double quotes are stripped before setting the current directory)
-* Includes which cannot be found during testing will generate an info message 
+* Includes which cannot be found during testing will generate an info message
   rather than a debug message to raise visibility (as it may be the reason
   for test failures)
 * Allow parameters to functions to have a spaces.
 * Add support for the USAGE variable to be output automatically if no
   arguments are defined and there are undefined variable errors.
 * Some documentation improvements.
-  
+
 
 1.1.4 Small bug fix and functions for getting/setting registry
 ---------------------------------------------------------------------------
 06-December-2010
 
-* Fixed: Parameters were being directly to functions (as opposed to being 
-  passed in a variable) were being lowercased. 
+* Fixed: Parameters were being directly to functions (as opposed to being
+  passed in a variable) were being lowercased.
 * Added additional tools to get and set registry values =GetRegistryValue=
   and =SetRegistryValue()=
 * Better error reporting for mismatched {{{ and }}}.
 * Count built-in can handle quotes
 * Automatically call associate_bb_filetype.bb after installation.
 
- 
+
 1.1.3 Some external command cleanup
 ---------------------------------------------------------------------------
 05-October-2010
 
-* Only test function calls at point of execution (still in test run though). 
+* Only test function calls at point of execution (still in test run though).
   Variables may not be defined at the point of definition - but they may be
   defined at the point of call.
 * Small improvements to GetLanguage.py
 * Updated Documentation for built in commands and some re-organization
-* Better handling of replacement text (Replace built-in) which may cause a 
+* Better handling of replacement text (Replace built-in) which may cause a
   problem as a regular expression replacement.
 * Better error reporting for mismatched {{{ and }}}.
 
@@ -71,7 +83,7 @@ CHANGES
 ---------------------------------------------------------------------------
 27-August-2010
 
-* Fixed a fairly serious issue with setup.py where the betterbatch\tools 
+* Fixed a fairly serious issue with setup.py where the betterbatch\tools
   folder was not being installed.
 
 
@@ -79,9 +91,9 @@ CHANGES
 ---------------------------------------------------------------------------
 24-August-2010
 
-* Moved Compare, Uppercase, Lowercase, tools from external commands to 
+* Moved Compare, Uppercase, Lowercase, tools from external commands to
   internal commands
-* Added some more external tools: replace_in_file, find_in_file, 
+* Added some more external tools: replace_in_file, find_in_file,
   ListFilesMatchingPattern, GetLanguage
 
 
@@ -98,11 +110,11 @@ CHANGES
         - for key ih mapping_var.keys:
            - echo KEY: <key> VALUE: <mapping_var.<key> >
 
-* Added pseudo variable __last_return__ which allows you to check the 
+* Added pseudo variable __last_return__ which allows you to check the
    return value from the last executed command.
 
 
-1.0.0 multiline and Nested code blocks, various clean-ups and more tests 
+1.0.0 multiline and Nested code blocks, various clean-ups and more tests
 ------------------------------------------------------------------------
 19-August-2010
 
