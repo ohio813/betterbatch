@@ -241,7 +241,7 @@ def ParseVariableDefinition(var_def, function=None):
         raise ValueError(
             "Call to ParseVariableDefinition() seems to have been "
             "called with an incorrect value of function: '%s'" % function)
-            
+
     if len(name_value) == 1:
         if function is None:
             raise RuntimeError(
@@ -1783,7 +1783,7 @@ def ExecuteScriptFile(file_path, cmd_vars, check=False):
         # if the following conditions are True
         #   - usage variable is set
         #   - there were no variables passed on command line
-        #   - there is at least one 
+        #   - there is at least one
         any_undefined_vars = any(
             [isinstance(e, UndefinedVariableError) for e in errs.errors])
         if ('usage' in variables_copy and any_undefined_vars and not cmd_vars):
