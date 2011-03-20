@@ -137,7 +137,7 @@ def SystemCommand(command, qualifiers = None):
         qualifiers = []
 
     # "not 'nocapture'" is a bit hard to read - so convert it to a positive
-    # process - 'capture_output' 
+    # process - 'capture_output'
     capture_output = not 'nocapture' in qualifiers
 
     #use_shell = False
@@ -152,7 +152,7 @@ def SystemCommand(command, qualifiers = None):
         raise RuntimeError(
             "The command is %d characters long. "
             "It cannot be longer than %d characters. '%s...'"% (
-                command_len, 
+                command_len,
                 subprocess_safe_command_limit, str(command)[:80]))
 
     # if we can turn shell off for some/all of the commands then it will
@@ -188,7 +188,7 @@ def SystemCommand(command, qualifiers = None):
         stderr = subprocess.STDOUT)
 
     cmd_data = []
-    # while the command hasn't finished - keep reading the data from the 
+    # while the command hasn't finished - keep reading the data from the
     # output file (if capturing)
     while cmd_pipe.returncode is None:
         # wait just a small bit between checks - avoids too 'busy' a cycle
@@ -219,7 +219,7 @@ def SystemCommand(command, qualifiers = None):
 
     output = "".join(cmd_data)
 
-    # just in case there were ANSI escape sequences in the output - strip 
+    # just in case there were ANSI escape sequences in the output - strip
     # them the following REGEX was copied from colorama.ansitowin32
     ANSI_RE = re.compile('\033\[((?:\d|;)*)([a-zA-Z])')
     output = ANSI_RE.sub('', output)
