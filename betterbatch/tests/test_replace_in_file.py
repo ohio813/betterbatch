@@ -202,6 +202,7 @@ class ReplaceInFileTests(unittest.TestCase):
         # test that it fails if the file doesn't exist
         for encoding in ('ansi', 'utf_8', 'utf_16_be', 'utf_16_le'):
             options = DummyOptions()
+            options.encoding = "AUTO"
             options.regex = True
             test_file = os.path.join(
                 TEST_FILES_PATH, 'replace_in_file_test_%s.txt' % encoding)
