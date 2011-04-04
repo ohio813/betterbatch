@@ -33,7 +33,7 @@ class ParseYAMLFileTests(unittest.TestCase):
     def test_doesnt_exist(self):
         """"""
         self.assertRaises(
-            RuntimeError,
+            IOError,
             ParseYAMLFile,
                 "some non existant file")
 
@@ -991,7 +991,7 @@ class IncludeStepTests(unittest.TestCase):
         step.execute(variables, 'test')
 
         self.assertRaises(
-            RuntimeError,
+            IOError,
             step.execute,
                variables, 'run')
 

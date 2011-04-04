@@ -216,8 +216,10 @@ def ParseYAMLFile(yaml_file):
 
         return script_data
 
-    except IOError, e:
-        raise RuntimeError(e)
+    # allow IOErrors to propogate up - they can be handled better at a 
+    # higher level
+    #except IOError, e:
+    #    raise RuntimeError(e)
 
     except yaml.parser.ScannerError, e:
         raise RuntimeError("%s - %s" % (yaml_file, e))
@@ -1443,12 +1445,17 @@ class IncludeStep(Step):
         try:
             self.steps = LoadScriptFile(self.filename)
         except Exception, e:
-            if phase == "test":
+            if phase != "test":
+                raise
+            # if we are testing, and the file could not be opened then 
+            # log an information message
+            if isinstance(e, IOError):
                 LOG.info(
                     "Could not open include file during testing: %s" %
                         self.filename)
+                LOG.debug(e)
             else:
-                raise
+                LOG.warning(e)
         prev_script_dir = variables.get("__script_dir__", None)
         prev_script_file = variables.get("__script_filename__", None)
         try:
