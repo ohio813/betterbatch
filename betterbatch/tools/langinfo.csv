@@ -1,15 +1,28 @@
-lang,dotnet,hex_lcid,dec_lcid,long_name,codepage,buildboard_name
-chs,zh-CN,804,2052,Chinese Simplified,936,Chinese Sim.
-cht,zh-TW,404,1028,Chinese Traditional,950,Chinese Trad.
-csy,cs-CZ,405,1029,Czech,1250,Czech
-deu,de-DE,407,1031,German,1252,German
-enu,en-US,409,1033,English,1252,English
-esp,es-ES,40A,1034,Spanish,1252,Spanish
-fra,fr-FR,40C,1036,French,1252,French
-hun,hu-HU,40E,1038,Hungarian,1250,Hungarian
-ita,it-IT,410,1040,Italian,1252,Italian
-jpn,ja-JP,411,1041,Japanese,932,Japanese
-kor,ko-KR,412,1042,Korean,949,Korean
-plk,pl-PL,415,1045,Polish,1250,Polish
-ptb,pt-BR,416,1046,Brazilian Portuguese,1252,Brazilian Port.
-rus,ru-RU,419,1049,Russian,1251,Russian
+; NOTE - comments can ONLY be at the start of the file
+; http://authors.aspalliance.com/aspxtreme/sys/globalization/demos/culturenames.aspx
+; http://msdn.microsoft.com/en-us/library/aa369771%28v=vs.85%29.aspx
+; TEMPLATE
+; xxx,xx-xx,409,1033,XXXX,XXXX,0000,XXXX,XX
+
+lang,dotnet,hex_lcid,dec_lcid,long_name,long_name_2,codepage,buildboard_name,alt_2_letter
+chs,zh-CN,804,2052,Chinese Simplified,Simplified Chinese,936,Chinese Sim.,SC
+cht,zh-TW,404,1028,Chinese Traditional,Traditional Chinese,950,Chinese Trad.,TC
+csy,cs-CZ,405,1029,Czech,Czech,1250,Czech,CS
+deu,de-DE,407,1031,German,German,1252,German,DE
+enu,en-US,409,1033,English,English,1252,English,EN
+esp,es-ES,40A,1034,Spanish,Spanish,1252,Spanish,ES
+fra,fr-FR,40C,1036,French,French,1252,French,FR
+hun,hu-HU,40E,1038,Hungarian,Hungarian,1250,Hungarian,HU
+ita,it-IT,410,1040,Italian,Italian,1252,Italian,IT
+jpn,ja-JP,411,1041,Japanese,Japanese,932,Japanese,KJ
+kor,ko-KR,412,1042,Korean,Korean,949,Korean,KO
+plk,pl-PL,415,1045,Polish,Polish,1250,Polish,PL
+ptb,pt-BR,416,1046,Brazilian Portuguese,Brazilian Portuguese,1252,Brazilian Port.,BZ
+rus,ru-RU,419,1049,Russian,Russian,1251,Russian,RU
+nld,nl-NL,413,1043,Dutch,Dutch,1252,,
+sve,sv-SE,419,1049,Swedish,Swedish,1252,,
+fin,fi-FI,40B,1035,Finish,Finish,1252,,
+nor,nb-NO,414,1044,Norwegian,Norwegian,1252,,
+rom,ro-RO,418,1048,Romanian,Romanian,1250,,
+vit,vi-VN,42D,1069,Vietnamese,Vietnamese,1258,,
+
