@@ -153,7 +153,8 @@ def SystemCommand(command, qualifiers = None):
             "The command is %d characters long. "
             "It cannot be longer than %d characters. '%s...'"% (
                 command_len,
-                subprocess_safe_command_limit, str(command)[:80]))
+                subprocess_safe_command_limit, 
+                str(command)[:80]))
 
     # if we can turn shell off for some/all of the commands then it will
     # allow us to better handle catastrophic issues (e.g. command not found)
