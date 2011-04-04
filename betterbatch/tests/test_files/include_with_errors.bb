@@ -1,1 +1,2 @@
-- echo <missing_variable>
+some text
+some more text
