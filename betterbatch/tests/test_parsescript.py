@@ -17,8 +17,8 @@ from betterbatch. parsescript import *
 
 TEST_FILES_PATH = os.path.join(TESTS_DIR, "test_files")
 
-
 parsescript.LOG = parsescript.ConfigLogging()
+
 
 class ParseYAMLFileTests(unittest.TestCase):
 
@@ -984,6 +984,7 @@ class CommandStepTests(unittest.TestCase):
 
 
 class IncludeStepTests(unittest.TestCase):
+    # log file testing is more or less the same as this!
     class_under_test = IncludeStep
     def test_file_not_existing(self):
         step = self.__class__.class_under_test("include file_doesn't_exist.bb")
@@ -994,6 +995,13 @@ class IncludeStepTests(unittest.TestCase):
             IOError,
             step.execute,
                variables, 'run')
+
+    def test_optional_file_not_existing(self):
+        step = self.__class__.class_under_test(
+            "include file_doesn't_exist.bb {*optional*}")
+        variables =  {"__script_dir__": os.environ['temp']}
+        step.execute(variables, 'test')
+        step.execute(variables, 'run')
 
     def test_include_empty_file(self):
         self.assertRaises(
@@ -1024,6 +1032,36 @@ class IncludeStepTests(unittest.TestCase):
 
         inc_step.execute(variables, 'test')
 
+    def test_optional_include_file_with_errors(self):
+        variables =  {
+            "__script_dir__": TEST_FILES_PATH,
+        }
+        inc_step = IncludeStep(
+            "include <__script_dir__>\include_with_errors.bb {*optional*}")
+
+        inc_step.execute(variables, 'test')
+
+        self.assertRaises(
+            RuntimeError,
+            inc_step.execute,
+                variables, 'run')
+
+    def test_include_file_with_execute_only_errors(self):
+        variables =  {
+            "__script_dir__": TEST_FILES_PATH,
+        }
+        inc_step = IncludeStep(
+            "include <__script_dir__>\include_with_missing_var_ref.bb")
+
+        inc_step.execute(variables, 'test')
+
+        self.assertRaises(
+            RuntimeError,
+            inc_step.execute,
+                variables, 'run')
+
+
+
 #    def test_include_without_script_dir(self):
 #        inc_step = IncludeStep(
 #            "include %s" % os.path.join(TEST_FILES_PATH, "basic.yaml"))
@@ -1034,6 +1072,8 @@ class IncludeStepTests(unittest.TestCase):
 class LogFileStepTests(IncludeStepTests):
     class_under_test = LogFileStep
     test_file_not_existing = lambda x: 1
+    test_optional_file_not_existing = lambda x: 1
+    test_optional_include_file_with_errors = lambda x: 1
 
 
 class VariableDefinedCheckTests(unittest.TestCase):

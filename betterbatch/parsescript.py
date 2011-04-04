@@ -1433,6 +1433,7 @@ class IncludeStep(Step):
         dummy, self.filename = SplitStatementAndData(raw_step)
         if not self.filename:
             raise RuntimeError("Include with no filename.")
+        self.filename, self.qualifiers = ParseQualifiers(self.filename)
         self.steps = []
 
     def execute(self, variables, phase):
@@ -1450,17 +1451,28 @@ class IncludeStep(Step):
         try:
             self.steps = LoadScriptFile(self.filename)
         except Exception, e:
+            # if not testing or
+            # it's not an IO error
+            # or it is not optional - raise the error
             if phase != "test":
-                raise
-            # if we are testing, and the file could not be opened then
-            # log an information message
-            if isinstance(e, IOError):
-                LOG.info(
-                    "Could not open include file during testing: %s" %
-                        self.filename)
-                LOG.debug(e)
+                if not (isinstance(e, IOError) and
+                    "optional" in self.qualifiers):
+                    raise
             else:
-                LOG.warning(e)
+                # so we are testing
+                if not isinstance(e, IOError):
+                    LOG.warning("Problem parsing include file '%s'" %
+                        self.filename)
+                    LOG.debug(e)
+                else:
+                    if "optional" in self.qualifiers:
+                        LOG.debug(
+                            "Optional Include missing during testing '%s'" %
+                                self.filename)
+                    else:
+                        LOG.warning("Include missing during testing '%s'" %
+                            self.filename)
+
         prev_script_dir = variables.get("__script_dir__", None)
         prev_script_file = variables.get("__script_filename__", None)
         try:
