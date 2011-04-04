@@ -42,7 +42,7 @@ class LoadConfigTests(unittest.TestCase):
         vars = PopulateVariables(path, {})
 
         self.assertRaises(
-            RuntimeError,
+            IOError,
             LoadScriptFile,
                 path)
 
@@ -51,7 +51,7 @@ class LoadConfigTests(unittest.TestCase):
 
         path = os.path.join(TEST_FILES_PATH, "missing_include.yaml")
         self.assertRaises(
-            RuntimeError,
+            IOError,
             ExecuteScriptFile,
                 path, {})
 
