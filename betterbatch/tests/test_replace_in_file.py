@@ -4,6 +4,7 @@ import unittest
 import os
 import sys
 import codecs
+import re
 
 # ensure that the package root is on the path
 TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -251,8 +252,29 @@ class ReplaceInFileTests(unittest.TestCase):
             ret = replace_in_file.main(
                 test_file, 'a', 'b', options)
             self.assertEquals(ret, 0)
+            new_contents = get_file_contents(test_file)
+            self.assertEquals(prev_contents.replace('a', 'b'), new_contents)
         finally:
             reset_file_contents(test_file, prev_contents)
+
+    def test_broken_regexp(self):
+        options = DummyOptions()
+        options.regex = True
+        self.assertRaises(
+            re.error,
+            replace_in_file.perform_replacements,
+                "", "(.", r"\1", options)
+
+    def test_broken_regexp_main(self):
+        options = DummyOptions()
+        options.regex = True
+        test_file = os.path.join(
+            TEST_FILES_PATH, 'replace_in_file_test_ansi.txt')
+
+        ret = replace_in_file.main(
+            test_file, '(', r'doesnt matter', options)
+        self.assertEquals(ret, 50)
+
 
 if __name__ == "__main__":
     unittest.main()

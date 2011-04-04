@@ -135,6 +135,9 @@ def main(filename, to_find, replace_with, options):
     try:
         contents = perform_replacements(
             contents, to_find, replace_with, options)
+    except re.error, e:
+        print "**ERROR** (REGEX) %s" % str(e)
+        return 50
     except RuntimeError, e:
         print "**ERROR** %s" % (str(e) % filename)
         return 40
