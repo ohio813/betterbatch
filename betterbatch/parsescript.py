@@ -216,7 +216,7 @@ def ParseYAMLFile(yaml_file):
 
         return script_data
 
-    # allow IOErrors to propogate up - they can be handled better at a 
+    # allow IOErrors to propogate up - they can be handled better at a
     # higher level
     #except IOError, e:
     #    raise RuntimeError(e)
@@ -890,7 +890,6 @@ def ParseQualifiers(text):
 
     # remove the executable sections first becuase we don't
     # need or want to parse the qualifiers in these sections yet
-
     exe_sections = []
     for i, exe_section in enumerate(
             re.findall(r"\{\{\{.+?\}\}\}", text)):
@@ -1021,8 +1020,14 @@ class EchoStep(Step):
     def execute(self, variables, phase):
         message = RenderVariableValue(self.message, variables, phase)
 
+        logging_func = LOG.info
+        if 'as_error' in self.qualifiers:
+            logging_func = LOG.error
+        if 'as_warning' in self.qualifiers:
+            logging_func = LOG.warning
+
         if phase != "test":
-            LOG.info(message)
+            logging_func(message)
             self.output = message
 
 
@@ -1447,7 +1452,7 @@ class IncludeStep(Step):
         except Exception, e:
             if phase != "test":
                 raise
-            # if we are testing, and the file could not be opened then 
+            # if we are testing, and the file could not be opened then
             # log an information message
             if isinstance(e, IOError):
                 LOG.info(
