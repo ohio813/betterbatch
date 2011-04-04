@@ -982,6 +982,31 @@ class CommandStepTests(unittest.TestCase):
         s.execute({}, "run")
         self.assertEquals(s.ret, 0)
 
+class EchoStepTests(unittest.TestCase):
+    def test_with_as_error(self):
+        """"""
+        s = EchoStep('echo some text ')
+        self.assertEquals(s.qualifiers, [])
+        self.assertEquals(s.message, "some text")
+        s.execute("run")
+        self.assertEquals(s.output, "")
+        s.execute("test")
+        self.assertEquals(s.message, s.output)
+
+    def test_with_as_error(self):
+        """"""
+        s = EchoStep('echo some text {*as_error*}')
+        self.assertEquals(s.qualifiers, ["as_error"])
+        s.execute({}, "run")
+        self.assertEquals(s.message, s.output)
+
+    def test_with_as_warning(self):
+        """"""
+        s = EchoStep('echo some text {*as_warning*}')
+        self.assertEquals(s.qualifiers, ["as_warning"])
+        s.execute({}, "run")
+        self.assertEquals(s.message, s.output)
+
 
 class IncludeStepTests(unittest.TestCase):
     # log file testing is more or less the same as this!
