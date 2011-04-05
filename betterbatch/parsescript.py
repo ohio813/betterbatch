@@ -1524,6 +1524,7 @@ class LogFileStep(Step):
         if phase != "test":
             SetupLogFile(filename)
             LOG.debug('Variables at logfile creation: %s' % variables)
+            variables['__logfile__'] = filename
 
 
 class VariableDefinedCheck(Step):
@@ -1873,7 +1874,7 @@ def Main():
     try:
         options = cmd_line.GetValidatedOptions()
     except RuntimeError, e:
-        LOG = ConfigLogging()
+        LOG = ConfigLogging(use_colors = cmd_line.USE_COLORED_OUTPUT)
         LOG.fatal(e)
         sys.exit(1)
 
@@ -1885,8 +1886,8 @@ def Main():
         for handler in LOG.handlers:
             handler.setLevel(logging.DEBUG)
 
+    return_value = 0
     LOG.debug("Run Options:" % options)
-
     try:
         steps, vars = ExecuteScriptFile(
             options.script_file, options.variables, options.check)
@@ -1896,24 +1897,22 @@ def Main():
         e.LogErrors()
         if options.debug:
             LOG.exception(e)
-        sys.exit(1)
+        return_value = 1
     except EndExecution, e:
         if e.ret == 0:
             LOG.info(e.msg)
         else:
             LOG.fatal(e.msg)
-        sys.exit(e.ret)
+        return_value = e.ret
     except RuntimeError, e:
         LOG.error(e)
         if options.debug:
             LOG.exception(e)
-        LOG.fatal("Script Error!")
-        sys.exit(1)
+        return_value = 1
     except Exception, e:
         LOG.critical('Unknown Error: %s' % e)
         LOG.exception(e)
-        LOG.fatal("Script Error!")
-        sys.exit(99)
+        return_value = 99
     finally:
         if options.timed:
             time_taken = time.time() - start_time
@@ -1921,6 +1920,16 @@ def Main():
             secs = time_taken % 60
             LOG.info("Execution took %d minute(s) and %0.2f seconds" %
                 (minutes, secs))
+
+    if return_value != 0:
+        if '__logfile__' in options.variables:
+            print (
+                "Script Error Log file may have more information:\n\t%s" %
+                    options.variables['__logfile__'])
+        else:
+            print "Script Error!"
+
+        sys.exit(return_value)
 
 
 if __name__ == "__main__":
