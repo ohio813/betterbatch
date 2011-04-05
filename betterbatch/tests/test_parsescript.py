@@ -1647,6 +1647,30 @@ class ParseStepsTests(unittest.TestCase):
     def test_single_step(self):
         ParseSteps(["set z = <a>", "set n = <b>",])
 
+class ApplyCommandLineVarsStepTests(unittest.TestCase):
+
+    def test_basic_override(self):
+        ApplyCommandLineVarsStep.cmd_line_vars = {'yo': 'there'}
+        variables = {'yo': 'not_there'}
+        ApplyCommandLineVarsStep("").execute(variables, "test")
+        self.assertEqual(variables, {'yo': 'there'})
+
+        variables = {'yo': 'not_there'}
+        ApplyCommandLineVarsStep("").execute(variables, "run")
+        self.assertEqual(variables, {'yo': 'there'})
+
+    def test_basic_add_new(self):
+        ApplyCommandLineVarsStep.cmd_line_vars = {'yot': 'there'}
+        variables = {'yo': 'not there'}
+        ApplyCommandLineVarsStep("").execute(variables, "test")
+        self.assertEqual(variables['yot'], 'there')
+        self.assertEqual(variables['yo'], 'not there')
+
+        variables = {'yo': 'not there'}
+        ApplyCommandLineVarsStep("").execute(variables, "run")
+        self.assertEqual(variables['yot'], 'there')
+        self.assertEqual(variables['yo'], 'not there')
+
 
 class IntegrationTests(unittest.TestCase):
 
@@ -1661,7 +1685,6 @@ class IntegrationTests(unittest.TestCase):
 
         steps = ParseSteps(["set a = Abc", "set n = <A>", "echo <n>"])
         ExecuteSteps(steps, vars, "run")
-
 
 
 if __name__ == "__main__":
