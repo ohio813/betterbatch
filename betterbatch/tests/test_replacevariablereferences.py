@@ -4,19 +4,19 @@ import unittest
 import os
 import sys
 
+TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
+TEST_FILES_PATH = os.path.join(TESTS_DIR, "test_files")
+
 # ensure that the package root is on the path
-package_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-sys.path.append(package_root)
+PACKAGE_ROOT = os.path.dirname(os.path.dirname(TESTS_DIR))
+sys.path.append(PACKAGE_ROOT)
 
 from betterbatch.parsescript import *
-
-TEST_PATH = os.path.dirname(__file__)
-TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
 
 class VarReplacementTests(unittest.TestCase):
     "Perform some simple tests"
-    
+
     def setUp(self):
         self.vars = {}
         self.vars['var'] = "value"
@@ -64,15 +64,15 @@ class VarReplacementTests(unittest.TestCase):
 
     #def test_numeric_string(self):
     #    self.assertRaises(
-    #        NumericVarNotAllowedError, 
+    #        NumericVarNotAllowedError,
     #        ReplaceVariableReferences,
     #        1000**1000, {})
     #    self.assertRaises(
-    #        NumericVarNotAllowedError, 
+    #        NumericVarNotAllowedError,
     #        ReplaceVariableReferences,
     #        1, {})
     #    self.assertRaises(
-    #        NumericVarNotAllowedError, 
+    #        NumericVarNotAllowedError,
     #        ReplaceVariableReferences,
     #        1.5, {})
 
@@ -84,7 +84,7 @@ class VarReplacementTests(unittest.TestCase):
         self.assertRaises(
             ErrorCollection,
             ReplaceVariableReferences,"<var2>", self.vars)
-        
+
 
 
 

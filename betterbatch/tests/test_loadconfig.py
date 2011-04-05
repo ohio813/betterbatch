@@ -4,14 +4,15 @@ import unittest
 import os
 
 import sys
+
+TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
+TEST_FILES_PATH = os.path.join(TESTS_DIR, "test_files")
+
 # ensure that the package root is on the path
-package_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-sys.path.append(package_root)
+PACKAGE_ROOT = os.path.dirname(os.path.dirname(TESTS_DIR))
+sys.path.append(PACKAGE_ROOT)
 
 from betterbatch.parsescript import *
-
-TEST_PATH = os.path.dirname(__file__)
-TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
 
 class LoadConfigTests(unittest.TestCase):
@@ -37,7 +38,7 @@ class LoadConfigTests(unittest.TestCase):
 
     def test_missing_file(self):
         """"""
-        
+
         path = os.path.join(TEST_FILES_PATH, "missing.yaml")
         vars = PopulateVariables(path, {})
 
@@ -62,7 +63,7 @@ class LoadConfigTests(unittest.TestCase):
         vars = PopulateVariables(path, {})
         commands = LoadScriptFile(path)
         commands[0].execute(vars, "run")
-        
+
         self.assertEquals(vars['test'], "Hello World")
 
     def test_numeric_variable(self):

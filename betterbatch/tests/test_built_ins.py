@@ -4,17 +4,15 @@ import unittest
 import os
 import sys
 
-# ensure that the package root is on the path
 TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
-# ensure that the package root is on the path
-package_root = os.path.dirname(os.path.dirname(TESTS_DIR))
-sys.path.append(package_root)
-
-from betterbatch.built_in_commands import *
-from betterbatch import built_in_commands
-
-
 TEST_FILES_PATH = os.path.join(TESTS_DIR, "test_files")
+
+# ensure that the package root is on the path
+PACKAGE_ROOT = os.path.dirname(os.path.dirname(TESTS_DIR))
+sys.path.append(PACKAGE_ROOT)
+
+from betterbatch import built_in_commands
+from betterbatch.built_in_commands import *
 
 
 class BuiltInCommandsTests(unittest.TestCase):
@@ -203,7 +201,7 @@ class BuiltInCommandsTests(unittest.TestCase):
         self.assertEquals(cur_dir, os.getcwd())
 
     def test_ExternalCommand_pass(self):
-        tool_path = os.path.join(package_root, "betterbatch\\tools", "GetLanguage.py")
+        tool_path = os.path.join(PACKAGE_ROOT, "betterbatch\\tools", "GetLanguage.py")
         ec = ExternalCommand(tool_path)
 
         #print tool_path
@@ -224,7 +222,7 @@ class BuiltInCommandsTests(unittest.TestCase):
     def test_ExternalCommand_missing_cmd(self):
         """Test external path with tool that doesn't exitst"""
 
-        tool_path = os.path.join(package_root, "betterbatch\\tools", "compare_not_here.py")
+        tool_path = os.path.join(PACKAGE_ROOT, "betterbatch\\tools", "compare_not_here.py")
         self.assertRaises(
             RuntimeError,
             ExternalCommand,
@@ -232,7 +230,7 @@ class BuiltInCommandsTests(unittest.TestCase):
 
     def test_ExternalCommand_fail2(self):
         "   "
-        tool_path = os.path.join(package_root, "betterbatch\\tools", "getlanguage.py")
+        tool_path = os.path.join(PACKAGE_ROOT, "betterbatch\\tools", "getlanguage.py")
         ec = ExternalCommand(tool_path)
 
         self.assertRaises(
@@ -246,7 +244,7 @@ class BuiltInCommandsTests(unittest.TestCase):
         so we need to validate that only 'non-standard' qualifiers are passed
         as args, and standard qualifiers are passed as qualifers.
         """
-        tool_path = os.path.join(package_root, "betterbatch\\tools", "getlanguage.py")
+        tool_path = os.path.join(PACKAGE_ROOT, "betterbatch\\tools", "getlanguage.py")
 
         ec = ExternalCommand(tool_path)
 
@@ -260,11 +258,11 @@ class BuiltInCommandsTests(unittest.TestCase):
         built_in_commands.SystemCommand = old_SystemCommand
 
     def test_PopulateFromToolsFolder_pass(self):
-        tools_dir = os.path.join(package_root, "tools")
-        PopulateFromToolsFolder(package_root)
+        tools_dir = os.path.join(PACKAGE_ROOT, "tools")
+        PopulateFromToolsFolder(PACKAGE_ROOT)
 
     def test_PopulateFromToolsFolder_fail(self):
-        tools_dir = os.path.join(package_root, "betterbatch\\tools")
+        tools_dir = os.path.join(PACKAGE_ROOT, "betterbatch\\tools")
 
         compare_func = built_in_commands.NAME_ACTION_MAPPING['compare']
         try:
