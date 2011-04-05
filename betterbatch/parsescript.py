@@ -1555,8 +1555,25 @@ class VariableDefinedCheck(Step):
         self.output = ''
 
 
+class ApplyCommandLineVarsStep(Step):
+    """Apply the command line variable override (again)
+
+    The command line variables are set at the very start - but this does not
+    allow the user to override variables set in the script - so this command
+    will re-apply them, overriding any values previously set by the scripts.
+    """
+
+    def __init__(self, raw_step):
+        Step.__init__(self, raw_step + " command line variables")
+
+    def execute(self, variables, phase):
+        # no difference between run/test
+        variables.update(ApplyCommandLineVarsStep.cmd_line_vars)
+
+
 STATEMENT_HANDLERS = {
     'set': VariableDefinition,
+    'applycommandlinevars': ApplyCommandLineVarsStep,
     'include': IncludeStep,
     'logfile': LogFileStep,
     'defined': VariableDefinedCheck,
@@ -1681,23 +1698,25 @@ def ExecuteSteps(steps_, variables, phase):
 
 def PopulateVariables(script_file, cmd_line_vars):
     "Allow variables from the command line to be used also"
-    variables = {}
-    vars_to_wrap = {}
+
+    for var, val in cmd_line_vars.items():
+        if not var.islower():
+            var_lower = var.lower()
+            del cmd_line_vars[var]
+            cmd_line_vars[var_lower] = val
+
+    ApplyCommandLineVarsStep.cmd_line_vars = copy.deepcopy(cmd_line_vars)
+
     for key, value in dict(os.environ).items():
-        vars_to_wrap["shell." + key] = value
+        cmd_line_vars["shell." + key.lower()] = value
 
-    vars_to_wrap.update(cmd_line_vars)
-    for var, val in vars_to_wrap.items():
-        var = var.lower()
-        variables[var] = val
-
-    variables.update({
+    cmd_line_vars.update({
         '__last_return__': '0',
         '__script_dir__': os.path.abspath(os.path.dirname(script_file)),
         '__script_filename__': os.path.basename(script_file),
         '__working_dir__': os.path.abspath(os.getcwd())})
 
-    return variables
+    return cmd_line_vars
 
 
 def ValidateArgumentCounts(steps, count_db):
@@ -1794,6 +1813,7 @@ def ReadParamRestrictions(param_file):
 
 def ExecuteScriptFile(file_path, cmd_vars, check=False):
     "Load and execute the script file"
+    orig_cmd_vars = copy.deepcopy(cmd_vars)
     variables = PopulateVariables(file_path, cmd_vars)
     LOG.debug("Environment:" % variables)
 
@@ -1812,7 +1832,9 @@ def ExecuteScriptFile(file_path, cmd_vars, check=False):
         #   - there is at least one
         any_undefined_vars = any(
             [isinstance(e, UndefinedVariableError) for e in errs.errors])
-        if ('usage' in variables_copy and any_undefined_vars and not cmd_vars):
+        if ('usage' in variables_copy and
+            any_undefined_vars and
+            not orig_cmd_vars):
             LOG.info(
                 ReplaceVariableReferences(
                     variables_copy['usage'],
