@@ -15,6 +15,7 @@ sys.path.append(PACKAGE_ROOT)
 
 from betterbatch import parsescript
 from betterbatch.parsescript import *
+parsescript.LOG = ConfigLogging()
 
 
 class Issue_tests(unittest.TestCase):

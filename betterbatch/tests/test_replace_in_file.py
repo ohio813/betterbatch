@@ -6,8 +6,9 @@ import sys
 import codecs
 import re
 
-# ensure that the package root is on the path
 TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
+
+# ensure that the package root is on the path
 PACKAGE_ROOT = os.path.dirname(os.path.dirname(TESTS_DIR))
 sys.path.append(PACKAGE_ROOT)
 

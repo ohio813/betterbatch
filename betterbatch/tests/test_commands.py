@@ -10,7 +10,9 @@ TEST_FILES_PATH = os.path.join(TESTS_DIR, "test_files")
 PACKAGE_ROOT = os.path.dirname(os.path.dirname(TESTS_DIR))
 sys.path.append(PACKAGE_ROOT)
 
+from betterbatch import parsescript
 from betterbatch.parsescript import *
+parsescript.LOG = ConfigLogging()
 
 
 #class CommandTests(unittest.TestCase):
