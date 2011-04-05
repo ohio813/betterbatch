@@ -323,7 +323,8 @@ def FindVariableReferences(text):
     return variables_referenced
 
 
-def ReplaceVariableReferences(text, variables, loop=None):
+def ReplaceVariableReferences(
+    text, variables, loop=None, ignore_errors = False):
     """Replace all variable references in the string
 
     If there are any variables references in a replaced variable those will
@@ -367,7 +368,7 @@ def ReplaceVariableReferences(text, variables, loop=None):
             # ensure that any variables in the variable value are also
             # replaced
             var_value = ReplaceVariableReferences(
-                variables[variable], variables, loop)
+                variables[variable], variables, loop, ignore_errors)
 
             for ref_to_replace in refs_to_replace:
                 text = text.replace(ref_to_replace, var_value)
@@ -384,12 +385,13 @@ def ReplaceVariableReferences(text, variables, loop=None):
 
         loop.pop()
 
-    if errors:
+    if errors and not ignore_errors:
         raise ErrorCollection(errors)
 
     # if there were any variable references - pass through it again
     if var_refs:
-        text = ReplaceVariableReferences(text, variables)
+        text = ReplaceVariableReferences(
+            text, variables, ignore_errors = ignore_errors)
 
     text = text.replace("{{_LT_}}", "<")
     text = text.replace("{{_GT_}}", ">")
@@ -1811,7 +1813,11 @@ def ExecuteScriptFile(file_path, cmd_vars, check=False):
         any_undefined_vars = any(
             [isinstance(e, UndefinedVariableError) for e in errs.errors])
         if ('usage' in variables_copy and any_undefined_vars and not cmd_vars):
-            LOG.info(variables_copy['usage'])
+            LOG.info(
+                ReplaceVariableReferences(
+                    variables_copy['usage'],
+                    variables_copy,
+                    ignore_errors = True))
             # return empty steps & variables to stop the script
             return [], {}
         else:
