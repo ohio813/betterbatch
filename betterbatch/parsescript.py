@@ -1023,10 +1023,14 @@ class EchoStep(Step):
         message = RenderVariableValue(self.message, variables, phase)
 
         logging_func = LOG.info
+        if 'as_fatal' in self.qualifiers:
+            logging_func = LOG.fatal
         if 'as_error' in self.qualifiers:
             logging_func = LOG.error
         if 'as_warning' in self.qualifiers:
             logging_func = LOG.warning
+        if 'as_debug' in self.qualifiers:
+            logging_func = LOG.debug
 
         if phase != "test":
             logging_func(message)
