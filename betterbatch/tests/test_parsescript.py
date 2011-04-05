@@ -2,10 +2,10 @@ from __future__ import absolute_import
 
 import unittest
 import os
+import sys
 import logging
 import glob
 
-import sys
 TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
 TEST_FILES_PATH = os.path.join(TESTS_DIR, "test_files")
 
@@ -16,7 +16,7 @@ sys.path.append(PACKAGE_ROOT)
 from betterbatch import parsescript
 from betterbatch. parsescript import *
 
-parsescript.LOG = parsescript.ConfigLogging()
+parsescript.LOG = ConfigLogging()
 
 
 class ParseYAMLFileTests(unittest.TestCase):

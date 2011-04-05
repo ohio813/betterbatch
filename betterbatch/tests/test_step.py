@@ -12,8 +12,10 @@ TEST_FILES_PATH = os.path.join(TESTS_DIR, "test_files")
 PACKAGE_ROOT = os.path.dirname(os.path.dirname(TESTS_DIR))
 sys.path.append(PACKAGE_ROOT)
 
-from betterbatch.parsescript import *
 from betterbatch import built_in_commands
+from betterbatch import parsescript
+from betterbatch.parsescript import *
+parsescript.LOG = ConfigLogging()
 
 
     #def test_ParseStep_DOS_replacement_cmd(self):
