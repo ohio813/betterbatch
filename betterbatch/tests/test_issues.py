@@ -2,19 +2,19 @@ from __future__ import absolute_import
 
 import unittest
 import os
+import sys
 import logging
 import glob
 
-import sys
+TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
+TEST_FILES_PATH = os.path.join(TESTS_DIR, "test_files")
+
 # ensure that the package root is on the path
-package_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-sys.path.append(package_root)
+PACKAGE_ROOT = os.path.dirname(os.path.dirname(TESTS_DIR))
+sys.path.append(PACKAGE_ROOT)
 
 from betterbatch import parsescript
 from betterbatch.parsescript import *
-
-TEST_PATH = os.path.dirname(__file__)
-TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
 
 class Issue_tests(unittest.TestCase):
@@ -23,14 +23,14 @@ class Issue_tests(unittest.TestCase):
         """Test that a variable can be updated in a for loop"""
         full_path = os.path.join(TEST_FILES_PATH, 'issue1.bb')
         steps, vars = ExecuteScriptFile(full_path, {})
-        
+
         self.assertEquals(
             len(steps[-1].output.split("+")) > 5,
             True)
-            
+
     def test_distribution_list_Yuhui(self):
         """Test that a missing tools directory does not raise a problem"""
-        
+
         # this is not so easy to test, I don't particulary want to rename
         # the folder on my machine - and would like that "add_tools_dir" still
         # raises an error when the folder doesn't exist.

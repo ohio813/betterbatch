@@ -1,16 +1,16 @@
 import unittest
 import os
+import sys
 import glob
 
-import sys
+TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
+TEST_FILES_PATH = os.path.join(TESTS_DIR, "test_files")
+
 # ensure that the package root is on the path
-package_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-sys.path.append(package_root)
+PACKAGE_ROOT = os.path.dirname(os.path.dirname(TESTS_DIR))
+sys.path.append(PACKAGE_ROOT)
 
 from betterbatch.parsescript import *
-
-TEST_PATH = os.path.dirname(__file__)
-TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
 
 #class CommandTests(unittest.TestCase):
@@ -123,7 +123,7 @@ class test_ValidateArgumentCounts(unittest.TestCase):
 #    def test_ValidateArgs_pass_2(self):
 #        step = Step(*ParseStepData("cd here"))
 #        ValidateArgumentCounts([step], self.count_db)
-#       
+#
 #    def test_ValidateArgs_pass_3(self):
 #        step = Step(*ParseStepData('cd "here there are spaces"'))
 #        ValidateArgumentCounts([step], self.count_db)

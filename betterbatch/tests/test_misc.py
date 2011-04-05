@@ -4,21 +4,23 @@ import unittest
 import os
 
 import sys
+
+TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
+TEST_FILES_PATH = os.path.join(TESTS_DIR, "test_files")
+COMMANDS_YAML = os.path.join(TEST_FILES_PATH, "commands.yaml")
+
 # ensure that the package root is on the path
-package_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-sys.path.append(package_root)
+PACKAGE_ROOT = os.path.dirname(os.path.dirname(TESTS_DIR))
+sys.path.append(PACKAGE_ROOT)
 
 from betterbatch.parsescript import *
 
-TEST_PATH = os.path.dirname(__file__)
-TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
-COMMANDS_YAML = os.path.join(TEST_FILES_PATH, "commands.yaml")
 
 
 class MainTests(unittest.TestCase):
     "Unit tests for the loadconfig function"
 
-    
+
     def test_Main_none(self):
         """"""
         #ogging.shutdown()
@@ -57,7 +59,7 @@ class MainTests(unittest.TestCase):
     def test_Main_execute_fail_more_than_one(self):
         """"""
         sys.argv = [
-            'main.py', 
+            'main.py',
             os.path.join(
                 TEST_FILES_PATH, "commands_broken_more_than_one.yaml"),
             "-d"
@@ -71,7 +73,7 @@ class MainTests(unittest.TestCase):
         """"""
         sys.argv = ['main.py', os.path.join(TEST_FILES_PATH, "logfile.yaml"), "-d"]
         Main()
-           
+
 
     def test_Main_LogFile(self):
         """"""
@@ -97,7 +99,7 @@ class MainTests(unittest.TestCase):
     #        OSError,
     #        SetupLogFile,
     #            filename)
-    #            
+    #
     #    os.close(handle)
     #    os.remove(filename)
 

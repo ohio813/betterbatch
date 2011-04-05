@@ -1,14 +1,17 @@
 from __future__ import absolute_import
 
+import unittest
 import os
 import sys
 import coverage
-import unittest
+TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
+TEST_FILES_PATH = os.path.join(TESTS_DIR, "test_files")
 
 # ensure that the package root is on the path
-package_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-sys.path.append(package_root)
-sys.path.append(os.path.join(package_root, "betterbatch\\tools"))
+PACKAGE_ROOT = os.path.dirname(os.path.dirname(TESTS_DIR))
+sys.path.append(PACKAGE_ROOT)
+
+sys.path.append(os.path.join(PACKAGE_ROOT, "betterbatch\\tools"))
 
 # needs to be called before importing the modules
 cov = coverage.coverage(branch = True)
@@ -58,8 +61,8 @@ def run_tests():
     #print cov.analysis()
     print cov.report(modules_to_test)
     cov.html_report(
-        modules_to_test, 
-        directory = os.path.join(package_root, "Coverage_report"))
+        modules_to_test,
+        directory = os.path.join(PACKAGE_ROOT, "Coverage_report"))
 
 if __name__ == '__main__':
     run_tests()

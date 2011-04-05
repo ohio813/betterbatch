@@ -2,17 +2,17 @@ from __future__ import absolute_import
 
 import unittest
 import os
-
 import sys
+
+TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
+TEST_FILES_PATH = os.path.join(TESTS_DIR, "test_files")
+
 # ensure that the package root is on the path
-package_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-sys.path.append(package_root)
+PACKAGE_ROOT = os.path.dirname(os.path.dirname(TESTS_DIR))
+sys.path.append(PACKAGE_ROOT)
 
 from betterbatch import cmd_line
 from betterbatch.cmd_line import *
-
-TEST_PATH = os.path.dirname(__file__)
-TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
 
 class CommandLineTests(unittest.TestCase):
@@ -44,7 +44,7 @@ class CommandLineTests(unittest.TestCase):
         options, args = ParseArguments()
         self.assertRaises(
             RuntimeError,
-            ValidateOptions, 
+            ValidateOptions,
                 options, args)
 
     def test_ValidateOptions_too_many_yaml(self):
@@ -90,18 +90,18 @@ class CommandLineTests(unittest.TestCase):
         """"""
         sys.argv = ["prog.py", os.path.join(TEST_FILES_PATH, "commands.yaml")]
         options = GetValidatedOptions()
-    
+
         self.assertEquals(options.colored_output, USE_COLORED_OUTPUT)
         self.assertEquals(options.no_color, False)
 
     def test_force_no_color(self):
         """"""
         sys.argv = [
-            "prog.py", 
+            "prog.py",
             os.path.join(TEST_FILES_PATH, "commands.yaml"),
             "--no-color"]
         options = GetValidatedOptions()
-    
+
         self.assertEquals(options.colored_output, False)
         self.assertEquals(options.no_color, True)
 

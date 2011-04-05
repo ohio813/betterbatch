@@ -3,16 +3,17 @@ from __future__ import absolute_import
 import unittest
 import os
 import sys
+import sys
+
+TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
+TEST_FILES_PATH = os.path.join(TESTS_DIR, "test_files")
 
 # ensure that the package root is on the path
-package_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-sys.path.append(package_root)
+PACKAGE_ROOT = os.path.dirname(os.path.dirname(TESTS_DIR))
+sys.path.append(PACKAGE_ROOT)
 
 from betterbatch.parsescript import *
 from betterbatch import built_in_commands
-
-TEST_PATH = os.path.dirname(__file__)
-TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
 
 
     #def test_ParseStep_DOS_replacement_cmd(self):
@@ -62,7 +63,7 @@ class StepTests(unittest.TestCase):
     #def test_Step_DosCommand(self):
         """"""
         s = CommandStep('cd "some directory"')
-        
+
         #self.assertEquals(
         #    s.params, '"some directory"')
 
@@ -75,16 +76,16 @@ class StepTests(unittest.TestCase):
     #def test_Step_DosCommand_not_run(self):
         """"""
         #s = Step('cd', [], '"some directory"')
-        
+
         #self.assertEquals(
         #    s.params, '"some directory"')
-            
+
         #self.assertEquals(s.argcount, 1)
 
     def test_Step_DosCommand(self):
         """"""
         #s = Step('run', [], ['cd', 'some directory'])
-        
+
         #self.assertEquals(
         #    s.params, ['some directory'])
 
@@ -104,7 +105,7 @@ class StepTests(unittest.TestCase):
         """"""
         s = CommandStep('dir {*ui*} {*nocheck*}')
         self.assertEquals(s.qualifiers, ['ui', 'nocheck'])
-        
+
         #Step('dir {*nocheck*}')
         #Step("count", [5], 'dir')
 
@@ -143,19 +144,19 @@ class StepTests(unittest.TestCase):
     def test_Step_repr(self):
         """"""
         rep = repr(Step("echo Hi Tester"))
-        
+
         self.assertEquals(rep, "<Step echo Hi Tester>")
 
     #def test_Step_command_with_list(self):
     #    """"""
     #    step = Step(["echo", "Hi", "Tester"])
-    #    
+    #
     #    self.assertEquals(step.command, 'echo')
 
   # # def test_Step_argcount_with_list(self):
     #    """"""
     #    step = Step(["echo", "Hi", "Tester"])
-    #    
+    #
     #    self.assertEquals(step.argcount, 2)
 
   # # def test_Step_argcount_with_invalid_shlex_str(self):
