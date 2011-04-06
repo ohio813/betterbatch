@@ -385,13 +385,14 @@ def ReplaceVariableReferences(
 
         loop.pop()
 
-    if errors and not ignore_errors:
-        raise ErrorCollection(errors)
-
-    # if there were any variable references - pass through it again
-    if var_refs:
-        text = ReplaceVariableReferences(
-            text, variables, ignore_errors = ignore_errors)
+    if errors:
+        if not ignore_errors:
+            raise ErrorCollection(errors)
+    else:
+        # if there were any variable references - pass through it again
+        if var_refs:
+            text = ReplaceVariableReferences(
+                text, variables, ignore_errors = ignore_errors)
 
     text = text.replace("{{_LT_}}", "<")
     text = text.replace("{{_GT_}}", ">")
