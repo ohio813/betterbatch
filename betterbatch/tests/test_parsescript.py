@@ -19,6 +19,25 @@ from betterbatch. parsescript import *
 parsescript.LOG = ConfigLogging()
 
 
+class ConfigLoggingTests(unittest.TestCase):
+
+    def test_use_colors(self):
+    
+        logger = logging.getLogger("betterbatch")
+        logger.handlers = []
+
+        logger = ConfigLogging(use_colors=True)
+        
+        colored_handler_found = False
+        for handler in logger.handlers:
+            print "xxxxxx", handler
+            if isinstance(handler, ColoredConsoleHandler):
+                colored_handler_found = True
+                break
+        
+        self.assertEqual(colored_handler_found, True)
+
+
 class ParseYAMLFileTests(unittest.TestCase):
 
     def test_simple_file(self):
@@ -341,6 +360,16 @@ class ReplaceVariableReferencesTests(unittest.TestCase):
             ReplaceVariableReferences,
                 "<x>", variables)
 
+    def test_ignore_errors(self):
+        """"""
+        variables = {
+            'x': "uses <y> <and_missing>",
+            'y': "some value",
+            }
+        replaced = ReplaceVariableReferences(
+            "<x>", variables, ignore_errors = True)
+        
+        self.assertEqual(replaced, "uses some value <and_missing>")
 
 #class ReplaceVariablesInStepsTests(unittest.TestCase):
 #    """"""
@@ -992,10 +1021,10 @@ class EchoStepTests(unittest.TestCase):
         s.execute("test")
         self.assertEquals(s.message, s.output)
 
-    def test_with_as_error(self):
+    def test_with_as_debug(self):
         """"""
-        s = EchoStep('echo some text {*as_error*}')
-        self.assertEquals(s.qualifiers, ["as_error"])
+        s = EchoStep('echo some text {*as_debug*}')
+        self.assertEquals(s.qualifiers, ["as_debug"])
         s.execute({}, "run")
         self.assertEquals(s.message, s.output)
 
@@ -1003,6 +1032,20 @@ class EchoStepTests(unittest.TestCase):
         """"""
         s = EchoStep('echo some text {*as_warning*}')
         self.assertEquals(s.qualifiers, ["as_warning"])
+        s.execute({}, "run")
+        self.assertEquals(s.message, s.output)
+
+    def test_with_as_error(self):
+        """"""
+        s = EchoStep('echo some text {*as_error*}')
+        self.assertEquals(s.qualifiers, ["as_error"])
+        s.execute({}, "run")
+        self.assertEquals(s.message, s.output)
+
+    def test_with_as_fatal(self):
+        """"""
+        s = EchoStep('echo some text {*as_fatal*}')
+        self.assertEquals(s.qualifiers, ["as_fatal"])
         s.execute({}, "run")
         self.assertEquals(s.message, s.output)
 
@@ -1372,6 +1415,13 @@ class IfStepTests(unittest.TestCase):
         self.assertEquals(vars['blah'], '42')
 
 
+class PopulateVariablesTests(unittest.TestCase):
+    def test_basic(self):
+        vars = PopulateVariables("somefile.bb", {"testinG": "AbC", 't': 'v'})        
+        self.assertEqual(vars['testing'], "AbC")
+        self.assertEqual(vars['t'], "v")
+
+
 class ParseFunctionNameAndArgsTests(unittest.TestCase):
     def test_basic(self):
         name_args = "func_name (a, b, c=2,)"
@@ -1470,6 +1520,33 @@ class FunctionDefinitionTests(unittest.TestCase):
             func.call_function,
                 ({'a': '123'}), vars, "test")
 
+
+class ValidateArgumentCountsTests(unittest.TestCase):
+    def test_no_count(self):
+        x = CommandStep('robocopy')
+        ValidateArgumentCounts([x], {})
+
+    def test_count(self):
+        x = CommandStep('robocopy')
+        ValidateArgumentCounts([x], {'robocopy': (0,1)})
+
+    def test_count_error_too_few(self):
+        x = CommandStep('robocopy 1 2 3')
+        self.assertRaises(
+            RuntimeError,
+            ValidateArgumentCounts,
+                [x], {'robocopy': (4,5)})
+
+    def test_count_error_just_right(self):
+        x = CommandStep('robocopy 1 2 3 4')
+        ValidateArgumentCounts([x], {'robocopy': (4,4)})
+
+    def test_count_error_too_many(self):
+        x = CommandStep('robocopy 1 2 3 4 5 6')
+        self.assertRaises(
+            RuntimeError,
+            ValidateArgumentCounts,
+                [x], {'robocopy': (4,5)})
 
 
 class FunctionCallTests(unittest.TestCase):
