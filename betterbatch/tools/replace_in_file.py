@@ -29,6 +29,12 @@ def get_arguments():
     parser.add_option("-n", "--noerr",
                       default=False, action="store_true",
                       help="do not report an error if the text is not found")
+    parser.add_option("--universal-newlines",
+                      default=False, action="store_true",
+                      help="open the file in a mode that converts all line "
+                        "endings (EOL) to \\n internally. NOTE when the file "
+                        "is written all EOLs will be the current OS native "
+                        "EOL e.g. \\r\\n on Windows, \\r on MAC, \\n on *nix")
     parser.add_option("--encoding",
                       default='None', action="store",
                       metavar="(auto,none,...)",
@@ -109,9 +115,15 @@ def perform_replacements(contents, to_find, replace_with, options):
 
 def main(filename, to_find, replace_with, options):
 
+    read_mode = 'rb'
+    write_mode = 'wb'
+    if options.universal_newlines:
+        read_mode = 'rU'
+        write_mode = 'w'
+
     try:
         # open and read the file
-        f = open(filename, "rb")
+        f = open(filename, read_mode)
         contents = f.read()
         f.close()
     except IOError, e:
@@ -153,7 +165,7 @@ def main(filename, to_find, replace_with, options):
                 contents = bom + contents
 
     # write out the updated contents
-    f = open(filename, "wb")
+    f = open(filename, write_mode)
     f.write(contents)
     f.close()
 
