@@ -7,6 +7,7 @@ import codecs
 import re
 
 TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
+TEST_FILES_PATH = os.path.join(TESTS_DIR, "test_files")
 
 # ensure that the package root is on the path
 PACKAGE_ROOT = os.path.dirname(os.path.dirname(TESTS_DIR))
@@ -19,8 +20,6 @@ sys.path.append(TOOLS_FOLDER)
 
 import replace_in_file
 
-from betterbatch import parsescript
-parsescript.LOG = parsescript.ConfigLogging()
 
 TEST_PATH = os.path.abspath(TESTS_DIR)
 TEST_FILES_PATH = os.path.join(TEST_PATH, "test_files")
@@ -30,6 +29,7 @@ class DummyOptions(object):
         self.encoding = None
         self.regex = False
         self.noerr = False
+        self.universal_newlines = False
 
 
 def get_file_contents(filepath):
@@ -194,7 +194,7 @@ class ReplaceInFileTests(unittest.TestCase):
             reset_file_contents(test_file, encoded_contents)
 
             ret = replace_in_file.main(test_file, r'([a-z ])', r'\1', options)
-            
+
             new_contents = get_file_contents(test_file)
             self.assertEquals(new_contents, codecs.BOM_UTF16_BE + encoded_contents)
         finally:
@@ -276,6 +276,56 @@ class ReplaceInFileTests(unittest.TestCase):
             test_file, '(', r'doesnt matter', options)
         self.assertEquals(ret, 50)
 
+
+    def test_newlines_replaced(self):
+        # issue 12: replace_in_file changes line ending to LF if line
+        # ending is involved in regexp
+        options = DummyOptions()
+        options.regex = True
+        options.universal_newlines = True
+
+        for line_ending, chr in (('crlf', '\r\n'), ('lf', '\n'), ('cr', '\r')):
+            test_file = os.path.join(
+                TEST_FILES_PATH,
+                'replace_in_file_test_multi_%s.txt' % line_ending)
+
+            prev_contents = get_file_contents(test_file)
+            #normalize prev contents
+            test_against = prev_contents.replace(chr, "\r\n")
+            test_against = test_against.replace('a', '--')
+            try:
+                ret = replace_in_file.main(
+                    test_file, r'^a.*$', '--', options)
+                self.assertEquals(ret, 0)
+                new_contents = get_file_contents(test_file)
+                self.assertEquals(
+                    new_contents,
+                    test_against,
+                    "newline support failed for '%s'\n%r <-> %r" % (
+                        line_ending, new_contents, test_against))
+            finally:
+                reset_file_contents(test_file, prev_contents)
+
+    def test_cr_newlines_replaced(self):
+        # we need to specify Binary - if we want to work with files with
+        # CR line endings
+        options = DummyOptions()
+        options.regex = True
+
+        test_file = os.path.join(
+            TEST_FILES_PATH, 'replace_in_file_test_multi_cr.txt')
+
+        prev_contents = get_file_contents(test_file)
+        try:
+            ret = replace_in_file.main(
+                test_file, r'^a[^\r]*$', '--', options)
+            self.assertEquals(ret, 0)
+            new_contents = get_file_contents(test_file)
+            self.assertEquals(
+                new_contents,
+                prev_contents.replace('a', '--'))
+        finally:
+            reset_file_contents(test_file, prev_contents)
 
 if __name__ == "__main__":
     unittest.main()
