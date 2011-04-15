@@ -26,7 +26,7 @@ class Issue_tests(unittest.TestCase):
         steps, vars = ExecuteScriptFile(full_path, {})
 
         self.assertEquals(
-            len(steps[-1].output.split("+")) > 5,
+            len(steps[-1].output.split("+")) > 3,
             True)
 
     def test_distribution_list_Yuhui(self):
