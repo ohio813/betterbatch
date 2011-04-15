@@ -890,6 +890,11 @@ class VariableDefinition(Step):
         return '"%s"' % self.value
 
 
+class Qualifier(str):
+    def __hash__(self):
+        return hash(self.lower().strip())
+
+
 def ParseQualifiers(text):
     "Find the qualifiers and replace them"
 
@@ -914,7 +919,8 @@ def ParseQualifiers(text):
         text = text.replace("{{{%d}}}" % i, section)
 
     # ensure that the qualifiers are lower case and no extra spaces
-    qualifiers = [q.lower().strip() for q in qualifiers]
+    # though keep the original also - as some command need to use those
+    qualifiers = [Qualifier(q) for q in qualifiers]
 
     return text, qualifiers
 
