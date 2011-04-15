@@ -13,6 +13,8 @@ sys.path.append(PACKAGE_ROOT)
 
 from betterbatch import built_in_commands
 from betterbatch.built_in_commands import *
+from betterbatch import parsescript
+parsescript.LOG = parsescript.ConfigLogging()
 
 
 class BuiltInCommandsTests(unittest.TestCase):
@@ -282,6 +284,24 @@ class BuiltInCommandsTests(unittest.TestCase):
 
     def test_Replace_basic(self):
         self.assertEquals(Replace("some text", ["e", "a"]), (0, "soma taxt"))
+
+    def test_Replace_ParseQualifiers_making_qualifiers_lowercase(self):
+        """ParseQualifiers was making all qualifiers lowercase
+        So replacement text was being passed to replace as lowercase text
+        """
+        s = parsescript.ParseStep("replace InPut {*In*} {*OuT*}")
+        s.execute({}, 'run')
+        self.assertEqual(s.output, "OuTPut")
+
+    def test_Replace_case_unmatching(self):
+        s = parsescript.ParseStep("replace InPut {*in*} {*OuT*}")
+        s.execute({}, 'run')
+        self.assertEqual(s.output, "InPut")
+
+    def test_Replace_ignore_case(self):
+        s = parsescript.ParseStep("replace InPut {*in*} {*OuT*} {*nocase*}")
+        s.execute({}, 'run')
+        self.assertEqual(s.output, "OuTPut")
 
     def test_EscapeNewLines_basic(self):
         self.assertEquals(EscapeNewlines("some\ntext"), (0, r"some\\ntext"))
