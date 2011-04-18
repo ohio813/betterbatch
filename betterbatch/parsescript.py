@@ -73,6 +73,18 @@ def ConfigLogging(use_colors=False):
     return logger
 
 
+class CommandPathNotFoundError(RuntimeError):
+    "Error raised when a path or command is not found"
+
+    def __init__(self, command_path, string):
+        self.command_path = command_path
+        RuntimeError.__init__(
+            self, "Command not found: '%s'" % (command_path))
+
+        self.command_path = command_path
+        self.string = string
+
+
 class UndefinedVariableError(RuntimeError):
     "Error raised when a variable is used that has not been defined"
 
@@ -96,6 +108,7 @@ class ErrorCollection(RuntimeError):
 
         # collect any Undefined Variables so we can log those better
         undef_var_errs = {}
+        cmd_path_errs = {}
         other_errs = []
         for e in self.errors:
             if isinstance(e, UndefinedVariableError):
@@ -103,22 +116,38 @@ class ErrorCollection(RuntimeError):
                 strings = undef_var_errs.setdefault(var, [])
                 if e.string not in strings:
                     strings.append(e.string)
+            elif isinstance(e, CommandPathNotFoundError):
+                cmd_path = e.command_path.lower()
+                strings = cmd_path_errs.setdefault(cmd_path, [])
+                if e.string not in strings:
+                    strings.append(e.string)
             elif str(e) not in other_errs:
                 other_errs.append(e)
 
         for e in other_errs:
             LOG.fatal(e)
-            return
 
-        LOG.fatal("======== UNDEFINED VARIABLES ========")
-        LOG.error(
-            '(Check scripts or pass value on '
+        def print_err_summary(errs, heading, message):
+            if errs:
+                LOG.fatal("======== %s ========" % heading)
+                LOG.error(message)
+            for cmd_path, strings in sorted(errs.items()):
+                LOG.fatal("\t'%s'" % cmd_path)
+                for string in strings:
+                    LOG.debug("\t%s" % string)
+            if errs:
+                LOG.info("")
+
+        print_err_summary(
+            cmd_path_errs,
+            heading = "MISSING COMMANDS",
+            message = '(The following commands were referenced, '
+                'but the path was not found')
+        print_err_summary(
+            undef_var_errs,
+            heading = "UNDEFINED VARIABLES",
+            message = '(Check scripts or pass value on '
             'command line e.g. "var=value")')
-        for var, strings in sorted(undef_var_errs.items()):
-            LOG.fatal("'%s'" % var)
-
-            for string in strings:
-                LOG.debug("    %s" % string)
 
     def __repr__(self):
         return "<ERRCOL %s>" % self.errors
