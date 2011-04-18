@@ -1041,8 +1041,12 @@ class CommandStep(Step):
         parts = SplitStatementAndData(command_text)
 
         cmd = parts[0].strip().lower()
+
+        # if we are in test mode - then just do some testing and exit
         if phase == 'test':
+            # if it is not a built in
             if cmd not in built_in_commands.NAME_ACTION_MAPPING:
+                # check if the path can be found
                 try:
                     ValidateCommandPath(command_text)
                 except CommandPathNotFoundError, CmdErr:
@@ -1050,15 +1054,16 @@ class CommandStep(Step):
             if errors:
                 raise ErrorCollection(errors)
             return
-
-        if cmd not in built_in_commands.NAME_ACTION_MAPPING:
-            func = built_in_commands.SystemCommand
-            params = command_text
-            cmd_log_string = self.command_as_string_for_log("", params)
-        else:
+        # Figure out if it is an internal or external command that
+        # is being executed.
+        if cmd in built_in_commands.NAME_ACTION_MAPPING:
             func = built_in_commands.NAME_ACTION_MAPPING[cmd]
             params = parts[1]
             cmd_log_string = self.command_as_string_for_log(cmd, params)
+        else:
+            func = built_in_commands.SystemCommand
+            params = command_text
+            cmd_log_string = self.command_as_string_for_log("", params)
 
         if cmd == "echo":
             self.qualifiers.append('echo')
