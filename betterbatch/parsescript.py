@@ -998,25 +998,47 @@ class CommandStep(Step):
     def execute(self, variables, phase):
         "Run this step"
 
-        command_text = RenderVariableValue(self.step_data, variables, phase)
+        errors = []
+
+        try:
+            command_text = RenderVariableValue(self.step_data, variables, phase)
+        except ErrorCollection, e:
+            if phase != "test":
+                raise
+            # if we are in the test phase we want to be able to continue (and
+            # do the command path testing, but still not lose the
+            # UndefinedVariable errors raised.
+            for err in e.errors:
+                errors.append(err)
+            # Re-run RenderVariableValue() to replace as many variables
+            # as possible while ignoring errors
+            command_text = RenderVariableValue(
+                self.step_data, variables, phase, ignore_errors=True)
 
         variables['__last_return__'] = '0'
 
-        if phase == "test":
-            return
-
-        # Check if the command is a known command
+        # split up statement/executable name from the arguments
         parts = SplitStatementAndData(command_text)
 
         cmd = parts[0].strip().lower()
-        if cmd in built_in_commands.NAME_ACTION_MAPPING:
-            func = built_in_commands.NAME_ACTION_MAPPING[cmd]
-            params = parts[1]
-            cmd_log_string = self.command_as_string_for_log(cmd, params)
-        else:
+        if phase == 'test':
+            if cmd not in built_in_commands.NAME_ACTION_MAPPING:
+                try:
+                    DoSomeValidation(command_text)
+                except CommandPathNotFoundError, CmdErr:
+                    errors.append(CmdErr)
+            if errors:
+                raise ErrorCollection(errors)
+            return
+
+        if cmd not in built_in_commands.NAME_ACTION_MAPPING:
             func = built_in_commands.SystemCommand
             params = command_text
             cmd_log_string = self.command_as_string_for_log("", params)
+        else:
+            func = built_in_commands.NAME_ACTION_MAPPING[cmd]
+            params = parts[1]
+            cmd_log_string = self.command_as_string_for_log(cmd, params)
 
         if cmd == "echo":
             self.qualifiers.append('echo')

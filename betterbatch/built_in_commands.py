@@ -27,7 +27,7 @@ PUSH_DIRECTORY_LIST = []
 # the following commands are defined in the shell - so they won't work
 # unless executed in the shell
 # they raise an error when executed
-COMMANDS_REQUIRING_SHELL = [
+SHELL_COMMANDS = [
     'assoc', 'break', 'call', 'cd', 'chcp', 'chdir', 'cls', 'color', 'copy',
     'date', 'del', 'dir', 'diskcomp', 'diskcopy', 'echo', 'endlocal', 'erase',
     'exit', 'for', 'format', 'ftype', 'goto', 'graftabl', 'if', 'md', 'mkdir',
