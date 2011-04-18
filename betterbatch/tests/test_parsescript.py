@@ -128,6 +128,44 @@ class ErrorCollectionTests(unittest.TestCase):
         collection = ErrorCollection(errs)
         collection.LogErrors()
 
+    def test_LOGErrors_command_path_errors(self):
+        """"""
+        errs = ['err1', "err"]
+
+        collection = ErrorCollection(errs)
+        collection.LogErrors()
+
+        errs += [
+            CommandPathNotFoundError("robocopy123", "yo"),
+            CommandPathNotFoundError("robocopy123", "yo2"),
+            CommandPathNotFoundError("robocopy123", "yo2"),
+            CommandPathNotFoundError("robocopy456", "yo"),
+            ]
+
+        collection = ErrorCollection(errs)
+        collection.LogErrors()
+
+    def test_LOGErrors_combination(self):
+        """"""
+        errs = ['err1', "err"]
+
+        collection = ErrorCollection(errs)
+        collection.LogErrors()
+
+        errs += [
+            CommandPathNotFoundError("robocopy123", "yo"),
+            CommandPathNotFoundError("robocopy123", "yo2"),
+            CommandPathNotFoundError("robocopy123", "yo2"),
+            CommandPathNotFoundError("robocopy456", "yo"),
+            UndefinedVariableError("var", "yo"),
+            UndefinedVariableError("var", "yo2"),
+            UndefinedVariableError("var", "yo2"),
+            UndefinedVariableError("var2", "yo"),
+            ]
+
+        collection = ErrorCollection(errs)
+        collection.LogErrors()
+
     def test_repr__(self):
         """"""
         errs = ['err1', "err1"]
