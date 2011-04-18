@@ -22,19 +22,19 @@ parsescript.LOG = ConfigLogging()
 class ConfigLoggingTests(unittest.TestCase):
 
     def test_use_colors(self):
-    
+
         logger = logging.getLogger("betterbatch")
         logger.handlers = []
 
         logger = ConfigLogging(use_colors=True)
-        
+
         colored_handler_found = False
         for handler in logger.handlers:
             print "xxxxxx", handler
             if isinstance(handler, ColoredConsoleHandler):
                 colored_handler_found = True
                 break
-        
+
         self.assertEqual(colored_handler_found, True)
 
 
@@ -368,7 +368,7 @@ class ReplaceVariableReferencesTests(unittest.TestCase):
             }
         replaced = ReplaceVariableReferences(
             "<x>", variables, ignore_errors = True)
-        
+
         self.assertEqual(replaced, "uses some value <and_missing>")
 
 #class ReplaceVariablesInStepsTests(unittest.TestCase):
@@ -498,6 +498,29 @@ class SetupLogFileTests(unittest.TestCase):
         SetupLogFile(path)
 
         #CloserAndRemoveLogHanlderwithPath(path)
+
+
+class RenderVariableValueTests(unittest.TestCase):
+
+    def test_executable_except_ignore_error_false(self):
+        """"""
+        text = "{{{cd here}}} echo This <var>"
+        variables = {'var': 'car'}
+
+        self.assertRaises(
+            RuntimeError,
+            RenderVariableValue,
+                text, variables, "run")
+
+    def test_executable_except_ignore_error_true(self):
+        """"""
+        text = "{{{cd here}}} echo This <var>"
+        variables = {'var': 'car'}
+
+        self.assertEquals(RenderVariableValue(
+                        text, variables,
+                        "run", ignore_errors=True),
+                        "{{{cd here}}} echo This car")
 
 
 class ReplaceExecutableSectionsTests(unittest.TestCase):
@@ -1417,7 +1440,7 @@ class IfStepTests(unittest.TestCase):
 
 class PopulateVariablesTests(unittest.TestCase):
     def test_basic(self):
-        vars = PopulateVariables("somefile.bb", {"testinG": "AbC", 't': 'v'})        
+        vars = PopulateVariables("somefile.bb", {"testinG": "AbC", 't': 'v'})
         self.assertEqual(vars['testing'], "AbC")
         self.assertEqual(vars['t'], "v")
 
