@@ -502,12 +502,21 @@ def ReplaceExecutableSections(text, variables, phase="run"):
     return text
 
 
-def RenderVariableValue(value, variables, phase, loop=None):
-    value = ReplaceVariableReferences(value, variables)
-    value = ReplaceExecutableSections(value, variables, phase)
+def RenderVariableValue(
+    value, variables, phase, loop=None, ignore_errors=False):
+    """Replace variables and run + capture executable sections
 
-    #if '{{{'  in value:
-    #    value = ReplaceExecutableSections(value, variables, phase)
+    if ignore_errors = True then any missing variables and any errors with
+    the executable sections are ignored
+    """
+
+    value = ReplaceVariableReferences(
+        value, variables, loop, ignore_errors=ignore_errors)
+    try:
+        value = ReplaceExecutableSections(value, variables, phase)
+    except Exception, e:
+        if not ignore_errors:
+            raise
 
     return value
 
