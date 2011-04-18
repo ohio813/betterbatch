@@ -1103,6 +1103,16 @@ class CommandStepTests(unittest.TestCase):
         s.execute({}, "run")
         self.assertEquals(s.ret, 0)
 
+    def test_error_collection_in_execute(self):
+        """"""
+
+        s = CommandStep("robocopy123 <abc> c:\\temp\\")
+        self.assertRaises(
+            ErrorCollection,
+            s.execute,
+            {}, 'test', )
+
+
 class EchoStepTests(unittest.TestCase):
     def test_with_as_error(self):
         """"""
