@@ -1020,7 +1020,8 @@ class CommandStep(Step):
         errors = []
 
         try:
-            command_text = RenderVariableValue(self.step_data, variables, phase)
+            command_text = RenderVariableValue(
+                            self.step_data, variables, phase)
         except ErrorCollection, e:
             if phase != "test":
                 raise
@@ -1943,7 +1944,6 @@ def ExecuteScriptFile(file_path, cmd_vars, check=False):
 
     # only checking - so quit before executing steps
     if check:
-        print "No Errors"
         return steps, variables
 
     LOG.debug("RUNNING STEPS")
@@ -1951,6 +1951,37 @@ def ExecuteScriptFile(file_path, cmd_vars, check=False):
     ExecuteSteps(steps, variables, 'run')
 
     return steps, variables
+
+
+def CheckAllScriptsInDir(scripts_dir, variables):
+    "Checks all the bb scripts in the same dir as scripts_dir"
+
+    num_of_errors = 0
+    for root, dirs, files in os.walk(scripts_dir):
+        for file in files:
+            if os.path.splitext(file)[1] == '.bb':
+                try:
+                    LOG.setLevel(logging.ERROR)
+                    ExecuteScriptFile(
+                        os.path.join(root,file),
+                        variables,
+                        check=True)
+                except ErrorCollection, e:
+                    LOG.setLevel(logging.DEBUG)
+                    cmd_path_errs = [str(err) for err in e.errors
+                        if isinstance(err, CommandPathNotFoundError)]
+                    cmd_path_errs = set(cmd_path_errs)
+                    if cmd_path_errs:
+                        num_of_errors += 1
+                        LOG.info("")
+                        LOG.info(file)
+                        for err in cmd_path_errs:
+                            LOG.fatal(err)
+    if not num_of_errors:
+        LOG.info("No command path error")
+    LOG.setLevel(logging.DEBUG)
+
+    return num_of_errors
 
 
 def Main():
@@ -1977,10 +2008,14 @@ def Main():
     return_value = 0
     LOG.debug("Run Options:" % options)
     try:
-        steps, vars = ExecuteScriptFile(
-            options.script_file, options.variables, options.check)
-        if not steps and not vars:
-            options.timed = False
+        if options.check_dir:
+            return_value = CheckAllScriptsInDir(
+                os.path.dirname(options.script_file), options.variables)
+        else:
+            steps, vars = ExecuteScriptFile(
+                options.script_file, options.variables, options.check)
+            if not steps and not vars:
+                options.timed = False
     except ErrorCollection, e:
         e.LogErrors()
         if options.debug:

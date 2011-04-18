@@ -89,6 +89,12 @@ def ParseArguments():
         default = False,
         help='Use colored output')
 
+    parser.add_option(
+        '-j', '--check-dir',
+        action = "store_true",
+        default = False,
+        help='Validate all the scripts in the same directory as the script')
+
 
     # parse the command line
     options, args = parser.parse_args()
