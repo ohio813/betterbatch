@@ -16,6 +16,7 @@ import yaml
 
 from . import built_in_commands
 from . import cmd_line
+from .tools import which
 
 PARAM_FILE = os.path.join(os.path.dirname(__file__), "param_counts.ini")
 
@@ -963,6 +964,24 @@ def ParseQualifiers(text):
     return text, qualifiers
 
 
+def ValidateCommandPath(command, qualifiers = None):
+    "Check command path and raise CommandPathNotFoundError if path not found"
+
+    command_path = shlex.split(command, posix = False)[0]
+    command_path = command_path.strip('"')
+    # Shell commands, there is no need for checking
+    if command_path.lower() in built_in_commands.SHELL_COMMANDS:
+        pass
+    else:
+        try:
+            # If the path does not exist and which.which() cannot find it
+            # on the path, which.which() raises an error
+            if (os.path.exists(command_path) or which.which(command_path)):
+                pass
+        except which.WhichError:
+            raise CommandPathNotFoundError(command_path, command)
+
+
 class CommandStep(Step):
     "Any general command"
 
@@ -1024,7 +1043,7 @@ class CommandStep(Step):
         if phase == 'test':
             if cmd not in built_in_commands.NAME_ACTION_MAPPING:
                 try:
-                    DoSomeValidation(command_text)
+                    ValidateCommandPath(command_text)
                 except CommandPathNotFoundError, CmdErr:
                     errors.append(CmdErr)
             if errors:
