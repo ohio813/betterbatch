@@ -561,6 +561,38 @@ class RenderVariableValueTests(unittest.TestCase):
                         "{{{cd here}}} echo This car")
 
 
+class ValidateCommandPathTests(unittest.TestCase):
+    """"""
+
+    def test_which_not_exists(self):
+        """"""
+
+        command = "robocopy123 c:\\ c:\\"
+        self.assertRaises(
+            CommandPathNotFoundError,
+            ValidateCommandPath,
+            command, )
+
+    def test_which_exists(self):
+        """"""
+
+        ValidateCommandPath("robocopy c:\\ c:\\")
+
+    def test_path_not_exists(self):
+        """"""
+
+        command = "c:\\temp\\file_not_exists.txt"
+        self.assertRaises(
+            CommandPathNotFoundError,
+            ValidateCommandPath,
+            command, )
+
+    def test_path_exists(self):
+        """"""
+
+        ValidateCommandPath("c:\\")
+
+
 class ReplaceExecutableSectionsTests(unittest.TestCase):
     ""
 
