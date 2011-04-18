@@ -1842,6 +1842,18 @@ class ApplyCommandLineVarsStepTests(unittest.TestCase):
         self.assertEqual(variables['yo'], 'not there')
 
 
+class CheckAllScriptsInDirTests(unittest.TestCase):
+    def test_check_all_scripts_in_dir_errors(self):
+        command = CheckAllScriptsInDir(os.path.join(TEST_FILES_PATH,
+            "check_all_scripts_in_dir_with_errors"),{})
+        self.assertEqual(command, 1)
+
+    def test_check_all_scripts_in_dir_no_errors(self):
+        command = CheckAllScriptsInDir(os.path.join(TEST_FILES_PATH,
+            "check_all_scripts_in_dir_without_errors"),{})
+        self.assertEqual(command, 0)
+
+
 class IntegrationTests(unittest.TestCase):
 
     def test_mixed_case_variable_usage(self):
