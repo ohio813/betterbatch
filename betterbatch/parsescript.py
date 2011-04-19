@@ -1973,11 +1973,11 @@ def CheckAllScriptsInDir(scripts_dir, variables):
     num_of_errors = 0
     for root, dirs, files in os.walk(scripts_dir):
         for file in files:
-            if os.path.splitext(file)[1] == '.bb':
+            if os.path.splitext(file)[1].lower() == '.bb':
                 try:
                     LOG.setLevel(logging.ERROR)
                     ExecuteScriptFile(
-                        os.path.join(root,file),
+                        os.path.join(root, file),
                         variables,
                         check=True)
                 except ErrorCollection, e:
