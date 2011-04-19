@@ -319,11 +319,14 @@ class ReplaceInFileTests(unittest.TestCase):
         try:
             ret = replace_in_file.main(
                 test_file, r'^a[^\r]*$', '--', options)
-            self.assertEquals(ret, 0)
-            new_contents = get_file_contents(test_file)
-            self.assertEquals(
-                new_contents,
-                prev_contents.replace('a', '--'))
+            if sys.platform == 'mac':
+                self.assertEquals(ret, 0)
+                new_contents = get_file_contents(test_file)
+                self.assertEquals(
+                    new_contents,
+                    prev_contents.replace('a', '--'))
+            else:
+                self.assertEquals(ret, 40)
         finally:
             reset_file_contents(test_file, prev_contents)
 
