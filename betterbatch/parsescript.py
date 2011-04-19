@@ -11,6 +11,7 @@ import ConfigParser
 import copy
 import threading
 import time
+import textwrap
 
 import yaml
 
@@ -1090,9 +1091,7 @@ class CommandStep(Step):
                     return
 
         if self.output:
-            indented_output = "\n".join(
-                ["   " + line for line in
-                    self.output.strip().split("\r\n")])
+            indented_output = IndentOutput(self.output)
         else:
             indented_output = '\n'
 
@@ -1961,6 +1960,12 @@ def ExecuteScriptFile(file_path, cmd_vars, check=False):
 
     return steps, variables
 
+def IndentOutput(output):
+    return "\n".join(textwrap.wrap(
+        output,
+        width=999,
+        initial_indent="   ",
+        subsequent_indent="   "))
 
 def CheckAllScriptsInDir(scripts_dir, variables):
     "Checks all the bb scripts in the same dir as scripts_dir"
@@ -1986,6 +1991,10 @@ def CheckAllScriptsInDir(scripts_dir, variables):
                         LOG.info(file)
                         for err in cmd_path_errs:
                             LOG.fatal(err)
+                except RuntimeError, e:
+                    LOG.error("Parsing Failure: '%s'" % file)
+                    LOG.error(IndentOutput(str(e)))
+
     if not num_of_errors:
         LOG.info("No command path error")
     LOG.setLevel(logging.DEBUG)
