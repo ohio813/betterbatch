@@ -260,21 +260,34 @@ class BuiltInCommandsTests(unittest.TestCase):
         built_in_commands.SystemCommand = old_SystemCommand
 
     def test_PopulateFromToolsFolder_pass(self):
+        old_mapping = built_in_commands.NAME_ACTION_MAPPING.copy()
         tools_dir = os.path.join(PACKAGE_ROOT, "tools")
         PopulateFromToolsFolder(PACKAGE_ROOT)
+        built_in_commands.NAME_ACTION_MAPPING = old_mapping
+
+    def test_PopulateFromToolsFolder_duplicate(self):
+        old_mapping = built_in_commands.NAME_ACTION_MAPPING.copy()
+        tools_dir = os.path.join(PACKAGE_ROOT, "tools")
+        try:
+            PopulateFromToolsFolder(PACKAGE_ROOT)
+            PopulateFromToolsFolder(PACKAGE_ROOT)
+        finally:
+            built_in_commands.NAME_ACTION_MAPPING = old_mapping
 
     def test_PopulateFromToolsFolder_fail(self):
         tools_dir = os.path.join(PACKAGE_ROOT, "betterbatch\\tools")
+        old_mapping = built_in_commands.NAME_ACTION_MAPPING.copy()
 
         compare_func = built_in_commands.NAME_ACTION_MAPPING['compare']
         try:
-            built_in_commands.NAME_ACTION_MAPPING['compare'] = lambda x=1, y=1: (0,"")
+            built_in_commands.NAME_ACTION_MAPPING['replace_in_file'] = lambda x=1, y=1: (0,"")
             self.assertRaises(
                 RuntimeError,
                 PopulateFromToolsFolder,
                     tools_dir)
         finally:
             built_in_commands.NAME_ACTION_MAPPING['compare'] = compare_func
+            built_in_commands.NAME_ACTION_MAPPING = old_mapping
 
     def test_Split_no_split_text(self):
         self.assertEquals(Split("1 2"), (0, "1\n2"))
