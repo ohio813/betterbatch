@@ -392,9 +392,11 @@ def PopulateFromToolsFolder(tools_folder, dummy = None):
             if name not in NAME_ACTION_MAPPING:
                 NAME_ACTION_MAPPING[name] = ExternalCommand(full_path)
             else:
-                raise RuntimeError(
-                    "External command conflicts with built-in command: '%s'"%
-                        full_path)
+                if (not hasattr(NAME_ACTION_MAPPING[name], "full_path") or 
+                    full_path != NAME_ACTION_MAPPING[name].full_path):
+                    raise RuntimeError(
+                        "External command conflicts with built-in command: '%s'"%
+                            full_path)
     return 0, ""
 
 
