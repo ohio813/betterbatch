@@ -190,21 +190,25 @@ def ParseYAMLFile(yaml_file):
             raise RuntimeError(
                 "Mismatched opening {{{ and closing }}} in '%s'" % yaml_file)
 
-        # only allow mapping at the end of a string
+        # only colons at the end of lines to be treated as YAML mappings
         re_non_end_colon = re.compile(r":( *)(?!\s*$)", re.MULTILINE)
         yaml_data = re_non_end_colon.sub(r"+++++colon+++++\1", yaml_data)
+
+        # and allow colons in echo statements
+        echo_end_colon = re.compile(r'^(\s*\-\s+echo\s+.*)\:', re.I | re.M)
+        yaml_data = echo_end_colon.sub(r"\1+++++colon+++++", yaml_data)
 
         # avoid the 'double quote parsing of YAML'
         yaml_data = yaml_data.replace('"', '+++++dblquote+++++')
 
-        # ensure that USAGE blocks, echo or end statemetns are treated
+        # ensure that USAGE, echo or end statements are treated
         # as pre-formatted strings
-        usage_block = re.compile(
-            "^(\s*)-\s+((set\s+usage|echo|end)\s+.*$)", re.I | re.M)
-        yaml_data = usage_block.sub(r"\1- |\n\1    \2", yaml_data)
+        blocks_to_preformat = re.compile(
+            r"^( *)\-( +)((set +usage *=\s*|echo\s+|end\s+)[^\r\n]*$)", re.I | re.M)
+        yaml_data = blocks_to_preformat.sub(r"\1- |\n\1    \3", yaml_data)
 
         # allow new-lines in {{{ }}} quoted strings
-        brace_quoted = re.compile("\{\{\{.*?\}\}\}", re.DOTALL)
+        brace_quoted = re.compile(r"\{\{\{.*?\}\}\}", re.DOTALL)
         for quoted in brace_quoted.finditer(yaml_data):
             quoted_text = quoted.group(0)
 
