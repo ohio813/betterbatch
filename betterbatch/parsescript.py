@@ -205,7 +205,7 @@ def ParseYAMLFile(yaml_file):
         # ensure that USAGE, echo or end statements are treated
         # as pre-formatted strings
         blocks_to_preformat = re.compile(
-            r"^( *)\-( +)((set +usage *=\s*|echo\s+|end\s+)[^\r\n]*$)", re.I | re.M)
+            r"^( *)\-( +)((set +usage *=\s*|echo\s+|end\s+).*$)", re.I | re.M)
         yaml_data = blocks_to_preformat.sub(r"\1- |\n\1    \3", yaml_data)
 
         # allow new-lines in {{{ }}} quoted strings
