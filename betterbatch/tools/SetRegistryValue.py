@@ -41,6 +41,10 @@ def parse_args():
         help = "when creating a new value - the value type to use."
             "When changing existing values - the same type is used.")
 
+    parser.add_option(
+        "--x64", default = False, action ="store_true",
+        help = "operate on 64bit registry hive")
+
     options, args = parser.parse_args()
 
     if len(args) != 3:
@@ -84,8 +88,10 @@ def main():
         sys.exit(1)
 
     # open the key
-    opened_key = winreg.OpenKey(
-        root_key_handle, path, 0, winreg.KEY_ALL_ACCESS)
+    open_flag = winreg.KEY_ALL_ACCESS
+    if options.x64:
+        open_flag = open_flag | winreg.KEY_WOW64_64KEY
+    opened_key = winreg.OpenKey(root_key_handle, path, 0, open_flag)
 
     # Check if there is an existing value of that type
     try:
