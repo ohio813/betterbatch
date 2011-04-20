@@ -25,6 +25,10 @@ def parse_args():
         "-e", "--expand", default = False, action ="store_true",
         help = "if the registry type is REG_EXPAND_SZ - then expand variables")
 
+    parser.add_option(
+        "--x64", default = False, action ="store_true",
+        help = "operate on 64bit registry hive")
+
     options, args = parser.parse_args()
 
     if len(args) == 0:
@@ -65,11 +69,15 @@ def main():
         sys.exit(1)
 
     # open the key
-    opened_key = winreg.OpenKey(root_key_handle, path)
+    if options.x64:
+        opened_key = winreg.OpenKey(
+            root_key_handle, path, 0, winreg.KEY_WOW64_64KEY | winreg.KEY_READ)
+    else:
+        opened_key = winreg.OpenKey(root_key_handle, path)
 
     # get the value
     value, val_type = winreg.QueryValueEx(opened_key, value_name)
-    
+
     if val_type == winreg.REG_EXPAND_SZ and options.expand:
         # mimic ExpandEnvironmentStrings in python
         env_var = re.compile(r"%([^%]+)%")
