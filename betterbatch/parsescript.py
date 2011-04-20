@@ -389,8 +389,30 @@ def ReplaceVariableReferences(
 
         # the variable referenced is not defined
         if variable not in variables:
-            errors.append(UndefinedVariableError(variable, text))
-            continue
+            # if the variable being tested contains references to a loop
+            # variable - then extra checking is necessary
+            if "__loopvar__" in variable:
+                parts = variable.split("__loopvar__")
+                found = False
+                for var in variables:
+                    # Stop on the first found variable
+                    if found:
+                        break
+                    # Test if all the parts are in this particular variable
+                    for part in parts:
+                        # stop on the first part that is not in the variable
+                        if part not in var:
+                            found = False
+                            break
+                        # all parts matched - so this is a good candidate
+                        found = True
+                if not found:
+                    errors.append(UndefinedVariableError(variable, text))
+                    continue
+                variable = var
+            else:
+                errors.append(UndefinedVariableError(variable, text))
+                continue
 
         # ensure that we are not in a variable loop e.g x -> y -> x
         # a loop of 1 is OK e.g. x = <x>_ + 1
@@ -1226,11 +1248,16 @@ class ForStep(Step):
 
         # unloop the loop
         loop_steps = []
-        for val in values:
-            # create a variableDefinition for this
+        if phase != "test":
+            for val in values:
+                # create a variableDefinition for this
+                loop_steps.append(
+                    VariableDefinition(
+                        "set %s = %s" % (self.variable, val)))
+                loop_steps.extend(self.steps)
+        else:
             loop_steps.append(
-                VariableDefinition(
-                    "set %s = %s" % (self.variable, val)))
+                VariableDefinition("set %s = __LOOPVAR__" % self.variable))
             loop_steps.extend(self.steps)
 
         if 'parallel' in self.qualifiers:
