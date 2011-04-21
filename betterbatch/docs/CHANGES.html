@@ -1,0 +1,400 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CHANGES &mdash; BetterBatch v1.2.2 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.2.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="BetterBatch v1.2.2 documentation" href="index.html" />
+    <link rel="next" title="BetterBatches License - MIT" href="LICENSE.html" />
+    <link rel="prev" title="Comparing BetterBatch to ..." href="comparison.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="LICENSE.html" title="BetterBatches License - MIT"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="comparison.html" title="Comparing BetterBatch to ..."
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">BetterBatch v1.2.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="changes">
+<h1>CHANGES<a class="headerlink" href="#changes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="fix-python-2-7-only-code-for-checking-os-version">
+<h2>1.2.2 Fix Python 2.7 only code for checking OS version<a class="headerlink" href="#fix-python-2-7-only-code-for-checking-os-version" title="Permalink to this headline">¶</a></h2>
+<p>20-March-2010</p>
+<ul class="simple">
+<li>Made sure that the code and tests work with Python 2.5 (supporting python
+2.4 would be difficult becuase of aboslute imports).</li>
+<li>Fix an issue reported where qualifiers were being passed as arguments
+to built_in_commands (where they were implemented as ExternalCommand&#8217;s)</li>
+<li>Fixed a bug in replace_in_file command (there was wrongly named variable)</li>
+</ul>
+</div>
+<div class="section" id="id1">
+<h2>1.2.1 Fix Python 2.7 only code for checking OS version<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>20-March-2010</p>
+<ul class="simple">
+<li>Changed dependence on the return value from <tt class="docutils literal"><span class="pre">sys.getwindowsversion()</span></tt>
+being a named tuple (which was only available since Python 2.7).</li>
+</ul>
+</div>
+<div class="section" id="color-output-windows-7-support-spaces-in-function-args-usage-info">
+<h2>1.2.0 Color output, Windows 7 support, spaces in function args, Usage info<a class="headerlink" href="#color-output-windows-7-support-spaces-in-function-args-usage-info" title="Permalink to this headline">¶</a></h2>
+<p>20-March-2010</p>
+<ul class="simple">
+<li>Significantly enhanced how output is captured from commands and displayed
+to the user. Output is now captured and displayed as it is generated, so
+the {<em>ui</em>} qualifier is no longer necessary. (it is now just an
+alternative spelling of {<em>echo</em>}). By default output from all commands is
+captured to the log file; you can explicitly override that by using the
+new {<em>nocapture</em>} qualifier.</li>
+<li>Added support for color output (on windows the colorama module has to be
+installed). This led to the log level (debug/info etc.) of some messages
+being changed.</li>
+<li>To Make it a bit easier to debug situations where an &#8216;if&#8217; statement condition
+is incorrectly programmed the information on condition failure is output
+as a debug message.</li>
+<li>Improve the replace_in_file helper tool to support files encoded in different
+encodings (not just treat the file as binary).</li>
+<li>Some modules use Python absolute imports to help translation to Python 3.0</li>
+<li>Allowed &#8216;pushd&#8217; and &#8216;cd&#8217; commands to handle double quotes around the path
+(any double quotes are stripped before setting the current directory)</li>
+<li>Includes which cannot be found during testing will generate an info message
+rather than a debug message to raise visibility (as it may be the reason
+for test failures)</li>
+<li>Allow parameters to functions to have a spaces.</li>
+<li>Add support for the USAGE variable to be output automatically if no
+arguments are defined and there are undefined variable errors.</li>
+<li>Some documentation improvements.</li>
+</ul>
+</div>
+<div class="section" id="small-bug-fix-and-functions-for-getting-setting-registry">
+<h2>1.1.4 Small bug fix and functions for getting/setting registry<a class="headerlink" href="#small-bug-fix-and-functions-for-getting-setting-registry" title="Permalink to this headline">¶</a></h2>
+<p>06-December-2010</p>
+<ul class="simple">
+<li>Fixed: Parameters were being directly to functions (as opposed to being
+passed in a variable) were being lowercased.</li>
+<li>Added additional tools to get and set registry values =GetRegistryValue=
+and =SetRegistryValue()=</li>
+<li>Better error reporting for mismatched {{{ and }}}.</li>
+<li>Count built-in can handle quotes</li>
+<li>Automatically call associate_bb_filetype.bb after installation.</li>
+</ul>
+</div>
+<div class="section" id="some-external-command-cleanup">
+<h2>1.1.3 Some external command cleanup<a class="headerlink" href="#some-external-command-cleanup" title="Permalink to this headline">¶</a></h2>
+<p>05-October-2010</p>
+<ul class="simple">
+<li>Only test function calls at point of execution (still in test run though).
+Variables may not be defined at the point of definition - but they may be
+defined at the point of call.</li>
+<li>Small improvements to GetLanguage.py</li>
+<li>Updated Documentation for built in commands and some re-organization</li>
+<li>Better handling of replacement text (Replace built-in) which may cause a
+problem as a regular expression replacement.</li>
+<li>Better error reporting for mismatched {{{ and }}}.</li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h2>1.1.2 Some external command cleanup<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>27-August-2010</p>
+<ul class="simple">
+<li>Fixed a fairly serious issue with setup.py where the betterbatchtools
+folder was not being installed.</li>
+</ul>
+</div>
+<div class="section" id="id3">
+<h2>1.1.1 Some external command cleanup<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>24-August-2010</p>
+<ul class="simple">
+<li>Moved Compare, Uppercase, Lowercase, tools from external commands to
+internal commands</li>
+<li>Added some more external tools: replace_in_file, find_in_file,
+ListFilesMatchingPattern, GetLanguage</li>
+</ul>
+</div>
+<div class="section" id="mapping-values-able-to-get-the-value-of-the-last-command-return-code">
+<h2>1.1.0 Mapping values, able to get the value of the last command return code<a class="headerlink" href="#mapping-values-able-to-get-the-value-of-the-last-command-return-code" title="Permalink to this headline">¶</a></h2>
+<p>23-August-2010</p>
+<ul>
+<li><p class="first">Mapping variables can now be defined:</p>
+<div class="highlight-python"><pre>- set mapping_var:
+   - key1 = value 1
+   - key2 = value 2
+- echo &lt;mapping_var.key1&gt;
+- for key ih mapping_var.keys:
+   - echo KEY: &lt;key&gt; VALUE: &lt;mapping_var.&lt;key&gt; &gt;</pre>
+</div>
+</li>
+<li><dl class="first docutils">
+<dt>Added pseudo variable __last_return__ which allows you to check the</dt>
+<dd><p class="first last">return value from the last executed command.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="multiline-and-nested-code-blocks-various-clean-ups-and-more-tests">
+<h2>1.0.0 multiline and Nested code blocks, various clean-ups and more tests<a class="headerlink" href="#multiline-and-nested-code-blocks-various-clean-ups-and-more-tests" title="Permalink to this headline">¶</a></h2>
+<p>19-August-2010</p>
+<ul class="simple">
+<li>Allow {{{ }}} blocks to be split over multiple lines</li>
+<li>Improvements to tests (especially around function calls and returns)</li>
+<li>Only allow one trailing argument in function calls</li>
+<li>Improve how function returns are handled - so that they work even when
+embedded in other structures (e.g. inside an if or for block)</li>
+<li>Improve how function call values are matched to function variables.</li>
+<li>Add a debug message when setting a variable value</li>
+<li>Executeable sections {{{ }}} can now be nested.</li>
+</ul>
+</div>
+<div class="section" id="improved-processing-more-error-checking">
+<h2>0.9.9 Improved processing, More error checking<a class="headerlink" href="#improved-processing-more-error-checking" title="Permalink to this headline">¶</a></h2>
+<p>23-July-2010</p>
+<ul class="simple">
+<li>Add a check when replacing <tt class="docutils literal"><span class="pre">{{{</span> <span class="pre">}}}</span></tt> to see if the command had an output value
+(external commands will always have output - but a function will not have
+output if there was no return statement executed).</li>
+<li>Added a return step to allow returning values from functions</li>
+<li>Improved or added some error messages</li>
+<li><tt class="docutils literal"><span class="pre">ReplaceVariableReferences()</span></tt> (which replaces &lt;var_ref&gt; with the variable
+reference) will ensure that there are no remaining &lt;var_refs&gt; in the string.
+Previously if a replacement variable included a &lt;var_ref&gt; (i.e. a
+{<em>delayed</em>} value - then it would not replace those.</li>
+<li>Functions with no arguments are now allowed</li>
+<li>Add a new function to call both <tt class="docutils literal"><span class="pre">ReplaceVariableReferences()</span></tt> and
+<tt class="docutils literal"><span class="pre">ReplaceExecutableSections()</span></tt>. Also Variable References are replaced first
+and THEN executable sections - this is a change from the previous
+implementation.</li>
+<li>Replaced tabs will default to 4 spaces instead of 2 (maybe I should add
+a configuration value for this?)</li>
+<li>Executable Blocks {{{ ... }}} can now span multiple lines.</li>
+<li>special case <tt class="docutils literal"><span class="pre">set</span> <span class="pre">usage</span> <span class="pre">=</span></tt>  variable definitions so that they always
+are treated as preformatted.</li>
+<li>Replaced <tt class="docutils literal"><span class="pre">associate_filetype.bb</span></tt> with <tt class="docutils literal"><span class="pre">associate_filetype.py</span></tt> to enable more
+complete processing</li>
+<li>Add support for <tt class="docutils literal"><span class="pre">!=</span></tt> comparisons in <tt class="docutils literal"><span class="pre">compare.py</span></tt></li>
+<li>Realized I never had a time machine - and set the years in <tt class="docutils literal"><span class="pre">CHANGES.txt</span></tt>
+back to 2010 (not 2011)</li>
+<li>Lots of small code cleanups</li>
+<li>More tests</li>
+</ul>
+</div>
+<div class="section" id="bug-fixes-improve-parallelization-and-add-loop-parallelization">
+<h2>0.9.8 Bug fixes, Improve parallelization (and add loop parallelization)<a class="headerlink" href="#bug-fixes-improve-parallelization-and-add-loop-parallelization" title="Permalink to this headline">¶</a></h2>
+<p>30-March-2010</p>
+<ul class="simple">
+<li>Allow parallel steps to include any steps (not just commands, echo steps)</li>
+<li>Also add a qualifer to for loops to allow all the steps to be run in
+parallel. This feature should be considered experimental. And is probably
+not very useful unless used with functions or some other way of ensuring
+certain commands are not executed out of order. It may also mess up with
+logging - but not validated yet.</li>
+<li>Make the loop check time larger (previously it was too small which was
+causing a lot of CPU overhead - &#8216;busy loop&#8217;)</li>
+<li>Split built in command was not working correctly - each item needed to
+be on a line of its own.</li>
+<li>Make function name lookup case insensitive</li>
+<li>Trailing commas in function definitions and function calls looked like an
+empty parameter - fixed the code so that they are ignored.</li>
+<li>Improved how missing variables are checked. It was saying that defined
+variables that used an undefined variable were undefined, fixed so that
+only really undefined variables are listed as undefined.</li>
+<li>Echo used to be implemented using the underlying DOS command - replaced
+with an EchoStep - which can handle multiline strings.</li>
+<li>Include files now have the correct values for __script_filename__ and
+__script_dir__ (they have the value of the included file - not the including
+file)</li>
+<li>&#8220;Script Error!&#8221; is written as the last message if there was an error
+encountered during execution, otherwise it may not be easy to spot at a
+glance that there was indeed an error.</li>
+<li>Small tool added to get the short path file/directory name on windows.</li>
+<li>Improve some error messages</li>
+</ul>
+</div>
+<div class="section" id="functions-negative-conditions-setup-installer-and-test-fixes">
+<h2>0.9.7 Functions, negative conditions, Setup/Installer and test fixes<a class="headerlink" href="#functions-negative-conditions-setup-installer-and-test-fixes" title="Permalink to this headline">¶</a></h2>
+<p>07-March-2010</p>
+<ul class="simple">
+<li>Add preliminary support for Functions, give it a try and let me know.</li>
+<li>Add support for negative conditions for IfSteps.  (e.g. if not exists,
+if not defined, etc)</li>
+<li>Add a supported qualifier to VariableDefinition Steps to allow delayed
+resolution for Variable references.</li>
+<li>Allow defined to use &lt;var_name&gt; as well as var_name. (usability)</li>
+<li>Due to a case issues (tools/Tools) the betterbatchtools folder
+was left out of the distribution. There was also a bug that
+meant when this folder wasn&#8217;t found BetterBatch would not run. (fixed in 0.9.6b)</li>
+<li>Fix the old tests (change what could be changed and comment
+out the rest)</li>
+<li>Change setup.py so that Setuptools will be used if it is
+available - otherwise docutils. (fixed in 0.9.6b)</li>
+<li>Add a -t/&#8211;timed option to print how long the script took
+to execute.</li>
+<li>Fix manifest.in to include/exclude more files. (fixed in 0.9.6b)</li>
+<li>Cleaned up the the output messages of PathExists(), PathNotExists() and
+VerifyFileCount()</li>
+<li>Ensured that the Testing phase is more silent (some messages that should
+only be displayed during execution phase were being logged)</li>
+<li>Some other small fixes.</li>
+<li>Many thanks to Yuhui for pointing out many of these issues on the
+mail list.</li>
+</ul>
+</div>
+<div class="section" id="fixed-some-critical-issues-with-variable-references">
+<h2>0.9.6 Fixed Some critical issues with variable references<a class="headerlink" href="#fixed-some-critical-issues-with-variable-references" title="Permalink to this headline">¶</a></h2>
+<p>02-March-2010</p>
+<ul class="simple">
+<li>Fixed an issue with how variables are dealt with. I was finding that during
+the run phase variables would still have values laeft over from the test
+phase.</li>
+</ul>
+</div>
+<div class="section" id="added-for-loops-and-parallel-sections">
+<h2>0.9.5 Added For loops and Parallel sections<a class="headerlink" href="#added-for-loops-and-parallel-sections" title="Permalink to this headline">¶</a></h2>
+<p>01-March-2010</p>
+<ul class="simple">
+<li>Huge refactoring of the code. Removed Step.replace_vars() methods and
+instead added a &#8216;phase&#8217; parameter to execute. This makes the code simpler
+and reduces some duplication. Testing is now done by using
+<tt class="docutils literal"><span class="pre">step.exectute(...,</span> <span class="pre">phase</span> <span class="pre">=</span> <span class="pre">&quot;test&quot;)</span></tt> and execution by using
+<tt class="docutils literal"><span class="pre">step.exectute(...,</span> <span class="pre">phase</span> <span class="pre">=</span> <span class="pre">&quot;run&quot;)</span></tt>.</li>
+<li>Escape &lt; and &gt; in the output of commands.</li>
+<li>Add many new tests overall coverage now 95%.</li>
+<li>Added debug option (prints tracebacks on error).</li>
+<li>Fixed <a class="reference external" href="http://code.google.com/p/betterbatch/issues/detail?id=1">issue 1</a></li>
+</ul>
+</div>
+<div class="section" id="id4">
+<h2>0.9.4 Added For loops and Parallel sections<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>17-February-2010</p>
+<ul class="simple">
+<li>Added support for basic For loops (though needs improvement)</li>
+<li>Added support for running steps in Parallel.</li>
+<li>Documentation updates</li>
+<li>Added support for python 2.5 (stop using shlex.split with posix argument,
+use Thread.isAlive() rather than Thread.is_alive() ).</li>
+</ul>
+</div>
+<div class="section" id="path-handling-documentation-shell-references">
+<h2>0.9.3 Path handling, documentation, shell references<a class="headerlink" href="#path-handling-documentation-shell-references" title="Permalink to this headline">¶</a></h2>
+<p>10-February-2010</p>
+<ul class="simple">
+<li>Tabs characters are ignored (replaced before passing to YAML parser)</li>
+<li>All steps are forced to be strings (makes it easier to use - &#8220;app with spaces&#8221; arg1 arg2 which could otherwise gives errors)</li>
+<li>Documentation updates</li>
+<li>Shell variables are available as &lt;shell.varname&gt; rather than just &lt;varname&gt; e.g. &lt;shell.computername&gt; (otherwise there is a risk of an environment variable &#8216;left over&#8217; from other script affect a BetterBatch script.</li>
+<li>Reduce some of the verbosity in default output (variables are not output to the log file, all references of a missing variable are not output unless you use -v/&#8211;verbose option)</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">CHANGES</a><ul>
+<li><a class="reference internal" href="#fix-python-2-7-only-code-for-checking-os-version">1.2.2 Fix Python 2.7 only code for checking OS version</a></li>
+<li><a class="reference internal" href="#id1">1.2.1 Fix Python 2.7 only code for checking OS version</a></li>
+<li><a class="reference internal" href="#color-output-windows-7-support-spaces-in-function-args-usage-info">1.2.0 Color output, Windows 7 support, spaces in function args, Usage info</a></li>
+<li><a class="reference internal" href="#small-bug-fix-and-functions-for-getting-setting-registry">1.1.4 Small bug fix and functions for getting/setting registry</a></li>
+<li><a class="reference internal" href="#some-external-command-cleanup">1.1.3 Some external command cleanup</a></li>
+<li><a class="reference internal" href="#id2">1.1.2 Some external command cleanup</a></li>
+<li><a class="reference internal" href="#id3">1.1.1 Some external command cleanup</a></li>
+<li><a class="reference internal" href="#mapping-values-able-to-get-the-value-of-the-last-command-return-code">1.1.0 Mapping values, able to get the value of the last command return code</a></li>
+<li><a class="reference internal" href="#multiline-and-nested-code-blocks-various-clean-ups-and-more-tests">1.0.0 multiline and Nested code blocks, various clean-ups and more tests</a></li>
+<li><a class="reference internal" href="#improved-processing-more-error-checking">0.9.9 Improved processing, More error checking</a></li>
+<li><a class="reference internal" href="#bug-fixes-improve-parallelization-and-add-loop-parallelization">0.9.8 Bug fixes, Improve parallelization (and add loop parallelization)</a></li>
+<li><a class="reference internal" href="#functions-negative-conditions-setup-installer-and-test-fixes">0.9.7 Functions, negative conditions, Setup/Installer and test fixes</a></li>
+<li><a class="reference internal" href="#fixed-some-critical-issues-with-variable-references">0.9.6 Fixed Some critical issues with variable references</a></li>
+<li><a class="reference internal" href="#added-for-loops-and-parallel-sections">0.9.5 Added For loops and Parallel sections</a></li>
+<li><a class="reference internal" href="#id4">0.9.4 Added For loops and Parallel sections</a></li>
+<li><a class="reference internal" href="#path-handling-documentation-shell-references">0.9.3 Path handling, documentation, shell references</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="comparison.html"
+                        title="previous chapter">Comparing BetterBatch to ...</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="LICENSE.html"
+                        title="next chapter">BetterBatches License - MIT</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/CHANGES.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="LICENSE.html" title="BetterBatches License - MIT"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="comparison.html" title="Comparing BetterBatch to ..."
+             >previous</a> |</li>
+        <li><a href="index.html">BetterBatch v1.2.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Mark Mc Mahon.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>
