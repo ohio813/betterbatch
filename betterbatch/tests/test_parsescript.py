@@ -109,6 +109,12 @@ class ParseYAMLFileTests(unittest.TestCase):
             ParseYAMLFile,
                 full_path)
 
+    def test_usage(self):
+        """"""
+        full_path = os.path.join(TEST_FILES_PATH, 'usage_returned_with_new_line.bb')
+        self.assertEquals(
+            ParseYAMLFile(full_path),
+            ['set USAGE =\nshould return with new line after this\nand before this line'])
 
 class ErrorCollectionTests(unittest.TestCase):
     def test_LOGErrors(self):
