@@ -1324,6 +1324,18 @@ class ForStepTests(unittest.TestCase):
         step = {'for x in {{{split here there}}} {*parallel*}': ['echo 1']}
         ParseStep(step).execute({}, 'test')
 
+    def test_loop_variables(self):
+        step = {'for to_be_replaced in {{{ split bb }}}': ['ECHO < aa_<to_be_replaced>_cc >\n']}
+        variables = {
+            'aa_bb_cc': "var_replaced",
+            'not_required': 'abc'
+            }
+        ParseStep(step).execute(variables,'test')
+
+    def test_loop_variables_error(self):
+        step = {'for to_be_replaced in {{{ split bb }}}': ['ECHO < aa_<to_be_replaced>_cc >\n']}
+        self.assertRaises(ErrorCollection, ParseStep(step).execute, {},'test')
+
 
 class IfStepTests(unittest.TestCase):
 
