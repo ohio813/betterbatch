@@ -1666,25 +1666,25 @@ class VariableDefinedCheck(Step):
     def execute(self, variables, phase):
         "Run this step"
 
-        key = self.variable.lower()
+        self.output = ''
+        try:
+            key = RenderVariableValue(self.variable, variables, phase)
+        except RuntimeError, e:
+            if phase != "test":
+                raise
+            else:
+                self.ret = 1
+                return
 
-        # remove leading and trailing brackets
-        if key.startswith("<"):
-            key = key[1:]
-        if key.endswith(">"):
-            key = key[:-1]
-        key = key.strip()
-
-        if key in variables:
+        if key.lower() in variables:
             if phase != "test":
                 LOG.debug("Variable is defined: %s : '%s'" %
-                    (self.variable, variables[key]))
+                    (key, variables[key.lower()]))
             self.ret = 0
         else:
             if phase != "test":
-                LOG.debug("Variable is not defined: '%s'" % self.variable)
+                LOG.debug("Variable is not defined: '%s'" % key)
             self.ret = 1
-        self.output = ''
 
 
 class ApplyCommandLineVarsStep(Step):
