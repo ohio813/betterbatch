@@ -1550,7 +1550,8 @@ class ExecutionEndStep(Step):
 
     def execute(self, variables, phase):
         "Run this step"
-        message = ReplaceVariableReferences(self.message, variables)
+        message = RenderVariableValue(
+            self.message, variables, phase, ignore_errors = True)
         if phase != "test":
             raise EndExecution(self.ret, message)
 
