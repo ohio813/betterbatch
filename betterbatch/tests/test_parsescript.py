@@ -1230,6 +1230,14 @@ class IncludeStepTests(unittest.TestCase):
             inc_step.execute,
                 variables, 'run')
 
+    def test_include_file_with_loopvar(self):
+        steps = ParseSteps([{
+            "for x in {{{ split basic.bb include_loopvar.bb }}}" : 
+                "include <x>"}])
+        
+        vars = {'__script_dir__': TEST_FILES_PATH}
+        ExecuteSteps(steps, vars, "run")
+        self.assertEqual(vars["test_var"], "123")
 
 
 #    def test_include_without_script_dir(self):
