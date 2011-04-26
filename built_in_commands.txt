@@ -39,6 +39,55 @@ It can take the following qualifiers:
     of output to the log file) specify **nocapture** & **echo** instead.
 
 
+which
+------------------------------------------------------
+Simliar to the *nix shell command, this tool allows you to find the path of
+which (if any) command will be executed for a specific command.
+
+e.g. if you run::
+
+    which notepad
+
+it will return::
+
+    C:\WINDOWS\system32\notepad.EXE
+
+Here is the help output::
+
+    Show the full path of commands.
+
+    Usage:
+        which [<options>...] [<command-name>...]
+
+    Options:
+        -h, --help      Print this help and exit.
+        -V, --version   Print the version info and exit.
+
+        -a, --all       Print *all* matching paths.
+        -v, --verbose   Print out how matches were located and
+                        show near misses on stderr.
+        -q, --quiet     Just print out matches. I.e., do not print out
+                        near misses.
+
+        -p <altpath>, --path=<altpath>
+                        An alternative path (list of directories) may
+                        be specified for searching.
+        -e <exts>, --exts=<exts>
+                        Specify a list of extensions to consider instead
+                        of the usual list (';'-separate list, Windows
+                        only).
+
+    Show the full path to the program that would be run for each given
+    command name, if any. Which, like GNU's which, returns the number of
+    failed arguments, or -1 when no <command-name> was given.
+
+    Near misses include duplicates, non-regular files and (on Un*x)
+    files without executable access.
+
+This tool was included from http://code.google.com/p/which/.
+Please refer to the ``betterbatch\tools\LICENSE_Which.txt`` file for licensing
+information.
+
 ======================================================
 Path Manipulation
 ======================================================
@@ -104,7 +153,7 @@ ListFilesMatchingPattern
 ------------------------------------------------------
 Output a list of all the files matching the supplied pattern.
 
-Usage: ListFilesMatchingPattern.py [options] (path) (patern1) (pattern2) ...
+Usage: ListFilesMatchingPattern [options] (path) (patern1) (pattern2) ...
 
 Options:
   -h, --help       show this help message and exit
@@ -114,7 +163,7 @@ This is especially useful in a loop to iterate over a particular set of files.
 
 Example::
 
-  - for file in {{{ ListFilesMatchingPattern.py -s <xml_folder> *.xml *.xsl }}}:
+  - for file in {{{ ListFilesMatchingPattern -s <xml_folder> *.xml *.xsl }}}:
      - echo <file>
 
 
@@ -238,11 +287,12 @@ GetRegistryValue
 Return the value of a registry key
 
 Usage:
-    ``GetRegistryValue.py [options] (keypath) [value_name]``
+    ``GetRegistryValue [options] (keypath) [value_name]``
 
     | Options:
     |  -h, --help    show this help message and exit
     |  -e, --expand  if the registry type is REG_EXPAND_SZ - then expand variables
+    |  --x64         operate on 64bit registry hiveOptions:
 
 ``keypath`` should begin with one of the standard registry keys HKLM,
 HKEY_CURRENT_USER, etc.
@@ -260,13 +310,14 @@ SetRegistryValue
 ------------------------------------------------------
 
 Usage:
-    ``SetRegistryValue.py [options] (keypath) (value_name) (new_value)``
+    ``SetRegistryValue [options] (keypath) (value_name) (new_value)``
 
     | Options:
     |  -h, --help            show this help message and exit
     |  -t VALUE_TYPE, --value-type=VALUE_TYPE
-                        when creating a new value - the value type to use.When
-                        changing existing values - the same type is used.
+    |                        when creating a new value - the value type to use.When
+    |                        changing existing values - the same type is used.
+    |  --x64                 operate on 64bit registry hive
 
 ``keypath`` and ``value_name`` are the same as for ``GetRegistryValue()``.
 ``new_value`` is the new value to set the registry entry to.
@@ -332,7 +383,7 @@ The output will be::
     Mary
     Wilbur
 
-By default is splits on any whitespace character, but you can specify any 
+By default is splits on any whitespace character, but you can specify any
 text to be used to split on:
 
     - set names = John is connected to Mary is connected to Wilbur
@@ -345,7 +396,7 @@ The output will (still) be::
     Mary
     Wilbur
 
-The split command is not very useful on it's own - but it is very useful when 
+The split command is not very useful on it's own - but it is very useful when
 used with ``for`` statements.
 
 See Also

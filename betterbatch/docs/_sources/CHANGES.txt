@@ -3,9 +3,56 @@ CHANGES
 ************************************
 
 
+1.2.3 Many bug fixes and improvements (looping, checking, tools)
+---------------------------------------------------------------------------
+26-April-2011
+
+* Special thanks to Toon Pang Ong for his work on many of the features/fixes
+  in this release.
+* Allow optional includes by using the {*optional*} qualifier. Also better 
+  error reporting for missing includes.
+* Add qualifiers to the ``echo`` statement for the output to be logged as
+  warning or error via the ``{*as_debug*}``, ``{*as_warning*}``, 
+  ``{*as_error*}``, and ``{*as_error*}`` qualifiers. (``{*as_info*}`` is not 
+  needed as info is default)
+* Add a new statement to apply the command line variables overrides at any
+  time. This allows default values from the script to be easily overwritten
+  from the command line.
+* Improvement to GetLangauge: More languages, way to deprecate langauge names
+  (leave it as empty in the CSV). Allow leading comment and blank lines in the
+  CSV file.
+* End and Echo statements are now treated as pre-formatted text (no longer
+  a need to use "- | " to force pre-formatting
+* Qualifiers were being incorrectly lowercased (some functions use the 
+  qualifer syntax to pass data so they should not be lowercased)
+* New option to replace_in_file --universal-newlines that enables Python
+  Universal Newline support. This converts when reading in \r or \n line 
+  endings to \r\n on windows. This may not be what you want and is disabled
+  by default.
+* The current log file path is assigned to the variable __logfile__.
+* Add support for checking a folder of scripts using the --check-dir option.
+  e.g. ``c:\scripts\yourscript.bb --check-dir`` will check all bb scripts in
+  ``c:\scripts`` directory. Currently the only checks are for syntax errors
+  or for missing commands.
+* Which.py tool added/ (from http://code.google.com/p/which/) to the tools 
+  directory
+* Add Support for reading 64 bit registry entries in Get/SetRegistryValue
+* Test improvements (test file consistency, more tests)
+* Internal: Allow missing variable references to be ignored (i.e. replace 
+  whatever can be replaced and return). This is only used by the default USAGE 
+  information output.
+* Allow built_in_commands.PopulateFromToolsFolder() to be called for the same
+  path multiple times without raising an error.
+* Perform more Anti-YAML error escaping
+* Improve how loop variables are tested (makes it easier to write dynamic scripts)
+* Fix include statements where the filepath depends on a loop variable. 
+  Previously the filename was changed the first time through and would always
+  keep that value.
+
+
 1.2.2 Fix Python 2.7 only code for checking OS version
 ---------------------------------------------------------------------------
-20-March-2010
+20-March-2011
 
 * Made sure that the code and tests work with Python 2.5 (supporting python
   2.4 would be difficult becuase of aboslute imports).
@@ -16,7 +63,7 @@ CHANGES
 
 1.2.1 Fix Python 2.7 only code for checking OS version
 ---------------------------------------------------------------------------
-20-March-2010
+20-March-2011
 
 * Changed dependence on the return value from ``sys.getwindowsversion()``
   being a named tuple (which was only available since Python 2.7).
@@ -24,7 +71,7 @@ CHANGES
 
 1.2.0 Color output, Windows 7 support, spaces in function args, Usage info
 ---------------------------------------------------------------------------
-20-March-2010
+20-March-2011
 
 * Significantly enhanced how output is captured from commands and displayed
   to the user. Output is now captured and displayed as it is generated, so

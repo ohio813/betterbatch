@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The available built-in commands are: &mdash; BetterBatch v1.2.2 documentation</title>
+    <title>The available built-in commands are: &mdash; BetterBatch v1.2.3 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.2.2',
+        VERSION:     '1.2.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -22,7 +22,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="BetterBatch v1.2.2 documentation" href="index.html" />
+    <link rel="top" title="BetterBatch v1.2.3 documentation" href="index.html" />
     <link rel="next" title="Comparing BetterBatch to ..." href="comparison.html" />
     <link rel="prev" title="BetterBatch Readme" href="readme.html" /> 
   </head>
@@ -39,7 +39,7 @@
         <li class="right" >
           <a href="readme.html" title="BetterBatch Readme"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">BetterBatch v1.2.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v1.2.3 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -49,48 +49,49 @@
           <div class="body">
             
   <div class="section" id="the-available-built-in-commands-are">
-<h1><a class="toc-backref" href="#id1">The available built-in commands are:</a><a class="headerlink" href="#the-available-built-in-commands-are" title="Permalink to this headline">¶</a></h1>
+<h1><a class="toc-backref" href="#id3">The available built-in commands are:</a><a class="headerlink" href="#the-available-built-in-commands-are" title="Permalink to this headline">¶</a></h1>
 <div class="contents topic" id="contents">
 <p class="topic-title first">Contents</p>
 <ul class="simple">
-<li><a class="reference internal" href="#the-available-built-in-commands-are" id="id1">The available built-in commands are:</a><ul>
-<li><a class="reference internal" href="#running-shell-external-commands" id="id2">Running shell/external commands</a><ul>
-<li><a class="reference internal" href="#run-aliases-execute-system-default" id="id3">run (aliases: execute, system). (default)</a></li>
+<li><a class="reference internal" href="#the-available-built-in-commands-are" id="id3">The available built-in commands are:</a><ul>
+<li><a class="reference internal" href="#running-shell-external-commands" id="id4">Running shell/external commands</a><ul>
+<li><a class="reference internal" href="#run-aliases-execute-system-default" id="id5">run (aliases: execute, system). (default)</a></li>
+<li><a class="reference internal" href="#which" id="id6">which</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#path-manipulation" id="id4">Path Manipulation</a><ul>
-<li><a class="reference internal" href="#dirname" id="id5">dirname</a></li>
-<li><a class="reference internal" href="#filename-aliases-basename" id="id6">filename    (aliases basename)</a></li>
-<li><a class="reference internal" href="#abspath" id="id7">abspath</a></li>
-<li><a class="reference internal" href="#shortpathname" id="id8">ShortPathName</a></li>
+<li><a class="reference internal" href="#path-manipulation" id="id7">Path Manipulation</a><ul>
+<li><a class="reference internal" href="#dirname" id="id8">dirname</a></li>
+<li><a class="reference internal" href="#filename-aliases-basename" id="id9">filename    (aliases basename)</a></li>
+<li><a class="reference internal" href="#abspath" id="id10">abspath</a></li>
+<li><a class="reference internal" href="#shortpathname" id="id11">ShortPathName</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#file-manipulation" id="id9">File Manipulation</a><ul>
-<li><a class="reference internal" href="#find-in-file" id="id10">find_in_file</a></li>
-<li><a class="reference internal" href="#replace-in-file" id="id11">replace_in_file</a></li>
-<li><a class="reference internal" href="#listfilesmatchingpattern" id="id12">ListFilesMatchingPattern</a></li>
-<li><a class="reference internal" href="#count" id="id13">count</a></li>
-<li><a class="reference internal" href="#exists-aliases-exist" id="id14">exists  (aliases exist)</a></li>
-<li><a class="reference internal" href="#notexists-aliases-notexist" id="id15">notexists  (aliases notexist)</a></li>
+<li><a class="reference internal" href="#file-manipulation" id="id12">File Manipulation</a><ul>
+<li><a class="reference internal" href="#find-in-file" id="id13">find_in_file</a></li>
+<li><a class="reference internal" href="#replace-in-file" id="id14">replace_in_file</a></li>
+<li><a class="reference internal" href="#listfilesmatchingpattern" id="id15">ListFilesMatchingPattern</a></li>
+<li><a class="reference internal" href="#count" id="id16">count</a></li>
+<li><a class="reference internal" href="#exists-aliases-exist" id="id17">exists  (aliases exist)</a></li>
+<li><a class="reference internal" href="#notexists-aliases-notexist" id="id18">notexists  (aliases notexist)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#string-text-manipulation" id="id16">String/text Manipulation</a><ul>
-<li><a class="reference internal" href="#escapenewlines-aliases-escape-newlines" id="id17">escapenewlines  (aliases escape_newlines)</a></li>
-<li><a class="reference internal" href="#replace" id="id18">replace</a></li>
-<li><a class="reference internal" href="#compare" id="id19">compare</a></li>
-<li><a class="reference internal" href="#upper-aliases-uppercase" id="id20">upper  (aliases uppercase)</a></li>
-<li><a class="reference internal" href="#lower-aliases-lowercase" id="id21">lower  (aliases lowercase)</a></li>
+<li><a class="reference internal" href="#string-text-manipulation" id="id19">String/text Manipulation</a><ul>
+<li><a class="reference internal" href="#escapenewlines-aliases-escape-newlines" id="id20">escapenewlines  (aliases escape_newlines)</a></li>
+<li><a class="reference internal" href="#replace" id="id21">replace</a></li>
+<li><a class="reference internal" href="#compare" id="id22">compare</a></li>
+<li><a class="reference internal" href="#upper-aliases-uppercase" id="id23">upper  (aliases uppercase)</a></li>
+<li><a class="reference internal" href="#lower-aliases-lowercase" id="id24">lower  (aliases lowercase)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#registry-manipulation" id="id22">Registry Manipulation</a><ul>
-<li><a class="reference internal" href="#getregistryvalue" id="id23">GetRegistryValue</a></li>
-<li><a class="reference internal" href="#setregistryvalue" id="id24">SetRegistryValue</a></li>
+<li><a class="reference internal" href="#registry-manipulation" id="id25">Registry Manipulation</a><ul>
+<li><a class="reference internal" href="#getregistryvalue" id="id26">GetRegistryValue</a></li>
+<li><a class="reference internal" href="#setregistryvalue" id="id27">SetRegistryValue</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#miscelaneous-commands" id="id25">Miscelaneous commands</a><ul>
-<li><a class="reference internal" href="#getlanguage" id="id26">GetLanguage</a></li>
-<li><a class="reference internal" href="#add-tools-dir" id="id27">add_tools_dir</a></li>
-<li><a class="reference internal" href="#split" id="id28">split</a></li>
+<li><a class="reference internal" href="#miscelaneous-commands" id="id28">Miscelaneous commands</a><ul>
+<li><a class="reference internal" href="#getlanguage" id="id29">GetLanguage</a></li>
+<li><a class="reference internal" href="#add-tools-dir" id="id30">add_tools_dir</a></li>
+<li><a class="reference internal" href="#split" id="id31">split</a></li>
 </ul>
 </li>
 </ul>
@@ -98,9 +99,9 @@
 </ul>
 </div>
 <div class="section" id="running-shell-external-commands">
-<h2><a class="toc-backref" href="#id2">Running shell/external commands</a><a class="headerlink" href="#running-shell-external-commands" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id4">Running shell/external commands</a><a class="headerlink" href="#running-shell-external-commands" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="run-aliases-execute-system-default">
-<h3><a class="toc-backref" href="#id3">run (aliases: execute, system). (default)</a><a class="headerlink" href="#run-aliases-execute-system-default" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id5">run (aliases: execute, system). (default)</a><a class="headerlink" href="#run-aliases-execute-system-default" title="Permalink to this headline">¶</a></h3>
 <p>Execute a single command on the command line shell.
 This is the default command - you do not need to and should not use
 the <tt class="docutils literal"><span class="pre">run</span></tt> command itself - just call the command.</p>
@@ -125,32 +126,77 @@ of output to the log file) specify <strong>nocapture</strong> &amp; <strong>echo
 </dd>
 </dl>
 </div>
+<div class="section" id="which">
+<h3><a class="toc-backref" href="#id6">which</a><a class="headerlink" href="#which" title="Permalink to this headline">¶</a></h3>
+<p>Simliar to the <a href="#id1"><span class="problematic" id="id2">*</span></a>nix shell command, this tool allows you to find the path of
+which (if any) command will be executed for a specific command.</p>
+<p>e.g. if you run:</p>
+<div class="highlight-python"><pre>which notepad</pre>
+</div>
+<p>it will return:</p>
+<div class="highlight-python"><pre>C:\WINDOWS\system32\notepad.EXE</pre>
+</div>
+<p>Here is the help output:</p>
+<div class="highlight-python"><pre>Show the full path of commands.
+
+Usage:
+    which [&lt;options&gt;...] [&lt;command-name&gt;...]
+
+Options:
+    -h, --help      Print this help and exit.
+    -V, --version   Print the version info and exit.
+
+    -a, --all       Print *all* matching paths.
+    -v, --verbose   Print out how matches were located and
+                    show near misses on stderr.
+    -q, --quiet     Just print out matches. I.e., do not print out
+                    near misses.
+
+    -p &lt;altpath&gt;, --path=&lt;altpath&gt;
+                    An alternative path (list of directories) may
+                    be specified for searching.
+    -e &lt;exts&gt;, --exts=&lt;exts&gt;
+                    Specify a list of extensions to consider instead
+                    of the usual list (';'-separate list, Windows
+                    only).
+
+Show the full path to the program that would be run for each given
+command name, if any. Which, like GNU's which, returns the number of
+failed arguments, or -1 when no &lt;command-name&gt; was given.
+
+Near misses include duplicates, non-regular files and (on Un*x)
+files without executable access.</pre>
+</div>
+<p>This tool was included from <a class="reference external" href="http://code.google.com/p/which/">http://code.google.com/p/which/</a>.
+Please refer to the <tt class="docutils literal"><span class="pre">betterbatch\tools\LICENSE_Which.txt</span></tt> file for licensing
+information.</p>
+</div>
 </div>
 <div class="section" id="path-manipulation">
-<h2><a class="toc-backref" href="#id4">Path Manipulation</a><a class="headerlink" href="#path-manipulation" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id7">Path Manipulation</a><a class="headerlink" href="#path-manipulation" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="dirname">
-<h3><a class="toc-backref" href="#id5">dirname</a><a class="headerlink" href="#dirname" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id8">dirname</a><a class="headerlink" href="#dirname" title="Permalink to this headline">¶</a></h3>
 <p>Return the directory (or parent directory for a directory) of the
 path passed in.</p>
 </div>
 <div class="section" id="filename-aliases-basename">
-<h3><a class="toc-backref" href="#id6">filename    (aliases basename)</a><a class="headerlink" href="#filename-aliases-basename" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id9">filename    (aliases basename)</a><a class="headerlink" href="#filename-aliases-basename" title="Permalink to this headline">¶</a></h3>
 <p>Return the filename (or directory name for a directory) of the
 path passed in.</p>
 </div>
 <div class="section" id="abspath">
-<h3><a class="toc-backref" href="#id7">abspath</a><a class="headerlink" href="#abspath" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id10">abspath</a><a class="headerlink" href="#abspath" title="Permalink to this headline">¶</a></h3>
 <p>Return the absolute path of the file.</p>
 </div>
 <div class="section" id="shortpathname">
-<h3><a class="toc-backref" href="#id8">ShortPathName</a><a class="headerlink" href="#shortpathname" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id11">ShortPathName</a><a class="headerlink" href="#shortpathname" title="Permalink to this headline">¶</a></h3>
 <p>Return the short path name of the filename</p>
 </div>
 </div>
 <div class="section" id="file-manipulation">
-<h2><a class="toc-backref" href="#id9">File Manipulation</a><a class="headerlink" href="#file-manipulation" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id12">File Manipulation</a><a class="headerlink" href="#file-manipulation" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="find-in-file">
-<h3><a class="toc-backref" href="#id10">find_in_file</a><a class="headerlink" href="#find-in-file" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id13">find_in_file</a><a class="headerlink" href="#find-in-file" title="Permalink to this headline">¶</a></h3>
 <p>Return true if the text is in the file. It will output the found items
 one per line.</p>
 <p>Usage: $prog [-r] file text_to_find [text_to_find...]</p>
@@ -179,7 +225,7 @@ one per line.</p>
 </dl>
 </div>
 <div class="section" id="replace-in-file">
-<h3><a class="toc-backref" href="#id11">replace_in_file</a><a class="headerlink" href="#replace-in-file" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id14">replace_in_file</a><a class="headerlink" href="#replace-in-file" title="Permalink to this headline">¶</a></h3>
 <p>Replace text in file</p>
 <p>Usage: $prog [-rn] [&#8211;encoding enc] filepath to_find replace_with</p>
 <dl class="docutils">
@@ -213,9 +259,9 @@ valid Python encoding see
 </dl>
 </div>
 <div class="section" id="listfilesmatchingpattern">
-<h3><a class="toc-backref" href="#id12">ListFilesMatchingPattern</a><a class="headerlink" href="#listfilesmatchingpattern" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id15">ListFilesMatchingPattern</a><a class="headerlink" href="#listfilesmatchingpattern" title="Permalink to this headline">¶</a></h3>
 <p>Output a list of all the files matching the supplied pattern.</p>
-<p>Usage: ListFilesMatchingPattern.py [options] (path) (patern1) (pattern2) ...</p>
+<p>Usage: ListFilesMatchingPattern [options] (path) (patern1) (pattern2) ...</p>
 <dl class="docutils">
 <dt>Options:</dt>
 <dd><table class="first last docutils option-list" frame="void" rules="none">
@@ -235,12 +281,12 @@ valid Python encoding see
 </dl>
 <p>This is especially useful in a loop to iterate over a particular set of files.</p>
 <p>Example:</p>
-<div class="highlight-python"><pre>- for file in {{{ ListFilesMatchingPattern.py -s &lt;xml_folder&gt; *.xml *.xsl }}}:
+<div class="highlight-python"><pre>- for file in {{{ ListFilesMatchingPattern -s &lt;xml_folder&gt; *.xml *.xsl }}}:
    - echo &lt;file&gt;</pre>
 </div>
 </div>
 <div class="section" id="count">
-<h3><a class="toc-backref" href="#id13">count</a><a class="headerlink" href="#count" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id16">count</a><a class="headerlink" href="#count" title="Permalink to this headline">¶</a></h3>
 <p>Verify that the file count is as specified</p>
 <dl class="docutils">
 <dt>It takes the following parameters:</dt>
@@ -254,7 +300,7 @@ whole number.</li>
 </dl>
 </div>
 <div class="section" id="exists-aliases-exist">
-<h3><a class="toc-backref" href="#id14">exists  (aliases exist)</a><a class="headerlink" href="#exists-aliases-exist" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id17">exists  (aliases exist)</a><a class="headerlink" href="#exists-aliases-exist" title="Permalink to this headline">¶</a></h3>
 <p>check if the path (file or directory) exists or not.
 If the path exists - then it returns true.
 example:</p>
@@ -264,21 +310,21 @@ example:</p>
 </div>
 </div>
 <div class="section" id="notexists-aliases-notexist">
-<h3><a class="toc-backref" href="#id15">notexists  (aliases notexist)</a><a class="headerlink" href="#notexists-aliases-notexist" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id18">notexists  (aliases notexist)</a><a class="headerlink" href="#notexists-aliases-notexist" title="Permalink to this headline">¶</a></h3>
 <p>check if the path (file or directory) exists or not.
 If the path does not exist - then it returns true. This can be useful
 if you want to raise an error becuase one or more files does not exist.</p>
 </div>
 </div>
 <div class="section" id="string-text-manipulation">
-<h2><a class="toc-backref" href="#id16">String/text Manipulation</a><a class="headerlink" href="#string-text-manipulation" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id19">String/text Manipulation</a><a class="headerlink" href="#string-text-manipulation" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="escapenewlines-aliases-escape-newlines">
-<h3><a class="toc-backref" href="#id17">escapenewlines  (aliases escape_newlines)</a><a class="headerlink" href="#escapenewlines-aliases-escape-newlines" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id20">escapenewlines  (aliases escape_newlines)</a><a class="headerlink" href="#escapenewlines-aliases-escape-newlines" title="Permalink to this headline">¶</a></h3>
 <p>r and n characters in the input will be replaced with \r and \n
 respectively.</p>
 </div>
 <div class="section" id="replace">
-<h3><a class="toc-backref" href="#id18">replace</a><a class="headerlink" href="#replace" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id21">replace</a><a class="headerlink" href="#replace" title="Permalink to this headline">¶</a></h3>
 <p>Allows you to replace text in a string</p>
 <p>Usage:</p>
 <div class="highlight-python"><pre>replace text to search in {*text to find*} {*replace with*}</pre>
@@ -294,7 +340,7 @@ respectively.</p>
 </div>
 </div>
 <div class="section" id="compare">
-<h3><a class="toc-backref" href="#id19">compare</a><a class="headerlink" href="#compare" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id22">compare</a><a class="headerlink" href="#compare" title="Permalink to this headline">¶</a></h3>
 <p>The compare functionality is usually used in if statements. The examples
 give will show them in that context.</p>
 <p>Usage:</p>
@@ -329,27 +375,28 @@ treated as integers.</dd>
 </dl>
 </div>
 <div class="section" id="upper-aliases-uppercase">
-<h3><a class="toc-backref" href="#id20">upper  (aliases uppercase)</a><a class="headerlink" href="#upper-aliases-uppercase" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id23">upper  (aliases uppercase)</a><a class="headerlink" href="#upper-aliases-uppercase" title="Permalink to this headline">¶</a></h3>
 <p>Return an uppercase version of the string</p>
 </div>
 <div class="section" id="lower-aliases-lowercase">
-<h3><a class="toc-backref" href="#id21">lower  (aliases lowercase)</a><a class="headerlink" href="#lower-aliases-lowercase" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id24">lower  (aliases lowercase)</a><a class="headerlink" href="#lower-aliases-lowercase" title="Permalink to this headline">¶</a></h3>
 <p>Return an lowercase version of the string</p>
 </div>
 </div>
 <div class="section" id="registry-manipulation">
-<h2><a class="toc-backref" href="#id22">Registry Manipulation</a><a class="headerlink" href="#registry-manipulation" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id25">Registry Manipulation</a><a class="headerlink" href="#registry-manipulation" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="getregistryvalue">
-<h3><a class="toc-backref" href="#id23">GetRegistryValue</a><a class="headerlink" href="#getregistryvalue" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id26">GetRegistryValue</a><a class="headerlink" href="#getregistryvalue" title="Permalink to this headline">¶</a></h3>
 <p>Return the value of a registry key</p>
 <dl class="docutils">
 <dt>Usage:</dt>
-<dd><p class="first"><tt class="docutils literal"><span class="pre">GetRegistryValue.py</span> <span class="pre">[options]</span> <span class="pre">(keypath)</span> <span class="pre">[value_name]</span></tt></p>
+<dd><p class="first"><tt class="docutils literal"><span class="pre">GetRegistryValue</span> <span class="pre">[options]</span> <span class="pre">(keypath)</span> <span class="pre">[value_name]</span></tt></p>
 <div class="last line-block">
 <div class="line">Options:</div>
 <div class="line-block">
 <div class="line">-h, &#8211;help    show this help message and exit</div>
 <div class="line">-e, &#8211;expand  if the registry type is REG_EXPAND_SZ - then expand variables</div>
+<div class="line">&#8211;x64         operate on 64bit registry hiveOptions:</div>
 </div>
 </div>
 </dd>
@@ -364,17 +411,20 @@ be returned.</p>
 </div>
 </div>
 <div class="section" id="setregistryvalue">
-<h3><a class="toc-backref" href="#id24">SetRegistryValue</a><a class="headerlink" href="#setregistryvalue" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id27">SetRegistryValue</a><a class="headerlink" href="#setregistryvalue" title="Permalink to this headline">¶</a></h3>
 <dl class="docutils">
 <dt>Usage:</dt>
-<dd><p class="first"><tt class="docutils literal"><span class="pre">SetRegistryValue.py</span> <span class="pre">[options]</span> <span class="pre">(keypath)</span> <span class="pre">(value_name)</span> <span class="pre">(new_value)</span></tt></p>
+<dd><p class="first"><tt class="docutils literal"><span class="pre">SetRegistryValue</span> <span class="pre">[options]</span> <span class="pre">(keypath)</span> <span class="pre">(value_name)</span> <span class="pre">(new_value)</span></tt></p>
 <div class="last line-block">
 <div class="line">Options:</div>
 <div class="line-block">
 <div class="line">-h, &#8211;help            show this help message and exit</div>
-<div class="line">-t VALUE_TYPE, &#8211;value-type=VALUE_TYPE
-when creating a new value - the value type to use.When
-changing existing values - the same type is used.</div>
+<div class="line">-t VALUE_TYPE, &#8211;value-type=VALUE_TYPE</div>
+<div class="line-block">
+<div class="line">when creating a new value - the value type to use.When</div>
+<div class="line">changing existing values - the same type is used.</div>
+</div>
+<div class="line">&#8211;x64                 operate on 64bit registry hive</div>
 </div>
 </div>
 </dd>
@@ -394,9 +444,9 @@ changing existing values - the same type is used.</div>
 </div>
 </div>
 <div class="section" id="miscelaneous-commands">
-<h2><a class="toc-backref" href="#id25">Miscelaneous commands</a><a class="headerlink" href="#miscelaneous-commands" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id28">Miscelaneous commands</a><a class="headerlink" href="#miscelaneous-commands" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="getlanguage">
-<h3><a class="toc-backref" href="#id26">GetLanguage</a><a class="headerlink" href="#getlanguage" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id29">GetLanguage</a><a class="headerlink" href="#getlanguage" title="Permalink to this headline">¶</a></h3>
 <p>Return language information from the database - &#8220;langinfo.csv&#8221; (included in the
 betterbatch/tools folder along with GetLanguage.py)</p>
 <dl class="docutils">
@@ -411,7 +461,7 @@ format is one of the headers from langinfo.csv, e.g. dotnet, hex_lcid, etc.</dd>
 </div>
 </div>
 <div class="section" id="add-tools-dir">
-<h3><a class="toc-backref" href="#id27">add_tools_dir</a><a class="headerlink" href="#add-tools-dir" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id30">add_tools_dir</a><a class="headerlink" href="#add-tools-dir" title="Permalink to this headline">¶</a></h3>
 <p>The betterbatch/tools directory is added as a &#8216;tools&#8217; directory by default.</p>
 <p>You can add other directories to be used as &#8216;tools&#8217; directories by using this
 command.</p>
@@ -419,7 +469,7 @@ command.</p>
 command.</p>
 </div>
 <div class="section" id="split">
-<span id="split-built-in"></span><h3><a class="toc-backref" href="#id28">split</a><a class="headerlink" href="#split" title="Permalink to this headline">¶</a></h3>
+<span id="split-built-in"></span><h3><a class="toc-backref" href="#id31">split</a><a class="headerlink" href="#split" title="Permalink to this headline">¶</a></h3>
 <p>This command takes a list of items and &#8216;splits&#8217; them up. This is especially
 useful in conjunction with the <tt class="docutils literal"><span class="pre">for</span></tt> statement.</p>
 <p>Here is a simple example:</p>
@@ -471,6 +521,7 @@ used with <tt class="docutils literal"><span class="pre">for</span></tt> stateme
 <li><a class="reference internal" href="#">The available built-in commands are:</a><ul>
 <li><a class="reference internal" href="#running-shell-external-commands">Running shell/external commands</a><ul>
 <li><a class="reference internal" href="#run-aliases-execute-system-default">run (aliases: execute, system). (default)</a></li>
+<li><a class="reference internal" href="#which">which</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#path-manipulation">Path Manipulation</a><ul>
@@ -552,7 +603,7 @@ used with <tt class="docutils literal"><span class="pre">for</span></tt> stateme
         <li class="right" >
           <a href="readme.html" title="BetterBatch Readme"
              >previous</a> |</li>
-        <li><a href="index.html">BetterBatch v1.2.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v1.2.3 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
