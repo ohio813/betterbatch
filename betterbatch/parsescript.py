@@ -386,7 +386,6 @@ def ReplaceVariableReferences(
 
     var_refs = FindVariableReferences(text)
     for variable, refs_to_replace in var_refs.items():
-
         # the variable referenced is not defined
         if variable not in variables:
             # if the variable being tested contains references to a loop
@@ -1663,14 +1662,16 @@ class VariableDefinedCheck(Step):
     def execute(self, variables, phase):
         "Run this step"
 
-        key = self.variable.lower()
-
+        #key = self.variable.lower()
         # remove leading and trailing brackets
-        if key.startswith("<"):
-            key = key[1:]
-        if key.endswith(">"):
-            key = key[:-1]
-        key = key.strip()
+#        if key.startswith("<"):
+#            key = key[1:]
+#        if key.endswith(">"):
+#            key = key[:-1]
+#        key = key.strip()
+
+
+        key = RenderVariableValue(self.variable, variables, phase).lower()
 
         if key in variables:
             if phase != "test":
