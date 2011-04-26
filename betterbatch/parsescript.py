@@ -1574,12 +1574,12 @@ class IncludeStep(Step):
 
         filename = ReplaceVariableReferences(self.filename, variables)
 
-        self.filename = os.path.abspath(os.path.join(
+        filename = os.path.abspath(os.path.join(
             variables['__script_dir__'], filename))
 
         # load the steps no matter
         try:
-            self.steps = LoadScriptFile(self.filename)
+            self.steps = LoadScriptFile(filename)
         except Exception, e:
             # if not testing or
             # it's not an IO error
@@ -1592,26 +1592,26 @@ class IncludeStep(Step):
                 # so we are testing
                 if not isinstance(e, IOError):
                     LOG.warning("Problem parsing include file '%s'" %
-                        self.filename)
+                        filename)
                     LOG.debug(e)
                 else:
                     if "optional" in self.qualifiers:
                         LOG.debug(
                             "Optional Include missing during testing '%s'" %
-                                self.filename)
+                                filename)
                     else:
                         LOG.warning("Include missing during testing '%s'" %
-                            self.filename)
+                            filename)
 
         prev_script_dir = variables.get("__script_dir__", None)
         prev_script_file = variables.get("__script_filename__", None)
         try:
             if phase != "test":
                 LOG.debug(
-                    "Included steps from: %s" % self.filename)
+                    "Included steps from: %s" % filename)
 
             variables["__script_dir__"], variables["__script_filename__"] = \
-                os.path.split(self.filename)
+                os.path.split(filename)
 
             self.steps = ExecuteSteps(self.steps, variables, phase)
         except Exception, e:
