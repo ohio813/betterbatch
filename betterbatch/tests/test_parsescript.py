@@ -1037,6 +1037,16 @@ class ExecutionEndStepTests(unittest.TestCase):
             e.execute,
                 {}, "run")
 
+    def test_replaced_exe_sections(self):
+        """"""
+        vars = {'name': 'john'}
+        e = ExecutionEndStep("end 123, hi {{{ uppercase <name> }}}")
+        try:
+            e.execute(vars, phase = "run")
+        except EndExecution, err:
+            self.assertEquals(err.msg, "hi JOHN")
+
+
 
 def DebugAction(to_exec, dummy = None):
     exec to_exec
