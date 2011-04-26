@@ -9,7 +9,7 @@ CHANGES
 
 * Special thanks to Toon Pang Ong for his work on many of the features/fixes
   in this release.
-* Allow optional includes by using the {*optional*} qualifier. Also better 
+* Allow optional includes by using the ``{*optional*}`` qualifier. Also better 
   error reporting for missing includes.
 * Add qualifiers to the ``echo`` statement for the output to be logged as
   warning or error via the ``{*as_debug*}``, ``{*as_warning*}``, 
@@ -41,7 +41,7 @@ CHANGES
 * Internal: Allow missing variable references to be ignored (i.e. replace 
   whatever can be replaced and return). This is only used by the default USAGE 
   information output.
-* Allow built_in_commands.PopulateFromToolsFolder() to be called for the same
+* Allow ``built_in_commands.PopulateFromToolsFolder()`` to be called for the same
   path multiple times without raising an error.
 * Perform more Anti-YAML error escaping
 * Improve how loop variables are tested (makes it easier to write dynamic scripts)
