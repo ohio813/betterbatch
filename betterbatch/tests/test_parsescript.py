@@ -1295,8 +1295,8 @@ class VariableDefinedCheckTests(unittest.TestCase):
         s.execute(variables, 'run')
         self.assertEquals(s.ret, 1)
 
-    def test_variable_defined_brakets(self):
-        variables = {'test': "abc"}
+    def test_ref_variable_defined(self):
+        variables = {'test': "abc", "abc" : "yo"}
         s = VariableDefinedCheck('defined <test>')
 
         s.execute(variables, 'test')
@@ -1304,14 +1304,26 @@ class VariableDefinedCheckTests(unittest.TestCase):
         s.execute(variables, 'run')
         self.assertEquals(s.ret, 0)
 
-    def test_variable_not_defined_brackets(self):
+    def test_variable_ref_not_defined(self):
         variables = {'test': "abc"}
         s = VariableDefinedCheck('defined <test234>')
 
         s.execute(variables, 'test')
         self.assertEquals(s.ret, 1)
+        self.assertRaises(
+            ErrorCollection,
+            s.execute,
+                variables, 'run')
+
+    def test_ref_variable_not_defined(self):
+        variables = {'test': "abc"}
+        s = VariableDefinedCheck('defined <test>')
+
+        s.execute(variables, 'test')
+        self.assertEquals(s.ret, 1)
         s.execute(variables, 'run')
         self.assertEquals(s.ret, 1)
+
 
 
 #class IncludeStepTests(unittest.TestCase):

@@ -180,7 +180,7 @@ Example::
 The steps in the file will be subsituted for the include statement as
 if they were defined in the including file.
 
-You can mark an include as optional by using the {*optional*} qualifier.
+You can mark an include as optional by using the ``{*optional*}`` qualifier.
 
 An include marked as optional will be used if it exists, but otherwise will
 be ignored (a log file message will output if it was found or not).

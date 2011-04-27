@@ -993,8 +993,10 @@ def ParseQualifiers(text):
 def ValidateCommandPath(command, qualifiers = None):
     "Check command path and raise CommandPathNotFoundError if path not found"
 
-    command_path = shlex.split(command, posix = False)[0]
-    command_path = command_path.strip('"')
+    # posix was not avilable for shlex.split in python 2.5.1
+    lex = shlex.shlex(command, posix=False)
+    lex.whitespace_split = True
+    command_path = lex.read_token().strip('"')
     # Shell commands, there is no need for checking
     if command_path.lower() in built_in_commands.SHELL_COMMANDS:
         pass
@@ -1670,7 +1672,7 @@ class VariableDefinedCheck(Step):
             if phase != "test":
                 raise
             else:
-                self.ret = 0
+                self.ret = 1
                 return
 
         if key.lower() in variables:
@@ -1682,7 +1684,6 @@ class VariableDefinedCheck(Step):
             if phase != "test":
                 LOG.debug("Variable is not defined: '%s'" % key)
             self.ret = 1
-
 
 
 
@@ -1870,7 +1871,9 @@ def ValidateArgumentCounts(steps, count_db):
             continue
 
         # posix was not avilable for shlex.split in python 2.5.1
-        parts = list(shlex.shlex(step.step_data, posix=False))
+        lex = shlex.shlex(step.step_data, posix=False)
+        lex.whitespace_split = True
+        parts = list(lex)
 
         command = os.path.basename(parts[0].lower())
 

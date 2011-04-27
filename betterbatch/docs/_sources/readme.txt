@@ -21,7 +21,7 @@ need to be maintained over time by different people who may not have the same
 knowledge of scripting nor want the extra complexity of scripts (which can be
 more difficult to maintain).
 
-The following example checks if a file exists and if it doesn't exist copy from 
+The following example checks if a file exists and if it doesn't exist copy from
 the filepath specified on the command line to that location.
 
 First of all enter the following text into a new text file named "copyfile.bb" ::
@@ -96,11 +96,11 @@ For example the typical first programming example - Hello World! - is::
 ------------------------------------------------------
 Command Statements
 ------------------------------------------------------
-Unless a statement is one of the other types (see below) it is an Command 
+Unless a statement is one of the other types (see below) it is an Command
 Statement
 
-If the executable statement is not a `built-in command <built_in_commands.html>`_ 
-then it will be executed in the shell, just as if you typed it at the command 
+If the executable statement is not a `built-in command <built_in_commands.html>`_
+then it will be executed in the shell, just as if you typed it at the command
 line.
 
 Note - by default BetterBatch captures the output of the command
@@ -120,13 +120,13 @@ The following qualifiers are available:
         terminate. A warning will be output in this case - but the script will
         continue.
    **{*nocapture*}**
-        do not capture the output to the log file. If ``{*echo*}`` qualifier is 
+        do not capture the output to the log file. If ``{*echo*}`` qualifier is
         also set the output will be shown to the user as it is generated.
 
 .. versionchanged:: 1.2.0
-   Added ``{*nocapture*}`` qualifier and made ``{*echo*}`` and ``{*ui*}`` 
+   Added ``{*nocapture*}`` qualifier and made ``{*echo*}`` and ``{*ui*}``
    qualifiers the same.
-   
+
 
 ------------------------------------------------------
 Variable Definitions Statements
@@ -156,6 +156,20 @@ See Also
  * :ref:`executable-sections` - more information on executable sections
  * :ref:`variable-references` - more information on referring to variables
 
+
+------------------------------------------------------
+Include statements
+------------------------------------------------------
+Example::
+
+   - echo Running your script
+
+The message will be output to the screen and to the log file.
+
+You can optionaly provide the {*as_error*} or {*as_warning*} qualifiers to have
+the text output as an error or warning respectively.
+
+
 ------------------------------------------------------
 Include statements
 ------------------------------------------------------
@@ -165,6 +179,11 @@ Example::
 
 The steps in the file will be subsituted for the include statement as
 if they were defined in the including file.
+
+You can mark an include as optional by using the {*optional*} qualifier.
+
+An include marked as optional will be used if it exists, but otherwise will
+be ignored (a log file message will output if it was found or not).
 
 
 ------------------------------------------------------
@@ -195,7 +214,7 @@ Example::
 mix "and" and "or" in the same if statement (it should be consistently "or"
 or consistently "and" in a single statement).
 
-CAREFUL - the first letter of the ``if``/``and``/``or``/``else`` all have to 
+CAREFUL - the first letter of the ``if``/``and``/``or``/``else`` all have to
 line up vertically - or the statement will not be parsed correctly.
 
 For example the following will actually be wrong::
@@ -208,7 +227,7 @@ For example the following will actually be wrong::
 
 The ``or`` and the ``else`` are not lined up with the ``if`` statement.
 
-The construct ``defined variable_name`` is a condition worth mentioning 
+The construct ``defined variable_name`` is a condition worth mentioning
 in more detail e.g. ::
 
     - if defined build:
@@ -224,9 +243,9 @@ line by passing ``var_name=var_value``.
 ------------------------------------------------------
 For statements
 ------------------------------------------------------
-For statements iterate over a list of items. Internally it uses uses the 
+For statements iterate over a list of items. Internally it uses uses the
 newline character \n to delimit the items. The ``split`` command can be easily
-used to convert a list of values into the format required for the ``for`` 
+used to convert a list of values into the format required for the ``for``
 statement.
 
 The format of the step is::
@@ -289,14 +308,14 @@ for or if statements are allowed.
 ------------------------------------------------------
 Function Definitions
 ------------------------------------------------------
-You can define a function that you can call later at anytime. Here is a an 
+You can define a function that you can call later at anytime. Here is a an
 example::
 
     - function PrintArgs (arg1, arg2, arg3=123, arg4=This arg):
         - echo <arg1>, <arg2>, <arg3>, <arg4>
 
 In the above function definition the function name is ``PrintArgs``, it takes
-4 arguments ``arg1``, ``arg2``, ``arg3`` and ``arg4``. Arguments ``arg3`` and 
+4 arguments ``arg1``, ``arg2``, ``arg3`` and ``arg4``. Arguments ``arg3`` and
 ``arg4`` have default arguments "123" and "This arg" respectively. The function
 call will have to pass values for ``arg1``, ``arg2`` but passing values for
 arguments ``arg3`` and ``arg4`` is optional. If no option is passed then the
@@ -313,10 +332,10 @@ You can call functions in the following way::
 
     - call PrintArgs (here, there, arg4 = some value)
 
-Matching this against the example function defintion above 
-``arg1`` will have value ``here``, 
+Matching this against the example function defintion above
+``arg1`` will have value ``here``,
 ``arg2`` will have value ``there``,
-``arg3`` will have value ``123`` (the default value),   
+``arg3`` will have value ``123`` (the default value),
 ``arg4`` will have value ``some value``.
 
 .. versionchanged:: 1.2.0
