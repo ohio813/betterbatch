@@ -153,7 +153,7 @@ def SystemCommand(command, qualifiers = None):
             "The command is %d characters long. "
             "It cannot be longer than %d characters. '%s...'"% (
                 command_len,
-                subprocess_safe_command_limit, 
+                subprocess_safe_command_limit,
                 str(command)[:80]))
 
     # if we can turn shell off for some/all of the commands then it will
@@ -392,7 +392,7 @@ def PopulateFromToolsFolder(tools_folder, dummy = None):
             if name not in NAME_ACTION_MAPPING:
                 NAME_ACTION_MAPPING[name] = ExternalCommand(full_path)
             else:
-                if (not hasattr(NAME_ACTION_MAPPING[name], "full_path") or 
+                if (not hasattr(NAME_ACTION_MAPPING[name], "full_path") or
                     full_path != NAME_ACTION_MAPPING[name].full_path):
                     raise RuntimeError(
                         "External command conflicts with built-in command: '%s'"%
