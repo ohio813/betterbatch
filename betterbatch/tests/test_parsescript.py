@@ -1043,6 +1043,16 @@ class ExecutionEndStepTests(unittest.TestCase):
             e.execute,
                 {}, "run")
 
+    def test_replaced_exe_sections(self):
+        """"""
+        vars = {'name': 'john'}
+        e = ExecutionEndStep("end 123, hi {{{ uppercase <name> }}}")
+        try:
+            e.execute(vars, phase = "run")
+        except EndExecution, err:
+            self.assertEquals(err.msg, "hi JOHN")
+
+
 
 def DebugAction(to_exec, dummy = None):
     exec to_exec
@@ -1236,6 +1246,14 @@ class IncludeStepTests(unittest.TestCase):
             inc_step.execute,
                 variables, 'run')
 
+    def test_include_file_with_loopvar(self):
+        steps = ParseSteps([{
+            "for x in {{{ split basic.bb include_loopvar.bb }}}" : 
+                "include <x>"}])
+        
+        vars = {'__script_dir__': TEST_FILES_PATH}
+        ExecuteSteps(steps, vars, "run")
+        self.assertEqual(vars["test_var"], "123")
 
 
 #    def test_include_without_script_dir(self):

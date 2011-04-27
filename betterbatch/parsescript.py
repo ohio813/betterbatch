@@ -1549,7 +1549,8 @@ class ExecutionEndStep(Step):
 
     def execute(self, variables, phase):
         "Run this step"
-        message = ReplaceVariableReferences(self.message, variables)
+        message = RenderVariableValue(
+            self.message, variables, phase, ignore_errors = True)
         if phase != "test":
             raise EndExecution(self.ret, message)
 
@@ -1573,12 +1574,12 @@ class IncludeStep(Step):
 
         filename = ReplaceVariableReferences(self.filename, variables)
 
-        self.filename = os.path.abspath(os.path.join(
+        filename = os.path.abspath(os.path.join(
             variables['__script_dir__'], filename))
 
         # load the steps no matter
         try:
-            self.steps = LoadScriptFile(self.filename)
+            self.steps = LoadScriptFile(filename)
         except Exception, e:
             # if not testing or
             # it's not an IO error
@@ -1591,26 +1592,26 @@ class IncludeStep(Step):
                 # so we are testing
                 if not isinstance(e, IOError):
                     LOG.warning("Problem parsing include file '%s'" %
-                        self.filename)
+                        filename)
                     LOG.debug(e)
                 else:
                     if "optional" in self.qualifiers:
                         LOG.debug(
                             "Optional Include missing during testing '%s'" %
-                                self.filename)
+                                filename)
                     else:
                         LOG.warning("Include missing during testing '%s'" %
-                            self.filename)
+                            filename)
 
         prev_script_dir = variables.get("__script_dir__", None)
         prev_script_file = variables.get("__script_filename__", None)
         try:
             if phase != "test":
                 LOG.debug(
-                    "Included steps from: %s" % self.filename)
+                    "Included steps from: %s" % filename)
 
             variables["__script_dir__"], variables["__script_filename__"] = \
-                os.path.split(self.filename)
+                os.path.split(filename)
 
             self.steps = ExecuteSteps(self.steps, variables, phase)
         except Exception, e:
@@ -1662,27 +1663,27 @@ class VariableDefinedCheck(Step):
     def execute(self, variables, phase):
         "Run this step"
 
-        #key = self.variable.lower()
-        # remove leading and trailing brackets
-#        if key.startswith("<"):
-#            key = key[1:]
-#        if key.endswith(">"):
-#            key = key[:-1]
-#        key = key.strip()
+        self.output = ''
+        try:
+            key = RenderVariableValue(self.variable, variables, phase)
+        except RuntimeError, e:
+            if phase != "test":
+                raise
+            else:
+                self.ret = 0
+                return
 
-
-        key = RenderVariableValue(self.variable, variables, phase).lower()
-
-        if key in variables:
+        if key.lower() in variables:
             if phase != "test":
                 LOG.debug("Variable is defined: %s : '%s'" %
-                    (self.variable, variables[key]))
+                    (key, variables[key.lower()]))
             self.ret = 0
         else:
             if phase != "test":
-                LOG.debug("Variable is not defined: '%s'" % self.variable)
+                LOG.debug("Variable is not defined: '%s'" % key)
             self.ret = 1
-        self.output = ''
+
+
 
 
 class ApplyCommandLineVarsStep(Step):
