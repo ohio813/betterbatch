@@ -1003,10 +1003,18 @@ def ValidateCommandPath(command, qualifiers = None):
         pass
     else:
         try:
-            # If the path does not exist and which.which() cannot find it
-            # on the path, which.which() raises an error
-            if (os.path.exists(command_path) or which.which(command_path)):
-                pass
+            if not os.path.exists(command_path):
+                # If the path does not exist
+                path_to_command, command_name = os.path.split(command_path)
+                paths = os.environ['path'].split(os.pathsep)
+                # ensure that the path to the command is include (if it is
+                # given)
+                if path_to_command:
+                    paths.append(path_to_command)
+                # if which.which() cannot find it on the path,
+                # which.which() raises an error
+                which.which(command_name, paths)
+
         except which.WhichError:
             raise CommandPathNotFoundError(command_path, command)
 
