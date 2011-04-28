@@ -11,7 +11,6 @@ import ConfigParser
 import copy
 import threading
 import time
-import textwrap
 
 import yaml
 
@@ -2001,11 +2000,7 @@ def ExecuteScriptFile(file_path, cmd_vars, check=False):
     return steps, variables
 
 def IndentOutput(output):
-    return "\n".join(textwrap.wrap(
-        output,
-        width=999,
-        initial_indent="   ",
-        subsequent_indent="   "))
+    return "   " + "   ".join(line for line in output.split('\n'))
 
 def CheckAllScriptsInDir(scripts_dir, variables):
     "Checks all the bb scripts in the same dir as scripts_dir"
