@@ -359,6 +359,34 @@ def FindVariableReferences(text):
     return variables_referenced
 
 
+def FindVariableMatchingLoopVar(var_name, variables):
+    """The variable name contains a reference to  __loopvar__
+    So we want to find the first variable that matches this value"""
+
+    parts = ("start_%s_end" % var_name).split("__loopvar__")
+    for var in variables:
+        test_var = "start_%s_end" % var
+        other_parts = []
+        matched_parts = []
+        last_match_end = 0
+        for part in parts:
+            # ensure to start where teh last one was found
+            found = test_var.find(part, last_match_end)
+            if found == -1:
+                break
+            other_parts.append(test_var[last_match_end:found])
+            matched_parts.append(part)
+            last_match_end = found + len(part)
+
+        # if we are out of the loop because it wasn't found
+        if found == -1:
+            continue
+
+        # if all references were the same
+        if len(set([p for p in other_parts if p])) == 1:
+            return var
+
+
 def ReplaceVariableReferences(
     text, variables, loop=None, ignore_errors = False):
     """Replace all variable references in the string
@@ -390,25 +418,12 @@ def ReplaceVariableReferences(
         if variable not in variables:
             # if the variable being tested contains references to a loop
             # variable - then extra checking is necessary
-            if "__loopvar__" in variable:
-                parts = variable.split("__loopvar__")
-                found = False
-                for var in variables:
-                    # Stop on the first found variable
-                    if found:
-                        break
-                    # Test if all the parts are in this particular variable
-                    for part in parts:
-                        # stop on the first part that is not in the variable
-                        if part not in var:
-                            found = False
-                            break
-                        # all parts matched - so this is a good candidate
-                        found = True
-                if not found:
-                    errors.append(UndefinedVariableError(variable, text))
-                    continue
-                variable = var
+            if "__loopvar__" in variable.lower():
+                loop_var = FindVariableMatchingLoopVar(variable, variables)
+                if loop_var is None:
+                    raise UndefinedVariableError(variable, text)
+                else:
+                    variable = loop_var
             else:
                 errors.append(UndefinedVariableError(variable, text))
                 continue
