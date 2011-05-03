@@ -1,0 +1,2 @@
+- set usage = Please specify test variable
+- echo this is a <test>
