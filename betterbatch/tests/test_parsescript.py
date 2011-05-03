@@ -1491,6 +1491,17 @@ class IfStepTests(unittest.TestCase):
             LoadScriptFile,
                 script_filepath)
 
+    def test_un_supported_condition_type(self):
+        should_fail_steps = {
+            "if robocopy x y z":
+                "echo -<test>-"}
+
+        ifstep = ParseComplexStep(should_fail_steps)
+        self.assertRaises(
+            RuntimeError,
+            ExecuteSteps,
+                [ifstep], {}, 'test')
+
     def test_minimal_if(self):
         pass
 
