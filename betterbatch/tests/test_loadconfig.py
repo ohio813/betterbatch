@@ -22,7 +22,7 @@ class LoadConfigTests(unittest.TestCase):
 
     def test_emtpy_file(self):
         """"""
-        path = os.path.join(TEST_FILES_PATH, "empty.yaml")
+        path = os.path.join(TEST_FILES_PATH, "empty.bb")
         vars = PopulateVariables(path, {})
         steps = LoadScriptFile(path)
         self.assertEquals(steps, [])
@@ -34,14 +34,14 @@ class LoadConfigTests(unittest.TestCase):
         directory - so if running from another directory - config files were
         not found.
         """
-        path = os.path.join(TEST_FILES_PATH, "test_rel_include.yaml")
+        path = os.path.join(TEST_FILES_PATH, "test_rel_include.bb")
         steps, vars = ExecuteScriptFile(path, {})
         self.assertEquals(vars['test'], "Hello World")
 
     def test_missing_file(self):
         """"""
 
-        path = os.path.join(TEST_FILES_PATH, "missing.yaml")
+        path = os.path.join(TEST_FILES_PATH, "missing.bb")
         vars = PopulateVariables(path, {})
 
         self.assertRaises(
@@ -52,7 +52,7 @@ class LoadConfigTests(unittest.TestCase):
     def test_missing_include(self):
         """"""
 
-        path = os.path.join(TEST_FILES_PATH, "missing_include.yaml")
+        path = os.path.join(TEST_FILES_PATH, "missing_include.bb")
         self.assertRaises(
             IOError,
             ExecuteScriptFile,
@@ -61,7 +61,7 @@ class LoadConfigTests(unittest.TestCase):
     def test_variables_as_list(self):
         """"""
 
-        path = os.path.join(TEST_FILES_PATH, "variables_as_list.yaml")
+        path = os.path.join(TEST_FILES_PATH, "variables_as_list.bb")
         vars = PopulateVariables(path, {})
         commands = LoadScriptFile(path)
         commands[0].execute(vars, "run")
@@ -72,7 +72,7 @@ class LoadConfigTests(unittest.TestCase):
         """"""
 
         try:
-            path = os.path.join(TEST_FILES_PATH, "number_variables.yaml")
+            path = os.path.join(TEST_FILES_PATH, "number_variables.bb")
             vars = PopulateVariables(path, {})
             LoadScriptFile(path)
         except ErrorCollection, e:
@@ -80,12 +80,12 @@ class LoadConfigTests(unittest.TestCase):
 
     def test_empty_include_section(self):
         """"""
-        path = os.path.join(TEST_FILES_PATH, "empty_includes.yaml")
+        path = os.path.join(TEST_FILES_PATH, "empty_includes.bb")
         vars = PopulateVariables(path, {})
         self.assertRaises(
             RuntimeError,
             LoadScriptFile, path)
-        path = os.path.join(TEST_FILES_PATH, "empty_includes2.yaml")
+        path = os.path.join(TEST_FILES_PATH, "empty_includes2.bb")
         self.assertRaises(
             RuntimeError,
             LoadScriptFile,
@@ -94,7 +94,7 @@ class LoadConfigTests(unittest.TestCase):
     def test_broken_variable_block(self):
         """"""
 
-        path = os.path.join(TEST_FILES_PATH, "variable_block_broken.yaml")
+        path = os.path.join(TEST_FILES_PATH, "variable_block_broken.bb")
         vars = PopulateVariables(path, {})
         self.assertRaises(
             RuntimeError,

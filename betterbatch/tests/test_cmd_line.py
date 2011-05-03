@@ -40,7 +40,7 @@ class CommandLineTests(unittest.TestCase):
 
     def test_ValidateOptions_missing_yaml(self):
         """"""
-        sys.argv = ["prog.py", "blah_blah_not_existing.yaml"]
+        sys.argv = ["prog.py", "blah_blah_not_existing.bb"]
         options, args = ParseArguments()
         self.assertRaises(
             RuntimeError,
@@ -69,26 +69,26 @@ class CommandLineTests(unittest.TestCase):
 
     def test_ValidateOptions_yaml_exists(self):
         """"""
-        sys.argv = ["prog.py", os.path.join(TEST_FILES_PATH, "commands.yaml")]
+        sys.argv = ["prog.py", os.path.join(TEST_FILES_PATH, "commands.bb")]
         options, args = ParseArguments()
         options = ValidateOptions(options, args)
 
         self.assertEquals(
             options.script_file,
-            os.path.join(TEST_FILES_PATH, "commands.yaml"))
+            os.path.join(TEST_FILES_PATH, "commands.bb"))
 
     def test_GetValidatedOptions(self):
         """"""
-        sys.argv = ["prog.py", os.path.join(TEST_FILES_PATH, "commands.yaml")]
+        sys.argv = ["prog.py", os.path.join(TEST_FILES_PATH, "commands.bb")]
         options = GetValidatedOptions()
 
         self.assertEquals(
             options.script_file,
-            os.path.join(TEST_FILES_PATH, "commands.yaml"))
+            os.path.join(TEST_FILES_PATH, "commands.bb"))
 
     def test_defultcolor_options(self):
         """"""
-        sys.argv = ["prog.py", os.path.join(TEST_FILES_PATH, "commands.yaml")]
+        sys.argv = ["prog.py", os.path.join(TEST_FILES_PATH, "commands.bb")]
         options = GetValidatedOptions()
 
         self.assertEquals(options.colored_output, USE_COLORED_OUTPUT)
@@ -98,7 +98,7 @@ class CommandLineTests(unittest.TestCase):
         """"""
         sys.argv = [
             "prog.py",
-            os.path.join(TEST_FILES_PATH, "commands.yaml"),
+            os.path.join(TEST_FILES_PATH, "commands.bb"),
             "--no-color"]
         options = GetValidatedOptions()
 
