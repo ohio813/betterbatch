@@ -1943,14 +1943,26 @@ class ApplyCommandLineVarsStepTests(unittest.TestCase):
 
 class CheckAllScriptsInDirTests(unittest.TestCase):
     def test_check_all_scripts_in_dir_errors(self):
-        command = CheckAllScriptsInDir(os.path.join(TEST_FILES_PATH,
-            "check_all_scripts_in_dir_with_errors"),{})
-        self.assertEqual(command, 1)
+        test_dir = os.path.join(
+            TEST_FILES_PATH, "check_all_scripts_in_dir_with_errors")
+        num_errors = CheckAllScriptsInDir(test_dir, {})
+        self.assertEqual(num_errors, 1)
 
     def test_check_all_scripts_in_dir_no_errors(self):
-        command = CheckAllScriptsInDir(os.path.join(TEST_FILES_PATH,
-            "check_all_scripts_in_dir_without_errors"),{})
-        self.assertEqual(command, 0)
+        test_dir = os.path.join(
+            TEST_FILES_PATH, "check_all_scripts_in_dir_without_errors")
+        num_errors = CheckAllScriptsInDir(test_dir, {})
+        self.assertEqual(num_errors, 0)
+
+    def test_check_dir_with_broken_scripts(self):
+        num_errors = CheckAllScriptsInDir(TEST_FILES_PATH, {})
+        self.assertEqual(num_errors > 1, True)
+
+
+class ExecuteScriptFileTests(unittest.TestCase):
+    def test_usage_is_printed(self):
+        path = os.path.join(TEST_FILES_PATH, "missing_variable.bb")
+        ExecuteScriptFile(path, {})
 
 
 class IntegrationTests(unittest.TestCase):
@@ -1966,6 +1978,34 @@ class IntegrationTests(unittest.TestCase):
 
         steps = ParseSteps(["set a = Abc", "set n = <A>", "echo <n>"])
         ExecuteSteps(steps, vars, "run")
+
+
+class MainTests(unittest.TestCase):
+
+    def test_GetValidatedOptions_exception(self):
+        sys.argv = ["", "does not exist.bb"]
+        try:
+            Main()
+        except SystemExit, e:
+            self.assertEqual(e.code, 1)
+
+    def test_check_dirs_fail(self):
+        script_path = os.path.join(
+                TEST_FILES_PATH,
+                "check_all_scripts_in_dir_with_errors",
+                "bb_script_with_no_command_path_errors.bb")
+        sys.argv = [
+            "",
+            script_path,
+            "-j"]
+        try:
+            Main()
+        except SystemExit, e:
+            self.assertEqual(e.code, 1)
+
+    #def test_no_steps(self):
+    #    sys.argv = ["", os.path.join(TEST_FILES_PATH, "empty.bb")]
+    #    Main()
 
 
 if __name__ == "__main__":

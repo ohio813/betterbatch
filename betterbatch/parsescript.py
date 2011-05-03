@@ -2021,8 +2021,10 @@ def ExecuteScriptFile(file_path, cmd_vars, check=False):
 
     return steps, variables
 
+
 def IndentOutput(output):
     return "   " + "   ".join(line for line in output.split('\n'))
+
 
 def CheckAllScriptsInDir(scripts_dir, variables):
     "Checks all the bb scripts in the same dir as scripts_dir"
@@ -2030,27 +2032,29 @@ def CheckAllScriptsInDir(scripts_dir, variables):
     num_of_errors = 0
     for root, dirs, files in os.walk(scripts_dir):
         for file in files:
-            if os.path.splitext(file)[1].lower() == '.bb':
-                try:
-                    LOG.setLevel(logging.ERROR)
-                    ExecuteScriptFile(
-                        os.path.join(root, file),
-                        variables,
-                        check=True)
-                except ErrorCollection, e:
-                    LOG.setLevel(logging.DEBUG)
-                    cmd_path_errs = [str(err) for err in e.errors
-                        if isinstance(err, CommandPathNotFoundError)]
-                    cmd_path_errs = set(cmd_path_errs)
-                    if cmd_path_errs:
-                        num_of_errors += 1
-                        LOG.info("")
-                        LOG.info(file)
-                        for err in cmd_path_errs:
-                            LOG.fatal(err)
-                except RuntimeError, e:
-                    LOG.error("Parsing Failure: '%s'" % file)
-                    LOG.error(IndentOutput(str(e)))
+            # skip non BB files
+            if os.path.splitext(file)[1].lower() != '.bb':
+                continue
+            try:
+                LOG.setLevel(logging.ERROR)
+                ExecuteScriptFile(
+                    os.path.join(root, file),
+                    variables,
+                    check=True)
+            except ErrorCollection, e:
+                LOG.setLevel(logging.DEBUG)
+                cmd_path_errs = [str(err) for err in e.errors
+                    if isinstance(err, CommandPathNotFoundError)]
+                cmd_path_errs = set(cmd_path_errs)
+                if cmd_path_errs:
+                    num_of_errors += 1
+                    LOG.info("")
+                    LOG.info(file)
+                    for err in cmd_path_errs:
+                        LOG.fatal(err)
+            except RuntimeError, e:
+                LOG.error("Parsing Failure: '%s'" % file)
+                LOG.error(IndentOutput(str(e)))
 
     if not num_of_errors:
         LOG.info("No command path error")
@@ -2085,7 +2089,8 @@ def Main():
     try:
         if options.check_dir:
             return_value = CheckAllScriptsInDir(
-                os.path.dirname(options.script_file), options.variables)
+                os.path.dirname(os.path.abspath(options.script_file)),
+                options.variables)
         else:
             steps, vars = ExecuteScriptFile(
                 options.script_file, options.variables, options.check)
@@ -2102,7 +2107,7 @@ def Main():
         else:
             LOG.fatal(e.msg)
         return_value = e.ret
-    except RuntimeError, e:
+    except (IOError, RuntimeError), e:
         LOG.error(e)
         if options.debug:
             LOG.exception(e)
