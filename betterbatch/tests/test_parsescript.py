@@ -592,6 +592,38 @@ class ValidateCommandPathTests(unittest.TestCase):
         ValidateCommandPath("c:\\")
 
 
+class FindVariableMatchingLoopVarTests(unittest.TestCase):
+    def test_pass(self):
+        variables = {
+            "xyz_testxyz": "blah blah",
+            "xyz_testxyz_blh": "blah blah",
+        }
+
+        self.assertEqual(
+            FindVariableMatchingLoopVar('__loopvar___test__loopvar___blh', variables),
+            'xyz_testxyz_blh')
+
+    def test_fail(self):
+        variables = {
+            "xyz_testxyz": "blah blah",
+            "xyz_testxyzblhit": "blah blah",
+        }
+
+        self.assertEqual(
+            FindVariableMatchingLoopVar('__loopvar___test__loopvar__blh', variables),
+            None)
+
+    def test_fail(self):
+        variables = {
+            "xyz_testxyz": "blah blah",
+            "xyz_testabc_blh": "blah blah",
+        }
+
+        self.assertEqual(
+            FindVariableMatchingLoopVar('__loopvar___test__loopvar___blh', variables),
+            None)
+
+
 class ReplaceExecutableSectionsTests(unittest.TestCase):
     ""
 
@@ -801,6 +833,23 @@ class ParseComplexStepTests(unittest.TestCase):
             RuntimeError,
             ParseComplexStep,
                 step)
+
+    def test_for_loopvar_var_name(self):
+        """"""
+        variables = {'1_v': 'test'}
+        step = ParseComplexStep({r"for i in 1\n2\n3\n4": ["echo < <i>_v> "]})
+
+        step.execute(variables, 'test')
+
+    def test_for_loopvar_var_name_missing(self):
+        """"""
+        variables = {'not_here': 'test'}
+        step = ParseComplexStep({r"for i in 1\n2\n3\n4": ["echo < <i>_v>"]})
+
+        self.assertRaises(
+            ErrorCollection,
+            step.execute,
+                variables, 'test')
 
     def test_for_none_steps(self):
         """"""
