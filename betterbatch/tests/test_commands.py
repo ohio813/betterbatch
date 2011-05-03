@@ -21,14 +21,14 @@ parsescript.LOG = ConfigLogging()
 #    #def test_ListCommands(self):
 #    #    """"""
 #    #    vars, commands = ParseScriptFile(
-#    #        os.path.join(TEST_FILES_PATH, "commands.yaml"))
+#    #        os.path.join(TEST_FILES_PATH, "commands.bb"))
 #
 #    #    ListCommands(commands)
 #
 #    #def test_GetCommands(self):
 #    #    """"""
 #    #    vars, commands = ParseScriptFile(
-#    #        os.path.join(TEST_FILES_PATH, "commands.yaml"))
+#    #        os.path.join(TEST_FILES_PATH, "commands.bb"))
 #
 #    #    steps = GetStepsForSelectedCommands(commands)#, "test")
 #    #    self.assertEquals(len(steps), 1)
@@ -39,7 +39,7 @@ parsescript.LOG = ConfigLogging()
 #    #def test_GetCommands_missing(self):
 #    #    """"""
 #    #    vars, commands = ParseScriptFile(
-#    #        os.path.join(TEST_FILES_PATH, "commands.yaml"))
+#    #        os.path.join(TEST_FILES_PATH, "commands.bb"))
 #
 #    #    self.assertRaises(
 #    #        ErrorCollection,
@@ -49,7 +49,7 @@ parsescript.LOG = ConfigLogging()
 #    #def test_GetCommands_ambiguous(self):
 #    #    """"""
 #    #    vars, commands = ParseScriptFile(
-#    #        os.path.join(TEST_FILES_PATH, "commands.yaml"))
+#    #        os.path.join(TEST_FILES_PATH, "commands.bb"))
 #
 #    #    self.assertRaises(
 #    #        ErrorCollection,
