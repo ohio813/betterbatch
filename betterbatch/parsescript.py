@@ -1364,14 +1364,10 @@ class IfStep(Step):
 
         for cond_type, condition in self.conditions:
             LOG.debug("Testing Condition: '%s'" % condition)
-            try:
-                condition.execute(variables, phase)
-            except Exception, e:
-                # swallow exceptions - it just means that the check failed
-                # though still output some debug data
-                LOG.debug("Condition raised: '%s'" % e)
-                # and ensure that the failure return value is set
-                condition.ret = 1
+            # ensure that exceptions are not raised
+            if 'nocheck' not in condition.qualifiers:
+                condition.qualifiers.append('nocheck')
+            condition.execute(variables, phase)
 
             ret = condition.ret
             if condition.negative_condition:
@@ -1691,6 +1687,7 @@ class VariableDefinedCheck(Step):
         dummy, self.variable = SplitStatementAndData(raw_step)
         if not self.variable:
             raise RuntimeError("Cannot check if null variable is defined")
+        self.qualifiers = []
 
     def execute(self, variables, phase):
         "Run this step"
