@@ -1597,14 +1597,27 @@ class IfStepTests(unittest.TestCase):
 
     def test_condition_raising_exception(self):
         """Found on Dec 14, 2010 that an exception while evaluating a condition
-        was actually being evaluated as true - but it should be false"""
+        was actually being evaluated as true - but it should raise an 
+        exception (prior to 1.3.0 - it should have been False"""
         raw_step = {'if compare abc = 1 {*asint*}': ['set blah=21']}
 
         ifstep = ParseComplexStep(raw_step)
         vars = {'blah': '42'}
-        steps = ExecuteSteps([ifstep], vars, 'run')
+        self.assertRaises(
+            RuntimeError,
+            ExecuteSteps,
+                [ifstep], vars, 'run')
 
-        self.assertEquals(vars['blah'], '42')
+
+    def test_blank_argument(self):
+        raw_step = {'if compare <abc> = 1': ['set blah=21']}
+        ifstep = ParseComplexStep(raw_step)
+        vars = {'abc': ''}
+        self.assertRaises(
+            RuntimeError,
+            ifstep.execute,
+                vars, 'run')
+
 
 
 class PopulateVariablesTests(unittest.TestCase):
