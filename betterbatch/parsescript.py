@@ -413,7 +413,6 @@ def ReplaceVariableReferences(
 
     var_refs = FindVariableReferences(text)
     for variable, refs_to_replace in var_refs.items():
-
         # the variable referenced is not defined
         if variable not in variables:
             # if the variable being tested contains references to a loop
@@ -1711,6 +1710,7 @@ class VariableDefinedCheck(Step):
             if phase != "test":
                 LOG.debug("Variable is not defined: '%s'" % key)
             self.ret = 1
+
 
 
 class ApplyCommandLineVarsStep(Step):

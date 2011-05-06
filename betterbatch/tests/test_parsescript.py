@@ -108,6 +108,12 @@ class ParseYAMLFileTests(unittest.TestCase):
             ParseYAMLFile,
                 full_path)
 
+    def test_usage(self):
+        """"""
+        full_path = os.path.join(TEST_FILES_PATH, 'usage_returned_with_new_line.bb')
+        self.assertEquals(
+            ParseYAMLFile(full_path),
+            ['set USAGE =\nshould return with new line after this\nand before this line'])
 
 class ErrorCollectionTests(unittest.TestCase):
     def test_LOGErrors(self):
@@ -1401,6 +1407,18 @@ class ForStepTests(unittest.TestCase):
     def test_with_parallel_qualifier(self):
         step = {'for x in {{{split here there}}} {*parallel*}': ['echo 1']}
         ParseStep(step).execute({}, 'test')
+
+    def test_loop_variables(self):
+        step = {'for to_be_replaced in {{{ split bb }}}': ['ECHO < aa_<to_be_replaced>_cc >\n']}
+        variables = {
+            'aa_bb_cc': "var_replaced",
+            'not_required': 'abc'
+            }
+        ParseStep(step).execute(variables,'test')
+
+    def test_loop_variables_error(self):
+        step = {'for to_be_replaced in {{{ split bb }}}': ['ECHO < aa_<to_be_replaced>_cc >\n']}
+        self.assertRaises(ErrorCollection, ParseStep(step).execute, {},'test')
 
 
 class IfStepTests(unittest.TestCase):
