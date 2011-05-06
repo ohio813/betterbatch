@@ -11,7 +11,6 @@ import ConfigParser
 import copy
 import threading
 import time
-import textwrap
 
 import yaml
 
@@ -360,6 +359,34 @@ def FindVariableReferences(text):
     return variables_referenced
 
 
+def FindVariableMatchingLoopVar(var_name, variables):
+    """The variable name contains a reference to  __loopvar__
+    So we want to find the first variable that matches this value"""
+
+    parts = ("start_%s_end" % var_name).split("__loopvar__")
+    for var in variables:
+        test_var = "start_%s_end" % var
+        other_parts = []
+        matched_parts = []
+        last_match_end = 0
+        for part in parts:
+            # ensure to start where teh last one was found
+            found = test_var.find(part, last_match_end)
+            if found == -1:
+                break
+            other_parts.append(test_var[last_match_end:found])
+            matched_parts.append(part)
+            last_match_end = found + len(part)
+
+        # if we are out of the loop because it wasn't found
+        if found == -1:
+            continue
+
+        # if all references were the same
+        if len(set([p for p in other_parts if p])) == 1:
+            return var
+
+
 def ReplaceVariableReferences(
     text, variables, loop=None, ignore_errors = False):
     """Replace all variable references in the string
@@ -390,25 +417,12 @@ def ReplaceVariableReferences(
         if variable not in variables:
             # if the variable being tested contains references to a loop
             # variable - then extra checking is necessary
-            if "__loopvar__" in variable:
-                parts = variable.split("__loopvar__")
-                found = False
-                for var in variables:
-                    # Stop on the first found variable
-                    if found:
-                        break
-                    # Test if all the parts are in this particular variable
-                    for part in parts:
-                        # stop on the first part that is not in the variable
-                        if part not in var:
-                            found = False
-                            break
-                        # all parts matched - so this is a good candidate
-                        found = True
-                if not found:
-                    errors.append(UndefinedVariableError(variable, text))
-                    continue
-                variable = var
+            if "__loopvar__" in variable.lower():
+                loop_var = FindVariableMatchingLoopVar(variable, variables)
+                if loop_var is None:
+                    raise UndefinedVariableError(variable, text)
+                else:
+                    variable = loop_var
             else:
                 errors.append(UndefinedVariableError(variable, text))
                 continue
@@ -1002,10 +1016,18 @@ def ValidateCommandPath(command, qualifiers = None):
         pass
     else:
         try:
-            # If the path does not exist and which.which() cannot find it
-            # on the path, which.which() raises an error
-            if (os.path.exists(command_path) or which.which(command_path)):
-                pass
+            if not os.path.exists(command_path):
+                # If the path does not exist
+                path_to_command, command_name = os.path.split(command_path)
+                paths = os.environ['path'].split(os.pathsep)
+                # ensure that the path to the command is include (if it is
+                # given)
+                if path_to_command:
+                    paths.append(path_to_command)
+                # if which.which() cannot find it on the path,
+                # which.which() raises an error
+                which.which(command_name, paths)
+
         except which.WhichError:
             raise CommandPathNotFoundError(command_path, command)
 
@@ -1287,6 +1309,13 @@ class IfStep(Step):
         if_defined_vars = []
         else_defined_vars = []
         for cond_type, condition in self.conditions:
+            if not (isinstance(condition, VariableDefinedCheck) or
+                condition.step_data.lower().split(None, 1)[0] in
+                    ('compare', 'exists')):
+                raise RuntimeError(
+                    "Only DEFINED, COMPARE and EXISTS are "
+                    "allowed in If statement conditions")
+
             condition.execute(variables, 'test')
 
             if isinstance(condition, VariableDefinedCheck):
@@ -1334,14 +1363,10 @@ class IfStep(Step):
 
         for cond_type, condition in self.conditions:
             LOG.debug("Testing Condition: '%s'" % condition)
-            try:
-                condition.execute(variables, phase)
-            except Exception, e:
-                # swallow exceptions - it just means that the check failed
-                # though still output some debug data
-                LOG.debug("Condition raised: '%s'" % e)
-                # and ensure that the failure return value is set
-                condition.ret = 1
+            # ensure that exceptions are not raised
+            if 'nocheck' not in condition.qualifiers:
+                condition.qualifiers.append('nocheck')
+            condition.execute(variables, phase)
 
             ret = condition.ret
             if condition.negative_condition:
@@ -1661,6 +1686,7 @@ class VariableDefinedCheck(Step):
         dummy, self.variable = SplitStatementAndData(raw_step)
         if not self.variable:
             raise RuntimeError("Cannot check if null variable is defined")
+        self.qualifiers = []
 
     def execute(self, variables, phase):
         "Run this step"
@@ -1992,12 +2018,10 @@ def ExecuteScriptFile(file_path, cmd_vars, check=False):
 
     return steps, variables
 
+
 def IndentOutput(output):
-    return "\n".join(textwrap.wrap(
-        output,
-        width=999,
-        initial_indent="   ",
-        subsequent_indent="   "))
+    return "   " + "   ".join(line for line in output.split('\n'))
+
 
 def CheckAllScriptsInDir(scripts_dir, variables):
     "Checks all the bb scripts in the same dir as scripts_dir"
@@ -2005,27 +2029,29 @@ def CheckAllScriptsInDir(scripts_dir, variables):
     num_of_errors = 0
     for root, dirs, files in os.walk(scripts_dir):
         for file in files:
-            if os.path.splitext(file)[1].lower() == '.bb':
-                try:
-                    LOG.setLevel(logging.ERROR)
-                    ExecuteScriptFile(
-                        os.path.join(root, file),
-                        variables,
-                        check=True)
-                except ErrorCollection, e:
-                    LOG.setLevel(logging.DEBUG)
-                    cmd_path_errs = [str(err) for err in e.errors
-                        if isinstance(err, CommandPathNotFoundError)]
-                    cmd_path_errs = set(cmd_path_errs)
-                    if cmd_path_errs:
-                        num_of_errors += 1
-                        LOG.info("")
-                        LOG.info(file)
-                        for err in cmd_path_errs:
-                            LOG.fatal(err)
-                except RuntimeError, e:
-                    LOG.error("Parsing Failure: '%s'" % file)
-                    LOG.error(IndentOutput(str(e)))
+            # skip non BB files
+            if os.path.splitext(file)[1].lower() != '.bb':
+                continue
+            try:
+                LOG.setLevel(logging.ERROR)
+                ExecuteScriptFile(
+                    os.path.join(root, file),
+                    variables,
+                    check=True)
+            except ErrorCollection, e:
+                LOG.setLevel(logging.DEBUG)
+                cmd_path_errs = [str(err) for err in e.errors
+                    if isinstance(err, CommandPathNotFoundError)]
+                cmd_path_errs = set(cmd_path_errs)
+                if cmd_path_errs:
+                    num_of_errors += 1
+                    LOG.info("")
+                    LOG.info(file)
+                    for err in cmd_path_errs:
+                        LOG.fatal(err)
+            except RuntimeError, e:
+                LOG.error("Parsing Failure: '%s'" % file)
+                LOG.error(IndentOutput(str(e)))
 
     if not num_of_errors:
         LOG.info("No command path error")
@@ -2060,7 +2086,8 @@ def Main():
     try:
         if options.check_dir:
             return_value = CheckAllScriptsInDir(
-                os.path.dirname(options.script_file), options.variables)
+                os.path.dirname(os.path.abspath(options.script_file)),
+                options.variables)
         else:
             steps, vars = ExecuteScriptFile(
                 options.script_file, options.variables, options.check)
@@ -2077,7 +2104,7 @@ def Main():
         else:
             LOG.fatal(e.msg)
         return_value = e.ret
-    except RuntimeError, e:
+    except (IOError, RuntimeError), e:
         LOG.error(e)
         if options.debug:
             LOG.exception(e)

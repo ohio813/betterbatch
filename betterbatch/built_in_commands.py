@@ -423,9 +423,14 @@ def Compare(text, qualifiers = None):
         str1 = str1.lower()
         str2 = str2.lower()
 
-    if "asint" in qualifiers:
-        str1 = int(str1)
-        str2 = int(str2)
+    try:
+        if "asint" in qualifiers:
+            str1 = int(str1)
+            str2 = int(str2)
+    except ValueError, e:
+        raise RuntimeError(
+            "Value(s) passed to Compare cannot be converted to "
+            "integer '%s' and/or '%s'" % (str1, str2))
 
     op = compare.ParseComparisonOperator(op_text)
 

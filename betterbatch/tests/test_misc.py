@@ -7,7 +7,7 @@ import sys
 
 TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
 TEST_FILES_PATH = os.path.join(TESTS_DIR, "test_files")
-COMMANDS_YAML = os.path.join(TEST_FILES_PATH, "commands.yaml")
+COMMANDS_YAML = os.path.join(TEST_FILES_PATH, "commands.bb")
 
 # ensure that the package root is on the path
 PACKAGE_ROOT = os.path.dirname(os.path.dirname(TESTS_DIR))
@@ -42,7 +42,7 @@ class MainTests(unittest.TestCase):
         """"""
         #logging.shutdown()
         sys.argv = [
-            'main.py', os.path.join(TEST_FILES_PATH, "commands_broken.yaml"), "-d"]
+            'main.py', os.path.join(TEST_FILES_PATH, "commands_broken.bb"), "-d"]
         self.assertRaises(
             SystemExit,
             Main)
@@ -50,7 +50,7 @@ class MainTests(unittest.TestCase):
     def test_Main_execute_fail2(self):
         """"""
         sys.argv = [
-            'main.py', os.path.join(TEST_FILES_PATH, "commands_broken2.yaml"), "-d"]
+            'main.py', os.path.join(TEST_FILES_PATH, "commands_broken2.bb"), "-d"]
 
         self.assertRaises(
             SystemExit,
@@ -61,7 +61,7 @@ class MainTests(unittest.TestCase):
         sys.argv = [
             'main.py',
             os.path.join(
-                TEST_FILES_PATH, "commands_broken_more_than_one.yaml"),
+                TEST_FILES_PATH, "commands_broken_more_than_one.bb"),
             "-d"
             ]
 
@@ -71,19 +71,19 @@ class MainTests(unittest.TestCase):
 
     def test_Main_LogFile(self):
         """"""
-        sys.argv = ['main.py', os.path.join(TEST_FILES_PATH, "logfile.yaml"), "-d"]
+        sys.argv = ['main.py', os.path.join(TEST_FILES_PATH, "logfile.bb"), "-d"]
         Main()
 
 
     def test_Main_LogFile(self):
         """"""
-        sys.argv = ['main.py', os.path.join(TEST_FILES_PATH, "logfile.yaml"), "-c"]
+        sys.argv = ['main.py', os.path.join(TEST_FILES_PATH, "logfile.bb"), "-c"]
         Main()
 
     def test_Main_verbose(self):
         """"""
         sys.argv = [
-            'main.py', os.path.join(TEST_FILES_PATH, "logfile.yaml"), "-v", "-d"]
+            'main.py', os.path.join(TEST_FILES_PATH, "logfile.bb"), "-v", "-d"]
         Main()
 
     def test_ConfigLogging(self):

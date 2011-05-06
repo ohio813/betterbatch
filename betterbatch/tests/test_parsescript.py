@@ -30,7 +30,6 @@ class ConfigLoggingTests(unittest.TestCase):
 
         colored_handler_found = False
         for handler in logger.handlers:
-            print "xxxxxx", handler
             if isinstance(handler, ColoredConsoleHandler):
                 colored_handler_found = True
                 break
@@ -57,7 +56,7 @@ class ParseYAMLFileTests(unittest.TestCase):
 
     def test_scanner_error(self):
         """"""
-        full_path = os.path.join(TEST_FILES_PATH, 'scanner_error.yaml')
+        full_path = os.path.join(TEST_FILES_PATH, 'scanner_error.bb')
         self.assertRaises(
             RuntimeError,
             ParseYAMLFile,
@@ -65,7 +64,7 @@ class ParseYAMLFileTests(unittest.TestCase):
 
     def test_parser_error(self):
         """"""
-        full_path = os.path.join(TEST_FILES_PATH, 'parser_error.yaml')
+        full_path = os.path.join(TEST_FILES_PATH, 'parser_error.bb')
         self.assertRaises(
             RuntimeError,
             ParseYAMLFile,
@@ -73,7 +72,7 @@ class ParseYAMLFileTests(unittest.TestCase):
 
     def test_colon_mid_string(self):
         """"""
-        full_path = os.path.join(TEST_FILES_PATH, 'parser_error.yaml')
+        full_path = os.path.join(TEST_FILES_PATH, 'parser_error.bb')
         self.assertRaises(
             RuntimeError,
             ParseYAMLFile,
@@ -95,7 +94,7 @@ class ParseYAMLFileTests(unittest.TestCase):
 
     def test_numeric_value(self):
         """"""
-        full_path = os.path.join(TEST_FILES_PATH, 'number.yaml')
+        full_path = os.path.join(TEST_FILES_PATH, 'number.bb')
         self.assertRaises(
             RuntimeError,
             ParseYAMLFile,
@@ -103,7 +102,7 @@ class ParseYAMLFileTests(unittest.TestCase):
 
     def test_mismatched_braces(self):
         """"""
-        full_path = os.path.join(TEST_FILES_PATH, 'mismatched_braces.yaml')
+        full_path = os.path.join(TEST_FILES_PATH, 'mismatched_braces.bb')
         self.assertRaises(
             RuntimeError,
             ParseYAMLFile,
@@ -599,6 +598,38 @@ class ValidateCommandPathTests(unittest.TestCase):
         ValidateCommandPath("c:\\")
 
 
+class FindVariableMatchingLoopVarTests(unittest.TestCase):
+    def test_pass(self):
+        variables = {
+            "xyz_testxyz": "blah blah",
+            "xyz_testxyz_blh": "blah blah",
+        }
+
+        self.assertEqual(
+            FindVariableMatchingLoopVar('__loopvar___test__loopvar___blh', variables),
+            'xyz_testxyz_blh')
+
+    def test_fail(self):
+        variables = {
+            "xyz_testxyz": "blah blah",
+            "xyz_testxyzblhit": "blah blah",
+        }
+
+        self.assertEqual(
+            FindVariableMatchingLoopVar('__loopvar___test__loopvar__blh', variables),
+            None)
+
+    def test_fail(self):
+        variables = {
+            "xyz_testxyz": "blah blah",
+            "xyz_testabc_blh": "blah blah",
+        }
+
+        self.assertEqual(
+            FindVariableMatchingLoopVar('__loopvar___test__loopvar___blh', variables),
+            None)
+
+
 class ReplaceExecutableSectionsTests(unittest.TestCase):
     ""
 
@@ -808,6 +839,23 @@ class ParseComplexStepTests(unittest.TestCase):
             RuntimeError,
             ParseComplexStep,
                 step)
+
+    def test_for_loopvar_var_name(self):
+        """"""
+        variables = {'1_v': 'test'}
+        step = ParseComplexStep({r"for i in 1\n2\n3\n4": ["echo < <i>_v> "]})
+
+        step.execute(variables, 'test')
+
+    def test_for_loopvar_var_name_missing(self):
+        """"""
+        variables = {'not_here': 'test'}
+        step = ParseComplexStep({r"for i in 1\n2\n3\n4": ["echo < <i>_v>"]})
+
+        self.assertRaises(
+            ErrorCollection,
+            step.execute,
+                variables, 'test')
 
     def test_for_none_steps(self):
         """"""
@@ -1198,7 +1246,7 @@ class IncludeStepTests(unittest.TestCase):
     def test_include_variable_in_filename(self):
         variables =  {
             "__script_dir__": TEST_FILES_PATH,
-            'file_to_include': "basic.yaml",}
+            'file_to_include': "basic_set_var.bb",}
 
         step = self.__class__.class_under_test("include <file_to_include>")
         step.execute(variables, "test")
@@ -1248,17 +1296,17 @@ class IncludeStepTests(unittest.TestCase):
 
     def test_include_file_with_loopvar(self):
         steps = ParseSteps([{
-            "for x in {{{ split basic.bb include_loopvar.bb }}}" : 
+            "for x in {{{ split basic.bb basic_set_var.bb }}}" :
                 "include <x>"}])
-        
+
         vars = {'__script_dir__': TEST_FILES_PATH}
         ExecuteSteps(steps, vars, "run")
-        self.assertEqual(vars["test_var"], "123")
+        self.assertEqual(vars["test"], "Hello World")
 
 
 #    def test_include_without_script_dir(self):
 #        inc_step = IncludeStep(
-#            "include %s" % os.path.join(TEST_FILES_PATH, "basic.yaml"))
+#            "include %s" % os.path.join(TEST_FILES_PATH, "basic_set_var.bb"))
 #
 #        inc_step.execute({}, 'test')
 
@@ -1347,7 +1395,7 @@ class VariableDefinedCheckTests(unittest.TestCase):
 #    def test_include_variable_in_filename(self):
 #        variables =  {
 #            "__script_dir__": TEST_FILES_PATH,
-#            'file_to_include': "basic.yaml",}
+#            'file_to_include': "basic_set_var.bb",}
 #
 #        step = IncludeStep("include <file_to_include>")
 #        step.execute(variables, "test")
@@ -1402,7 +1450,7 @@ class IfStepTests(unittest.TestCase):
                 raise
 
     def test_broken_not_list(self):
-        script_filepath = os.path.join(TEST_FILES_PATH,   "if_else_broken_not_list.yaml")
+        script_filepath = os.path.join(TEST_FILES_PATH,   "if_else_broken_not_list.bb")
 
         self.assertRaises(
             RuntimeError,
@@ -1410,7 +1458,7 @@ class IfStepTests(unittest.TestCase):
                 script_filepath)
 
     def test_broken_not_list2(self):
-        script_filepath = os.path.join(TEST_FILES_PATH,   "if_else_broken_not_list2.yaml")
+        script_filepath = os.path.join(TEST_FILES_PATH,   "if_else_broken_not_list2.bb")
         vars = PopulateVariables(script_filepath, {})
         try:
 
@@ -1426,7 +1474,7 @@ class IfStepTests(unittest.TestCase):
 #        vars = {}
 #        try:
 #            LoadAndCheckFile(
-#                os.path.join(TEST_FILES_PATH, "if_else_broken_only_one.yaml"),
+#                os.path.join(TEST_FILES_PATH, "if_else_broken_only_one.bb"),
 #                vars)
 #        except ErrorCollection, e:
 #            print "\n\n"
@@ -1437,7 +1485,7 @@ class IfStepTests(unittest.TestCase):
 #                steps, vars)
 #
     def test_broken_too_many_clauses(self):
-        script_filepath = os.path.join(TEST_FILES_PATH,   "if_else_broken_too_many.yaml")
+        script_filepath = os.path.join(TEST_FILES_PATH,   "if_else_broken_too_many.bb")
 
         self.assertRaises(
             RuntimeError,
@@ -1445,7 +1493,7 @@ class IfStepTests(unittest.TestCase):
                 script_filepath)
 
     def test_broken_do_name(self):
-        script_filepath = os.path.join(TEST_FILES_PATH,   "if_else_broken_do_name.yaml")
+        script_filepath = os.path.join(TEST_FILES_PATH,   "if_else_broken_do_name.bb")
         vars = PopulateVariables(script_filepath, {})
 
         steps = LoadScriptFile(script_filepath)
@@ -1454,12 +1502,23 @@ class IfStepTests(unittest.TestCase):
         ExecuteSteps(steps, vars, 'run')
 
     def test_broken_else_name(self):
-        script_filepath = os.path.join(TEST_FILES_PATH, "if_else_broken_else_name.yaml")
+        script_filepath = os.path.join(TEST_FILES_PATH, "if_else_broken_else_name.bb")
 
         self.assertRaises(
             RuntimeError,
             LoadScriptFile,
                 script_filepath)
+
+    def test_un_supported_condition_type(self):
+        should_fail_steps = {
+            "if robocopy x y z":
+                "echo -<test>-"}
+
+        ifstep = ParseComplexStep(should_fail_steps)
+        self.assertRaises(
+            RuntimeError,
+            ExecuteSteps,
+                [ifstep], {}, 'test')
 
     def test_minimal_if(self):
         pass
@@ -1556,14 +1615,27 @@ class IfStepTests(unittest.TestCase):
 
     def test_condition_raising_exception(self):
         """Found on Dec 14, 2010 that an exception while evaluating a condition
-        was actually being evaluated as true - but it should be false"""
+        was actually being evaluated as true - but it should raise an 
+        exception (prior to 1.3.0 - it should have been False"""
         raw_step = {'if compare abc = 1 {*asint*}': ['set blah=21']}
 
         ifstep = ParseComplexStep(raw_step)
         vars = {'blah': '42'}
-        steps = ExecuteSteps([ifstep], vars, 'run')
+        self.assertRaises(
+            RuntimeError,
+            ExecuteSteps,
+                [ifstep], vars, 'run')
 
-        self.assertEquals(vars['blah'], '42')
+
+    def test_blank_argument(self):
+        raw_step = {'if compare <abc> = 1': ['set blah=21']}
+        ifstep = ParseComplexStep(raw_step)
+        vars = {'abc': ''}
+        self.assertRaises(
+            RuntimeError,
+            ifstep.execute,
+                vars, 'run')
+
 
 
 class PopulateVariablesTests(unittest.TestCase):
@@ -1902,14 +1974,26 @@ class ApplyCommandLineVarsStepTests(unittest.TestCase):
 
 class CheckAllScriptsInDirTests(unittest.TestCase):
     def test_check_all_scripts_in_dir_errors(self):
-        command = CheckAllScriptsInDir(os.path.join(TEST_FILES_PATH,
-            "check_all_scripts_in_dir_with_errors"),{})
-        self.assertEqual(command, 1)
+        test_dir = os.path.join(
+            TEST_FILES_PATH, "check_all_scripts_in_dir_with_errors")
+        num_errors = CheckAllScriptsInDir(test_dir, {})
+        self.assertEqual(num_errors, 1)
 
     def test_check_all_scripts_in_dir_no_errors(self):
-        command = CheckAllScriptsInDir(os.path.join(TEST_FILES_PATH,
-            "check_all_scripts_in_dir_without_errors"),{})
-        self.assertEqual(command, 0)
+        test_dir = os.path.join(
+            TEST_FILES_PATH, "check_all_scripts_in_dir_without_errors")
+        num_errors = CheckAllScriptsInDir(test_dir, {})
+        self.assertEqual(num_errors, 0)
+
+    def test_check_dir_with_broken_scripts(self):
+        num_errors = CheckAllScriptsInDir(TEST_FILES_PATH, {})
+        self.assertEqual(num_errors > 1, True)
+
+
+class ExecuteScriptFileTests(unittest.TestCase):
+    def test_usage_is_printed(self):
+        path = os.path.join(TEST_FILES_PATH, "missing_variable.bb")
+        ExecuteScriptFile(path, {})
 
 
 class IntegrationTests(unittest.TestCase):
@@ -1925,6 +2009,34 @@ class IntegrationTests(unittest.TestCase):
 
         steps = ParseSteps(["set a = Abc", "set n = <A>", "echo <n>"])
         ExecuteSteps(steps, vars, "run")
+
+
+class MainTests(unittest.TestCase):
+
+    def test_GetValidatedOptions_exception(self):
+        sys.argv = ["", "does not exist.bb"]
+        try:
+            Main()
+        except SystemExit, e:
+            self.assertEqual(e.code, 1)
+
+    def test_check_dirs_fail(self):
+        script_path = os.path.join(
+                TEST_FILES_PATH,
+                "check_all_scripts_in_dir_with_errors",
+                "bb_script_with_no_command_path_errors.bb")
+        sys.argv = [
+            "",
+            script_path,
+            "-j"]
+        try:
+            Main()
+        except SystemExit, e:
+            self.assertEqual(e.code, 1)
+
+    #def test_no_steps(self):
+    #    sys.argv = ["", os.path.join(TEST_FILES_PATH, "empty.bb")]
+    #    Main()
 
 
 if __name__ == "__main__":
