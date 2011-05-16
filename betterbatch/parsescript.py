@@ -1312,10 +1312,10 @@ class IfStep(Step):
         for cond_type, condition in self.conditions:
             if not (isinstance(condition, VariableDefinedCheck) or
                 condition.step_data.lower().split(None, 1)[0] in
-                    ('compare', 'exists')):
+                    ('compare', 'exists', 'exist')):
                 raise RuntimeError(
                     "Only DEFINED, COMPARE and EXISTS are "
-                    "allowed in If statement conditions")
+                    "allowed in If statement conditions: '%s'" % condition)
 
             condition.execute(variables, 'test')
 
