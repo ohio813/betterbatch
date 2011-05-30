@@ -591,7 +591,7 @@ def RenderVariableValue(
     return value
 
 
-def SetupLogFile(log_filename):
+def SetupLogFile(log_filename, append=False):
     "Create the log file if it has been requested"
 
     # try to find if the log file is already open
@@ -613,7 +613,8 @@ def SetupLogFile(log_filename):
             LOG.removeHandler(h)
 
     # if that logfile already exists - then try and delete it
-    if os.path.exists(log_filename):
+    if not append and os.path.exists(log_filename):
+
         try:
             os.unlink(log_filename)
         except OSError:
@@ -1661,14 +1662,18 @@ class LogFileStep(Step):
         dummy, self.filename = SplitStatementAndData(raw_step)
         if not self.filename:
             raise RuntimeError("logfile with no filename.")
+        self.filename, self.qualifiers = ParseQualifiers(self.filename)
 
     def execute(self, variables, phase):
         "Run this step"
         filename = ReplaceVariableReferences(self.filename, variables)
 
         if phase != "test":
-            SetupLogFile(filename)
-            LOG.debug('Variables at logfile creation: %s' % variables)
+            if 'append' in self.qualifiers:
+                SetupLogFile(filename, append=True)
+            else:
+                SetupLogFile(filename)
+                LOG.debug('Variables at logfile creation: %s' % variables)
             variables['__logfile__'] = filename
 
 
