@@ -295,7 +295,6 @@ def ParseVariableDefinition(var_def, function=None):
     else:
         name, value = name_value
 
-
     # perform some sanity checks on the name
     if name is not None:
         if len(name.split()) > 1:
@@ -1107,8 +1106,10 @@ class CommandStep(Step):
             func = built_in_commands.SystemCommand
             params = command_text
             cmd_log_string = self.command_as_string_for_log("", params)
+            #if "__echo_all_output__" in variables:
+            #    LOG.info("-> " + command_text)
 
-        if cmd == "echo":
+        if cmd == "echo" or "__echo_all_output__" in variables:
             self.qualifiers.append('echo')
 
         #cmd_log_string = self.command_as_string_for_log(cmd, params)
