@@ -1789,18 +1789,18 @@ def LoadScriptFile(filepath):
 #        "print the valur of a variable"
 #        print self.cur_step
 #    do_ps = do_printstep
-
-
-def DebugExecuteSteps(steps_, variables, phase):
-    "Execute the steps"
-
-    errors = []
-    try:
-        Debugger(steps_, variables).cmdloop()
-    except StopIteration:
-        pass
-
-    return steps
+#
+#
+#def DebugExecuteSteps(steps_, variables, phase):
+#    "Execute the steps"
+#
+#    errors = []
+#    try:
+#        Debugger(steps_, variables).cmdloop()
+#    except StopIteration:
+#        pass
+#
+#    return steps
 
 
 def ExecuteSteps(steps_, variables, phase):
