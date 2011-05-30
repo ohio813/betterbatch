@@ -47,9 +47,10 @@ def ParseArguments():
         default = False,
         help='do not execute any commands, read and validate script file')
 
-    #parser.add_option(
-    #    '-e', '--execute',
-    #    metavar = "cmd1,cmd2,cmd3", help='Run the commands')
+    parser.add_option(
+        '--echo-all-output',
+        action = "store_true",
+        help='treat all commands as if they had the {*echo*} qualifier')
 
     #parser.add_option(
     #    '-i', '--include', action = "append",
@@ -141,6 +142,8 @@ def ValidateOptions(options, args):
             "The script file does not exist: '%s'"% options.script_file)
 
     options.variables = ParseVariableOverrides(args[1:])
+    if options.echo_all_output:
+        options.variables['__echo_all_output__'] = "On"
 
     return options
 
