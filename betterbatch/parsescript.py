@@ -1865,7 +1865,8 @@ def PopulateVariables(script_file, cmd_line_vars):
         '__last_return__': '0',
         '__script_dir__': os.path.abspath(os.path.dirname(script_file)),
         '__script_filename__': os.path.basename(script_file),
-        '__working_dir__': os.path.abspath(os.getcwd())})
+        '__working_dir__': os.path.abspath(os.getcwd()),
+        '__logfile__': ''})
 
     return cmd_line_vars
 
