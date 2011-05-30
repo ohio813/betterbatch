@@ -2014,7 +2014,9 @@ def ExecuteScriptFile(file_path, cmd_vars, check=False):
 
 
 def IndentOutput(output):
-    return "   " + "   ".join(line for line in output.split('\n'))
+    "return a string with each of the lines in output indented"
+    return "   " + "\n   ".join(
+        line.rstrip('\r') for line in output.split('\n'))
 
 
 def CheckAllScriptsInDir(scripts_dir, variables):
