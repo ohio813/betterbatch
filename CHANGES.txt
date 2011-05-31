@@ -5,12 +5,30 @@ CHANGES
 
 1.3.0 Breaking some backwards compatibility
 ---------------------------------------------------------------------------
-XX-XXXX-2011
+30-May-2011
 
-* The way that ``defined <some_var>`` was processed meant it was not possible
-  to build up variable names and check if they were defined. So no rather than
-  treating ``<smome_var> == some_var`` it will be replaced with the variable
-  value instead.
+* Change ``If`` blocks to ONLY support ``compare``, ``defined`` or ``exists``
+  conditions.
+  It was too error prone the previous way - because a condition could fail
+  (due to how the script was written for example) and it would be seen as
+  False - when in fact it needed to be raised as a problem to be fixed.
+* Previously how ``defined <some_var>`` was processed meant it was not 
+  possible to build up variable names and check if they were defined e.g.
+  ``- if defined <some_<sub_var> >: ...`` . Now 
+  rather than treating ``defined <some_var>`` the same as ``defined some_var`` 
+  the variable reference ``<some_var>`` will be replaced by the value of the 
+  variable ``some_var``.
+* Add new command line option ``--echo-all-output``. When this option is set
+  then all output from commands is printed to the screen.
+* Fix indentation of command output (using textwrap was the wrong choice for
+  this functionality)
+* The Variable used in a loop was not automaticaly defined - which could cause
+  problems during the test phase. They are now given the default value of 
+  __loopvar__.
+* Improve handling of 'asint' for If statements
+* Allow appending to existing log files with the ``{*append*}`` ``logfile`` 
+  qualifier.
+* Stricter variable handling to help avoid infinite variable loops 
 
 
 1.2.3 Many bug fixes and improvements (looping, checking, tools)
@@ -19,11 +37,11 @@ XX-XXXX-2011
 
 * Special thanks to Toon Pang Ong for his work on many of the features/fixes
   in this release.
-* Allow optional includes by using the ``{*optional*}`` qualifier. Also better 
+* Allow optional includes by using the ``{*optional*}`` qualifier. Also better
   error reporting for missing includes.
 * Add qualifiers to the ``echo`` statement for the output to be logged as
-  warning or error via the ``{*as_debug*}``, ``{*as_warning*}``, 
-  ``{*as_error*}``, and ``{*as_error*}`` qualifiers. (``{*as_info*}`` is not 
+  warning or error via the ``{*as_debug*}``, ``{*as_warning*}``,
+  ``{*as_error*}``, and ``{*as_error*}`` qualifiers. (``{*as_info*}`` is not
   needed as info is default)
 * Add a new statement to apply the command line variables overrides at any
   time. This allows default values from the script to be easily overwritten
@@ -33,10 +51,10 @@ XX-XXXX-2011
   CSV file.
 * End and Echo statements are now treated as pre-formatted text (no longer
   a need to use "- | " to force pre-formatting
-* Qualifiers were being incorrectly lowercased (some functions use the 
+* Qualifiers were being incorrectly lowercased (some functions use the
   qualifer syntax to pass data so they should not be lowercased)
 * New option to replace_in_file --universal-newlines that enables Python
-  Universal Newline support. This converts when reading in \r or \n line 
+  Universal Newline support. This converts when reading in \r or \n line
   endings to \r\n on windows. This may not be what you want and is disabled
   by default.
 * The current log file path is assigned to the variable __logfile__.
@@ -44,18 +62,18 @@ XX-XXXX-2011
   e.g. ``c:\scripts\yourscript.bb --check-dir`` will check all bb scripts in
   ``c:\scripts`` directory. Currently the only checks are for syntax errors
   or for missing commands.
-* Which.py tool added/ (from http://code.google.com/p/which/) to the tools 
+* Which.py tool added/ (from http://code.google.com/p/which/) to the tools
   directory
 * Add Support for reading 64 bit registry entries in Get/SetRegistryValue
 * Test improvements (test file consistency, more tests)
-* Internal: Allow missing variable references to be ignored (i.e. replace 
-  whatever can be replaced and return). This is only used by the default USAGE 
+* Internal: Allow missing variable references to be ignored (i.e. replace
+  whatever can be replaced and return). This is only used by the default USAGE
   information output.
 * Allow ``built_in_commands.PopulateFromToolsFolder()`` to be called for the same
   path multiple times without raising an error.
 * Perform more Anti-YAML error escaping
 * Improve how loop variables are tested (makes it easier to write dynamic scripts)
-* Fix include statements where the filepath depends on a loop variable. 
+* Fix include statements where the filepath depends on a loop variable.
   Previously the filename was changed the first time through and would always
   keep that value.
 
