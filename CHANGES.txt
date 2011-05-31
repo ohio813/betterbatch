@@ -12,23 +12,23 @@ CHANGES
   It was too error prone the previous way - because a condition could fail
   (due to how the script was written for example) and it would be seen as
   False - when in fact it needed to be raised as a problem to be fixed.
-* Previously how ``defined <some_var>`` was processed meant it was not 
+* Previously how ``defined <some_var>`` was processed meant it was not
   possible to build up variable names and check if they were defined e.g.
-  ``- if defined <some_<sub_var> >: ...`` . Now 
-  rather than treating ``defined <some_var>`` the same as ``defined some_var`` 
-  the variable reference ``<some_var>`` will be replaced by the value of the 
+  ``- if defined <some_<sub_var> >: ...`` . Now
+  rather than treating ``defined <some_var>`` the same as ``defined some_var``
+  the variable reference ``<some_var>`` will be replaced by the value of the
   variable ``some_var``.
 * Add new command line option ``--echo-all-output``. When this option is set
   then all output from commands is printed to the screen.
 * Fix indentation of command output (using textwrap was the wrong choice for
   this functionality)
 * The Variable used in a loop was not automaticaly defined - which could cause
-  problems during the test phase. They are now given the default value of 
+  problems during the test phase. They are now given the default value of
   __loopvar__.
 * Improve handling of 'asint' for If statements
-* Allow appending to existing log files with the ``{*append*}`` ``logfile`` 
+* Allow appending to existing log files with the ``{*append*}`` ``logfile``
   qualifier.
-* Stricter variable handling to help avoid infinite variable loops 
+* Stricter variable handling to help avoid infinite variable loops
 
 
 1.2.3 Many bug fixes and improvements (looping, checking, tools)
