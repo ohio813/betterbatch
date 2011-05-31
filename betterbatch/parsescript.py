@@ -295,7 +295,6 @@ def ParseVariableDefinition(var_def, function=None):
     else:
         name, value = name_value
 
-
     # perform some sanity checks on the name
     if name is not None:
         if len(name.split()) > 1:
@@ -591,7 +590,7 @@ def RenderVariableValue(
     return value
 
 
-def SetupLogFile(log_filename):
+def SetupLogFile(log_filename, append=False):
     "Create the log file if it has been requested"
 
     # try to find if the log file is already open
@@ -613,7 +612,8 @@ def SetupLogFile(log_filename):
             LOG.removeHandler(h)
 
     # if that logfile already exists - then try and delete it
-    if os.path.exists(log_filename):
+    if not append and os.path.exists(log_filename):
+
         try:
             os.unlink(log_filename)
         except OSError:
@@ -948,15 +948,7 @@ class VariableDefinition(Step):
 
         new_val = self.value
         if 'delayed' not in self.qualifiers:
-            try:
-                new_val = ReplaceVariableReferences(new_val, variables)
-            except ErrorCollection:
-                # when testing - even if there is an issue where this variable
-                # references missing variables, this varialbe is still
-                # defined - and shouldn't be raised an a missing variable
-                if phase == "test":
-                    variables[self.name] = ""
-
+            new_val = ReplaceVariableReferences(new_val, variables)
             new_val = ReplaceExecutableSections(new_val, variables, phase)
 
         if phase != "test":
@@ -1114,8 +1106,10 @@ class CommandStep(Step):
             func = built_in_commands.SystemCommand
             params = command_text
             cmd_log_string = self.command_as_string_for_log("", params)
+            #if "__echo_all_output__" in variables:
+            #    LOG.info("-> " + command_text)
 
-        if cmd == "echo":
+        if cmd == "echo" or "__echo_all_output__" in variables:
             self.qualifiers.append('echo')
 
         #cmd_log_string = self.command_as_string_for_log(cmd, params)
@@ -1311,10 +1305,10 @@ class IfStep(Step):
         for cond_type, condition in self.conditions:
             if not (isinstance(condition, VariableDefinedCheck) or
                 condition.step_data.lower().split(None, 1)[0] in
-                    ('compare', 'exists')):
+                    ('compare', 'exists', 'exist')):
                 raise RuntimeError(
                     "Only DEFINED, COMPARE and EXISTS are "
-                    "allowed in If statement conditions")
+                    "allowed in If statement conditions: '%s'" % condition)
 
             condition.execute(variables, 'test')
 
@@ -1667,14 +1661,18 @@ class LogFileStep(Step):
         dummy, self.filename = SplitStatementAndData(raw_step)
         if not self.filename:
             raise RuntimeError("logfile with no filename.")
+        self.filename, self.qualifiers = ParseQualifiers(self.filename)
 
     def execute(self, variables, phase):
         "Run this step"
         filename = ReplaceVariableReferences(self.filename, variables)
 
         if phase != "test":
-            SetupLogFile(filename)
-            LOG.debug('Variables at logfile creation: %s' % variables)
+            if 'append' in self.qualifiers:
+                SetupLogFile(filename, append=True)
+            else:
+                SetupLogFile(filename)
+                LOG.debug('Variables at logfile creation: %s' % variables)
             variables['__logfile__'] = filename
 
 
@@ -1796,18 +1794,18 @@ def LoadScriptFile(filepath):
 #        "print the valur of a variable"
 #        print self.cur_step
 #    do_ps = do_printstep
-
-
-def DebugExecuteSteps(steps_, variables, phase):
-    "Execute the steps"
-
-    errors = []
-    try:
-        Debugger(steps_, variables).cmdloop()
-    except StopIteration:
-        pass
-
-    return steps
+#
+#
+#def DebugExecuteSteps(steps_, variables, phase):
+#    "Execute the steps"
+#
+#    errors = []
+#    try:
+#        Debugger(steps_, variables).cmdloop()
+#    except StopIteration:
+#        pass
+#
+#    return steps
 
 
 def ExecuteSteps(steps_, variables, phase):
@@ -1872,7 +1870,8 @@ def PopulateVariables(script_file, cmd_line_vars):
         '__last_return__': '0',
         '__script_dir__': os.path.abspath(os.path.dirname(script_file)),
         '__script_filename__': os.path.basename(script_file),
-        '__working_dir__': os.path.abspath(os.getcwd())})
+        '__working_dir__': os.path.abspath(os.getcwd()),
+        '__logfile__': ''})
 
     return cmd_line_vars
 
@@ -2020,7 +2019,9 @@ def ExecuteScriptFile(file_path, cmd_vars, check=False):
 
 
 def IndentOutput(output):
-    return "   " + "   ".join(line for line in output.split('\n'))
+    "return a string with each of the lines in output indented"
+    return "   " + "\n   ".join(
+        line.rstrip('\r') for line in output.split('\n'))
 
 
 def CheckAllScriptsInDir(scripts_dir, variables):

@@ -246,13 +246,12 @@ class ParseVariableDefinitionTests(unittest.TestCase):
         self.assertEquals(vars['x'], os.path.abspath('.'))
 
     def test_with_missing_vars(self):
-        v = VariableDefinition("set x = <missing>")
+        v = VariableDefinition("set x = <missing> {*delayed*}")
         vars = {}
 
-        v.execute(vars, "run")
-
         v.execute(vars, "test")
-        #self.assertEquals(vars['x'], '')
+        v.execute(vars, "run")
+        self.assertEquals(vars['x'], '<missing>')
 
     def test_wrong_function_value(self):
         self.assertRaises(
