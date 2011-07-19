@@ -1063,7 +1063,7 @@ class CommandStep(Step):
 
         try:
             command_text = RenderVariableValue(
-                            self.step_data, variables, phase)
+                self.step_data, variables, phase)
         except ErrorCollection, e:
             if phase != "test":
                 raise
@@ -1645,8 +1645,7 @@ class IncludeStep(Step):
             if prev_script_file:
                 variables["__script_filename__"] = prev_script_file
 
-
-        # we may not be abel to do this at this stage
+        # we may not be able to do this at this stage
         # as execute for includes will be done before the variables are
         # added!, so steps inside the includes will not have the all
         # the variables available
