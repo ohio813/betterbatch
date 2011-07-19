@@ -144,9 +144,14 @@ example::
 By default any variable you reference and any executable sections will be
 executed when the variable definition is encountered in the script.
 You can specify that variables and executable sections should not be replaced
-until the variable is used by spedifing the ``{*delayed*}`` qualifier for example::
+until the variable is actually used by specifing the ``{*delayed*}`` qualifier for example::
 
    - set later_var = This <variable> and {{{executable section}}} will be replaced only when used {*delayed*}
+
+The ``{*hidden*}`` qualifier can be used on passwords and other sensitive data
+so that it will not be put into the log file or output on the command line.
+Please note that the support for this may not be complete - so you still need to
+be careful with sensitive data.
 
 If you need to include '<' or '>' characters in the variable value - you need to
 escape them. This is done by doubling them.
