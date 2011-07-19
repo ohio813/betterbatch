@@ -1,0 +1,3 @@
+- set abc = "c:\temp"
+- dir <undef_var>
+- dir <abc>

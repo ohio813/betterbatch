@@ -1,0 +1,403 @@
+******************************************************
+The available built-in commands are:
+******************************************************
+
+.. contents::
+
+
+======================================================
+Running shell/external commands
+======================================================
+
+run (aliases: execute, system). (default)
+------------------------------------------------------
+Execute a single command on the command line shell.
+This is the default command - you do not need to and should not use
+the ``run`` command itself - just call the command.
+
+It can take the following qualifiers:
+
+**echo**
+    Output is echo'ed to the terminal.
+
+    Prior to BetterBatch 1.2.0 output was echoed AFTER the process
+    finished (unless *ui* qualifier was used).
+    Since 1.2.0 output is echoed as it generated. As such **echo** and **ui**
+    qualifiers have been merged (and **ui** is now just an alias for **echo**.)
+
+**nocapture**
+    Output will not be captured to the log file.
+
+**nocheck**
+    Do not check the return value. Default is to raise an
+    exception if the return value is not 0 (success)
+
+**ui**
+    Alias for **echo** (since 1.2.0)
+
+    To achieve the pre-1.2.0 functionality (where **ui** stopped capturing
+    of output to the log file) specify **nocapture** & **echo** instead.
+
+
+which
+------------------------------------------------------
+Simliar to the *nix shell command, this tool allows you to find the path of
+which (if any) command will be executed for a specific command.
+
+e.g. if you run::
+
+    which notepad
+
+it will return::
+
+    C:\WINDOWS\system32\notepad.EXE
+
+Here is the help output::
+
+    Show the full path of commands.
+
+    Usage:
+        which [<options>...] [<command-name>...]
+
+    Options:
+        -h, --help      Print this help and exit.
+        -V, --version   Print the version info and exit.
+
+        -a, --all       Print *all* matching paths.
+        -v, --verbose   Print out how matches were located and
+                        show near misses on stderr.
+        -q, --quiet     Just print out matches. I.e., do not print out
+                        near misses.
+
+        -p <altpath>, --path=<altpath>
+                        An alternative path (list of directories) may
+                        be specified for searching.
+        -e <exts>, --exts=<exts>
+                        Specify a list of extensions to consider instead
+                        of the usual list (';'-separate list, Windows
+                        only).
+
+    Show the full path to the program that would be run for each given
+    command name, if any. Which, like GNU's which, returns the number of
+    failed arguments, or -1 when no <command-name> was given.
+
+    Near misses include duplicates, non-regular files and (on Un*x)
+    files without executable access.
+
+This tool was included from http://code.google.com/p/which/.
+Please refer to the ``betterbatch\tools\LICENSE_Which.txt`` file for licensing
+information.
+
+======================================================
+Path Manipulation
+======================================================
+
+dirname
+------------------------------------------------------
+Return the directory (or parent directory for a directory) of the
+path passed in.
+
+filename    (aliases basename)
+------------------------------------------------------
+Return the filename (or directory name for a directory) of the
+path passed in.
+
+abspath
+------------------------------------------------------
+Return the absolute path of the file.
+
+ShortPathName
+------------------------------------------------------
+Return the short path name of the filename
+
+
+======================================================
+File Manipulation
+======================================================
+
+find_in_file
+------------------------------------------------------
+Return true if the text is in the file. It will output the found items
+one per line.
+
+Usage: $prog [-r] file text_to_find [text_to_find...]
+
+Options:
+  -h, --help        show this help message and exit
+  -r, --regex       search and replacement are regular expressions
+  -n, --noerr       do not report an error if the text is not found
+  -i, --ignorecase  ignore case when searching
+
+
+replace_in_file
+------------------------------------------------------
+Replace text in file
+
+Usage: $prog [-rn] [--encoding enc] filepath to_find replace_with
+
+Options:
+  -h, --help            show this help message and exit
+  -r, --regex           search and replacement are regular expressions
+  -n, --noerr           do not report an error if the text is not found
+  --encoding
+                        (auto,none,...)
+                        specify the encoding of the text. A value of 'AUTO'
+                        will have the script try and find out the encoding -
+                        based on any BOMs present. A value of 'NONE' (default)
+                        will not decode the contents. The contents will be
+                        processed as 'binary'. Any other value should be a
+                        valid Python encoding see
+                        http://docs.python.org/library/codecs.html#standard-encodings.
+
+ListFilesMatchingPattern
+------------------------------------------------------
+Output a list of all the files matching the supplied pattern.
+
+Usage: ListFilesMatchingPattern [options] (path) (patern1) (pattern2) ...
+
+Options:
+  -h, --help       show this help message and exit
+  -s, --recursive  scan recursively
+
+This is especially useful in a loop to iterate over a particular set of files.
+
+Example::
+
+  - for file in {{{ ListFilesMatchingPattern -s <xml_folder> *.xml *.xsl }}}:
+     - echo <file>
+
+
+
+count
+------------------------------------------------------
+Verify that the file count is as specified
+
+It takes the following parameters:
+ * ``filepattern`` is a glob for the files to count
+ * ``count`` is a specification for how many, it can be
+   >=X, <=X, >X, <X, =X or just X (which is equivalent to =X) where X is any
+   whole number.
+
+
+exists  (aliases exist)
+------------------------------------------------------
+check if the path (file or directory) exists or not.
+If the path exists - then it returns true.
+example::
+
+  # if there is machine specific configuration then load it
+  - if exists <shell.computername>.bb:
+      - include <shell.computername>.bb
+
+
+notexists  (aliases notexist)
+------------------------------------------------------
+check if the path (file or directory) exists or not.
+If the path does not exist - then it returns true. This can be useful
+if you want to raise an error becuase one or more files does not exist.
+
+
+
+======================================================
+String/text Manipulation
+======================================================
+
+escapenewlines  (aliases escape_newlines)
+------------------------------------------------------
+\r and \n characters in the input will be replaced with \\r and \\n
+respectively.
+
+
+replace
+------------------------------------------------------
+Allows you to replace text in a string
+
+Usage::
+
+    replace text to search in {*text to find*} {*replace with*}
+
+Example::
+
+    # get the contents of the text file
+    - ser serverlocation = http://code.google.com/p/betterbatch/
+    - set mail_contents = {{{ type email_template.txt }}}
+
+    # replace the text 'SERVERLOCATION' in the email templaet
+    # with 'http://code.google.com/p/betterbatch/'
+    - echo {{{replace <mail_contents> {*SERVERLOCATION*} {*<serverlocation>*} }}}
+
+
+compare
+------------------------------------------------------
+The compare functionality is usually used in if statements. The examples
+give will show them in that context.
+
+Usage::
+
+    compare text1 OPERATOR text2
+
+Operators can be one of::
+
+    >=
+    <=
+    >
+    <
+    =
+    !=
+    startswith
+    endswith
+    contains
+    matches_regex
+
+Example::
+
+    - set answer = {{{ get answer from somewhere }}}
+    - if compare <answer> = no:
+       - Do something when it is no
+
+
+It can take the following qualifiers:
+
+**nocase**
+    Ignore case of the strings being compared.
+
+**asint**
+    Treat both parameters as integers. Comparison of some items
+    will be different if they are treated as integers. For example
+    ``01 = 1`` will return false when treated as strings but true when
+    treated as integers.
+
+
+upper  (aliases uppercase)
+------------------------------------------------------
+Return an uppercase version of the string
+
+
+lower  (aliases lowercase)
+------------------------------------------------------
+Return an lowercase version of the string
+
+
+======================================================
+Registry Manipulation
+======================================================
+
+GetRegistryValue
+------------------------------------------------------
+Return the value of a registry key
+
+Usage:
+    ``GetRegistryValue [options] (keypath) [value_name]``
+
+    | Options:
+    |  -h, --help    show this help message and exit
+    |  -e, --expand  if the registry type is REG_EXPAND_SZ - then expand variables
+    |  --x64         operate on 64bit registry hiveOptions:
+
+``keypath`` should begin with one of the standard registry keys HKLM,
+HKEY_CURRENT_USER, etc.
+
+``value_name`` is optional - if not provided then the value for default key will
+be returned.
+
+Example::
+
+    # print out the current path
+    - echo {{{ GetRegistryValue "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" path }}}
+
+
+SetRegistryValue
+------------------------------------------------------
+
+Usage:
+    ``SetRegistryValue [options] (keypath) (value_name) (new_value)``
+
+    | Options:
+    |  -h, --help            show this help message and exit
+    |  -t VALUE_TYPE, --value-type=VALUE_TYPE
+    |                        when creating a new value - the value type to use.When
+    |                        changing existing values - the same type is used.
+    |  --x64                 operate on 64bit registry hive
+
+``keypath`` and ``value_name`` are the same as for ``GetRegistryValue()``.
+``new_value`` is the new value to set the registry entry to.
+
+Examples::
+
+    # Ensure that hidden files are showed
+    - SetRegistryValue "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" Hidden 1
+
+    # show file extensions
+    - SetRegistryValue "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" HideFileExt 0
+
+    # do not use the search assistant
+    - SetRegistryValue "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState" "Use Search Asst" no
+
+
+======================================================
+Miscelaneous commands
+======================================================
+
+GetLanguage
+------------------------------------------------------
+Return language information from the database - "langinfo.csv" (included in the
+betterbatch/tools folder along with GetLanguage.py)
+
+Usage:
+    GetLanguage langname format
+Where:
+    langname is the 3 letter identifier e.g. deu, fra, jpn, kor, etc
+    format is one of the headers from langinfo.csv, e.g. dotnet, hex_lcid, etc.
+
+For example::
+
+    - set dotnetlang = {{{ GetLanguage <lang> dotnet }}}
+
+
+add_tools_dir
+------------------------------------------------------
+The betterbatch/tools directory is added as a 'tools' directory by default.
+
+You can add other directories to be used as 'tools' directories by using this
+command.
+
+Adding a tools directory means you do not have to specify the path to the
+command.
+
+.. _split-built-in:
+
+split
+------------------------------------------------------
+This command takes a list of items and 'splits' them up. This is especially
+useful in conjunction with the ``for`` statement.
+
+Here is a simple example::
+
+    - set names = John Mary Wilbur
+
+    - echo {{{ split <names>}}}
+
+The output will be::
+
+    John
+    Mary
+    Wilbur
+
+By default is splits on any whitespace character, but you can specify any
+text to be used to split on:
+
+    - set names = John is connected to Mary is connected to Wilbur
+
+    - echo {{{ split <names> {*is connected to*} }}}
+
+The output will (still) be::
+
+    John
+    Mary
+    Wilbur
+
+The split command is not very useful on it's own - but it is very useful when
+used with ``for`` statements.
+
+See Also
+ * :ref:`for-statement` - The ``for`` statement
