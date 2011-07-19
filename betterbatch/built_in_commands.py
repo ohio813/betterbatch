@@ -172,14 +172,18 @@ def SystemCommand(command, qualifiers = None):
         # ensure that output is not captured and not output
         new_stdout = open("nul", "w")
 
+    def is_windows_seven():
+        windows_version = sys.getwindowsversion()
+        major_index = 0
+        minor_index = 1
+        return (windows_version[major_index] == 6 and
+                windows_version[minor_index] == 1)
+
     # for some reason when passing to the shell - we need to quote the
     # WHOLE command with ""
-    # This should NOT be done on Windows 7
-    windows_version = sys.getwindowsversion()
-    major_index = 0
-    minor_index = 1
-    if not (windows_version[major_index] == 6 and
-            windows_version[minor_index] == 1):
+    # This should NOT be done on Windows 7 (unless we are working with
+    # a Python version prior to 2.6)
+    if not is_windows_seven() or sys.version_info < (2, 7):
         command = '"%s"'% command
 
     cmd_pipe = subprocess.Popen(
