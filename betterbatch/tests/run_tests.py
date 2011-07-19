@@ -22,9 +22,11 @@ from betterbatch import built_in_commands
 from betterbatch import parsescript
 from betterbatch import compare
 import replace_in_file
+import get_config_option
 
 modules_to_test = [
-    cmd_line, built_in_commands, parsescript, compare, replace_in_file]
+    cmd_line, built_in_commands, parsescript, compare,
+    replace_in_file, get_config_option]
 
 parsescript.LOG = parsescript.ConfigLogging()
 
