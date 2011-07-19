@@ -3,6 +3,21 @@ CHANGES
 ************************************
 
 
+1.3.1 Allow hiding variables in logs and output
+---------------------------------------------------------------------------
+19-July-2011
+
+* Added a new qualifier ``{*hidden*}`` for variable definitions. If a variable
+  is defined with this qualifier then its value will be replaced with asterisks
+  in log files and output.
+  This qualifier is also applied by default to shell variables with ``password``
+  or ``passwd`` in them.
+* Included a new script/tool ``get_config_option`` this can be used to read
+  values from simple INI files.
+* Fix a Python 2.6 issue with quoting (Python 2.7 and 2.6 handle quoting 
+  command line parameters on windows differently).
+
+
 1.3.0 Breaking some backwards compatibility
 ---------------------------------------------------------------------------
 30-May-2011
