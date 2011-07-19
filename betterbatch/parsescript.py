@@ -926,6 +926,15 @@ def ParseMappingVariableDefinition(step, statements):
     return variable_defs
 
 
+class VariableValue(str):
+    """Override str for variable values to provide a printable() method"""
+    def printable(self):
+        "return the value if it is not 'hidden' otherwise return asterisks."
+        if hasattr(self, 'hidden') and self.hidden:
+            return "*" * len(self)
+        return self
+
+
 class VariableDefinition(Step):
     "A step in the form set varname = var value"
 
@@ -951,9 +960,14 @@ class VariableDefinition(Step):
             new_val = ReplaceVariableReferences(new_val, variables)
             new_val = ReplaceExecutableSections(new_val, variables, phase)
 
+        #Ensure that all qualifiers are copied
+        new_val = VariableValue(new_val)
+        for qualifier in self.qualifiers:
+            setattr(new_val, qualifier, True)
+
         if phase != "test":
             LOG.debug("Set variable '%s' to value '%s'" % (
-                self.name, new_val))
+                self.name, new_val.printable()))
 
         variables[self.name] = new_val
 
@@ -1022,6 +1036,13 @@ def ValidateCommandPath(command, qualifiers = None):
 
         except which.WhichError:
             raise CommandPathNotFoundError(command_path, command)
+
+
+def ObfuscateHiddenVariables(text, variables):
+    for var in variables.values():
+        if hasattr(var, 'hidden') and var.hidden:
+            text = text.replace(var, "*" * len(var))
+    return text
 
 
 class CommandStep(Step):
@@ -1112,9 +1133,10 @@ class CommandStep(Step):
         if cmd == "echo" or "__echo_all_output__" in variables:
             self.qualifiers.append('echo')
 
+        cmd_log_string = ObfuscateHiddenVariables(cmd_log_string, variables)
         #cmd_log_string = self.command_as_string_for_log(cmd, params)
+        LOG.debug("Executing command %s" % cmd_log_string)
         try:
-            LOG.debug("Executing command %s" % cmd_log_string)
             # call the function and get the output and the return value
             self.ret, self.output = func(params, self.qualifiers)
             variables['__last_return__'] = str(self.ret)
@@ -1671,7 +1693,16 @@ class LogFileStep(Step):
                 SetupLogFile(filename, append=True)
             else:
                 SetupLogFile(filename)
-                LOG.debug('Variables at logfile creation: %s' % variables)
+                # build up a safe variable list:
+                safe_vars = {}
+                for var_name, var_value in variables.items():
+                    if ('password' in var_name.lower() or
+                        'passwd' in var_name.lower() or
+                        (hasattr(var_value, 'hidden') and var_value.hidden)):
+                        safe_vars[var_name] = "*" * len(var_value)
+                    else:
+                        safe_vars[var_name] = var_value
+                LOG.debug('Variables at logfile creation: %s' % safe_vars)
             variables['__logfile__'] = filename
 
 

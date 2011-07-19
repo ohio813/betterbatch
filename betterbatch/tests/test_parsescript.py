@@ -115,6 +115,7 @@ class ParseYAMLFileTests(unittest.TestCase):
             ParseYAMLFile(full_path),
             ['set USAGE =\nshould return with new line after this\nand before this line'])
 
+
 class ErrorCollectionTests(unittest.TestCase):
     def test_LOGErrors(self):
         """"""
@@ -1016,6 +1017,14 @@ class VariableDefinitionTests(unittest.TestCase):
 
         self.assertEquals(vars["_yikes_"], '_close_ <a>')
 
+    def test_hidden_step(self):
+        vars = {'abcdef': '1'}
+        s = VariableDefinition("set _yikes_=_close_ <abcdef> {*hidden*}")
+        s.execute(vars, "run")
+
+        self.assertEquals(vars["_yikes_"].printable(), '*********')
+
+
     def test_not_delayed_step(self):
         vars = {'a': 'here'}
         s = VariableDefinition("set _yikes_=_close_ <a>")
@@ -1100,6 +1109,30 @@ class ExecutionEndStepTests(unittest.TestCase):
             self.assertEquals(err.msg, "hi JOHN")
 
 
+class ObfuscateHiddenVariablesTests(unittest.TestCase):
+    ""
+
+    def test_string_value(self):
+        """"""
+
+        e = ObfuscateHiddenVariables("some text", {'here': 'text'})
+        self.assertEquals(e, 'some text')
+
+    def test_VariableValue_value(self):
+        """"""
+
+        v = VariableValue('text')
+        e = ObfuscateHiddenVariables("some text", {'here': v})
+        self.assertEquals(e, 'some text')
+
+    def test_VariableValue_value(self):
+        """"""
+
+        v = VariableValue('text')
+        v.hidden = True
+        e = ObfuscateHiddenVariables("some text", {'here': v})
+        self.assertEquals(e, 'some ****')
+
 
 def DebugAction(to_exec, dummy = None):
     exec to_exec
@@ -1174,6 +1207,25 @@ class CommandStepTests(unittest.TestCase):
             ErrorCollection,
             s.execute,
             {}, 'test', )
+
+    def test_error_collection_in_execute_run(self):
+        """"""
+
+        s = CommandStep("robocopy123 <abc> c:\\temp\\")
+        self.assertRaises(
+            ErrorCollection,
+            s.execute,
+            {}, 'run', )
+
+    def test_Step_with_hidden_var_in_output(self):
+        """"""
+        hidden_var = VariableValue("some value")
+        hidden_var.hidden = True
+        vars = {'abc': hidden_var}
+        s = CommandStep('echo <abc>')
+
+        s.execute(vars, "run")
+        self.assertEquals(s.ret, 0)
 
 
 class EchoStepTests(unittest.TestCase):
@@ -1614,7 +1666,7 @@ class IfStepTests(unittest.TestCase):
 
     def test_condition_raising_exception(self):
         """Found on Dec 14, 2010 that an exception while evaluating a condition
-        was actually being evaluated as true - but it should raise an 
+        was actually being evaluated as true - but it should raise an
         exception (prior to 1.3.0 - it should have been False"""
         raw_step = {'if compare abc = 1 {*asint*}': ['set blah=21']}
 
