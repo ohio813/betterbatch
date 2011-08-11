@@ -1282,6 +1282,9 @@ class ForStep(Step):
 
         cmd_output = RenderVariableValue(self.command, variables, phase)
 
+        if not cmd_output.strip():
+            return
+
         # split the variables
         values = cmd_output.split("\n")
 
