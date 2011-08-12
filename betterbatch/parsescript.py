@@ -1013,7 +1013,7 @@ def ParseQualifiers(text):
 def ValidateCommandPath(command, qualifiers = None):
     "Check command path and raise CommandPathNotFoundError if path not found"
 
-    if 'novalidate' in qualifiers:
+    if qualifiers and 'novalidate' in qualifiers:
         return
 
     # posix was not avilable for shlex.split in python 2.5.1
