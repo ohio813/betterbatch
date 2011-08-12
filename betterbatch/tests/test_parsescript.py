@@ -1460,16 +1460,23 @@ class ForStepTests(unittest.TestCase):
         ParseStep(step).execute({}, 'test')
 
     def test_loop_variables(self):
-        step = {'for to_be_replaced in {{{ split bb }}}': ['ECHO < aa_<to_be_replaced>_cc >\n']}
+        step = {
+            'for to_be_replaced in {{{ split bb }}}': 
+                ['ECHO < aa_<to_be_replaced>_cc >\n']}
         variables = {
             'aa_bb_cc': "var_replaced",
             'not_required': 'abc'
             }
-        ParseStep(step).execute(variables,'test')
+        ParseStep(step).execute(variables, 'test')
 
     def test_loop_variables_error(self):
-        step = {'for to_be_replaced in {{{ split bb }}}': ['ECHO < aa_<to_be_replaced>_cc >\n']}
-        self.assertRaises(ErrorCollection, ParseStep(step).execute, {},'test')
+        step = {
+            'for to_be_replaced in {{{ split bb }}}': 
+                ['ECHO < aa_<to_be_replaced>_cc >\n']}
+        self.assertRaises(
+            ErrorCollection, 
+            ParseStep(step).execute, 
+                {}, 'run')
 
 
 class IfStepTests(unittest.TestCase):
