@@ -1013,29 +1013,32 @@ def ParseQualifiers(text):
 def ValidateCommandPath(command, qualifiers = None):
     "Check command path and raise CommandPathNotFoundError if path not found"
 
+    if 'novalidate' in qualifiers:
+        return
+
     # posix was not avilable for shlex.split in python 2.5.1
     lex = shlex.shlex(command, posix=False)
     lex.whitespace_split = True
     command_path = lex.read_token().strip('"')
     # Shell commands, there is no need for checking
     if command_path.lower() in built_in_commands.SHELL_COMMANDS:
-        pass
-    else:
-        try:
-            if not os.path.exists(command_path):
-                # If the path does not exist
-                path_to_command, command_name = os.path.split(command_path)
-                paths = os.environ['path'].split(os.pathsep)
-                # ensure that the path to the command is include (if it is
-                # given)
-                if path_to_command:
-                    paths.append(path_to_command)
-                # if which.which() cannot find it on the path,
-                # which.which() raises an error
-                which.which(command_name, paths)
+        return
 
-        except which.WhichError:
-            raise CommandPathNotFoundError(command_path, command)
+    try:
+        if not os.path.exists(command_path):
+            # If the path does not exist
+            path_to_command, command_name = os.path.split(command_path)
+            paths = os.environ['path'].split(os.pathsep)
+            # ensure that the path to the command is include (if it is
+            # given)
+            if path_to_command:
+                paths.append(path_to_command)
+            # if which.which() cannot find it on the path,
+            # which.which() raises an error
+            which.which(command_name, paths)
+
+    except which.WhichError:
+        raise CommandPathNotFoundError(command_path, command)
 
 
 def ObfuscateHiddenVariables(text, variables):
@@ -1111,7 +1114,7 @@ class CommandStep(Step):
             if cmd not in built_in_commands.NAME_ACTION_MAPPING:
                 # check if the path can be found
                 try:
-                    ValidateCommandPath(command_text)
+                    ValidateCommandPath(command_text, self.qualifiers)
                 except CommandPathNotFoundError, CmdErr:
                     errors.append(CmdErr)
             if errors:
