@@ -183,7 +183,7 @@ def SystemCommand(command, qualifiers = None):
     # WHOLE command with ""
     # This should NOT be done on Windows 7 (unless we are working with
     # a Python version prior to 2.6)
-    if not is_windows_seven() or sys.version_info < (2, 7):
+    if sys.version_info < (2, 7):
         command = '"%s"'% command
 
     cmd_pipe = subprocess.Popen(
