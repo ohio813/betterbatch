@@ -122,6 +122,10 @@ The following qualifiers are available:
    **{*nocapture*}**
         do not capture the output to the log file. If ``{*echo*}`` qualifier is
         also set the output will be shown to the user as it is generated.
+   **{*novalidate*}**
+        do not test that the command exists during the test phase. This is often
+        required if the path or the name of the tool will be defined by a 
+        variable whose value will only be calculated during the execution phase.
 
 .. versionchanged:: 1.2.0
    Added ``{*nocapture*}`` qualifier and made ``{*echo*}`` and ``{*ui*}``

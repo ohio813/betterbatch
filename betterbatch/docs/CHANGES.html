@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>CHANGES &mdash; BetterBatch v1.3.0 documentation</title>
+    <title>CHANGES &mdash; BetterBatch v1.3.2 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.3.0',
+        VERSION:     '1.3.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -22,7 +22,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="BetterBatch v1.3.0 documentation" href="index.html" />
+    <link rel="top" title="BetterBatch v1.3.2 documentation" href="index.html" />
     <link rel="next" title="BetterBatches License - MIT" href="LICENSE.html" />
     <link rel="prev" title="Comparing BetterBatch to ..." href="comparison.html" /> 
   </head>
@@ -39,7 +39,7 @@
         <li class="right" >
           <a href="comparison.html" title="Comparing BetterBatch to ..."
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">BetterBatch v1.3.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v1.3.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -50,6 +50,17 @@
             
   <div class="section" id="changes">
 <h1>CHANGES<a class="headerlink" href="#changes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ensure-that-command-line-quoting-happens-correctly-with-python-2-7">
+<h2>1.3.2 Ensure that command line quoting happens correctly with Python 2.7<a class="headerlink" href="#ensure-that-command-line-quoting-happens-correctly-with-python-2-7" title="Permalink to this headline">¶</a></h2>
+<p>06-September-2011</p>
+<ul class="simple">
+<li>Fixed an issue where paths were not being escaped correctly with Python 2.7
+and Windows 7</li>
+<li>Added a <tt class="docutils literal"><span class="pre">{*novalidate*}</span></tt> qualifier to stop path checking for a tool. This
+is sometimes needed if the path is dynamically created.</li>
+<li>Stop for loops looping once on an empty list.</li>
+</ul>
+</div>
 <div class="section" id="allow-hiding-variables-in-logs-and-output">
 <h2>1.3.1 Allow hiding variables in logs and output<a class="headerlink" href="#allow-hiding-variables-in-logs-and-output" title="Permalink to this headline">¶</a></h2>
 <p>19-July-2011</p>
@@ -419,6 +430,7 @@ use Thread.isAlive() rather than Thread.is_alive() ).</li>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">CHANGES</a><ul>
+<li><a class="reference internal" href="#ensure-that-command-line-quoting-happens-correctly-with-python-2-7">1.3.2 Ensure that command line quoting happens correctly with Python 2.7</a></li>
 <li><a class="reference internal" href="#allow-hiding-variables-in-logs-and-output">1.3.1 Allow hiding variables in logs and output</a></li>
 <li><a class="reference internal" href="#breaking-some-backwards-compatibility">1.3.0 Breaking some backwards compatibility</a></li>
 <li><a class="reference internal" href="#many-bug-fixes-and-improvements-looping-checking-tools">1.2.3 Many bug fixes and improvements (looping, checking, tools)</a></li>
@@ -482,7 +494,7 @@ use Thread.isAlive() rather than Thread.is_alive() ).</li>
         <li class="right" >
           <a href="comparison.html" title="Comparing BetterBatch to ..."
              >previous</a> |</li>
-        <li><a href="index.html">BetterBatch v1.3.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">BetterBatch v1.3.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
