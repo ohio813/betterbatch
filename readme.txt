@@ -322,6 +322,7 @@ example::
 
     - function PrintArgs (arg1, arg2, arg3=123, arg4=This arg):
         - echo <arg1>, <arg2>, <arg3>, <arg4>
+        - return <arg1>_<arg2> (<arg3> - <arg4>)
 
 In the above function definition the function name is ``PrintArgs``, it takes
 4 arguments ``arg1``, ``arg2``, ``arg3`` and ``arg4``. Arguments ``arg3`` and
@@ -330,9 +331,7 @@ call will have to pass values for ``arg1``, ``arg2`` but passing values for
 arguments ``arg3`` and ``arg4`` is optional. If no option is passed then the
 default values will be used.
 
-The current implementation has no way to return a value - this will likely be
-added at a later stage.
-
+Return values will be available to the calling code.
 
 ------------------------------------------------------
 Function Calls
@@ -346,6 +345,12 @@ Matching this against the example function defintion above
 ``arg2`` will have value ``there``,
 ``arg3`` will have value ``123`` (the default value),
 ``arg4`` will have value ``some value``.
+
+To assign the return value (if any!) to a variable you can use the executable
+section syntax::
+
+    - set dll_directory = {{{ call GetDLLDirectory() }}}
+
 
 .. versionchanged:: 1.2.0
    allowed function arguments to contain spaces.

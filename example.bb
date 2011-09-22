@@ -3,6 +3,12 @@
 # as opposed to includes)
 - logfile <__script_dir__>\test_bb.log
 
+- set password = MyPassword {*hidden*}
+- dir <password> {*nocheck*}
+- set x = test<password>test
+- echo <password>
+
+- end 0, done
 
 # This is a very simple function definition
 - function PrintArgs (arg1, arg2, arg3=hi, arg4=yo):
