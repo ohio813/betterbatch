@@ -317,7 +317,8 @@ for or if statements are allowed.</p>
 <p>You can define a function that you can call later at anytime. Here is a an
 example:</p>
 <div class="highlight-python"><pre>- function PrintArgs (arg1, arg2, arg3=123, arg4=This arg):
-    - echo &lt;arg1&gt;, &lt;arg2&gt;, &lt;arg3&gt;, &lt;arg4&gt;</pre>
+    - echo &lt;arg1&gt;, &lt;arg2&gt;, &lt;arg3&gt;, &lt;arg4&gt;
+    - return &lt;arg1&gt;_&lt;arg2&gt; (&lt;arg3&gt; - &lt;arg4&gt;)</pre>
 </div>
 <p>In the above function definition the function name is <tt class="docutils literal"><span class="pre">PrintArgs</span></tt>, it takes
 4 arguments <tt class="docutils literal"><span class="pre">arg1</span></tt>, <tt class="docutils literal"><span class="pre">arg2</span></tt>, <tt class="docutils literal"><span class="pre">arg3</span></tt> and <tt class="docutils literal"><span class="pre">arg4</span></tt>. Arguments <tt class="docutils literal"><span class="pre">arg3</span></tt> and
@@ -325,8 +326,7 @@ example:</p>
 call will have to pass values for <tt class="docutils literal"><span class="pre">arg1</span></tt>, <tt class="docutils literal"><span class="pre">arg2</span></tt> but passing values for
 arguments <tt class="docutils literal"><span class="pre">arg3</span></tt> and <tt class="docutils literal"><span class="pre">arg4</span></tt> is optional. If no option is passed then the
 default values will be used.</p>
-<p>The current implementation has no way to return a value - this will likely be
-added at a later stage.</p>
+<p>Return values will be available to the calling code.</p>
 </div>
 <div class="section" id="function-calls">
 <h3>Function Calls<a class="headerlink" href="#function-calls" title="Permalink to this headline">¶</a></h3>
@@ -338,6 +338,10 @@ added at a later stage.</p>
 <tt class="docutils literal"><span class="pre">arg2</span></tt> will have value <tt class="docutils literal"><span class="pre">there</span></tt>,
 <tt class="docutils literal"><span class="pre">arg3</span></tt> will have value <tt class="docutils literal"><span class="pre">123</span></tt> (the default value),
 <tt class="docutils literal"><span class="pre">arg4</span></tt> will have value <tt class="docutils literal"><span class="pre">some</span> <span class="pre">value</span></tt>.</p>
+<p>To assign the return value (if any!) to a variable you can use the executable
+section syntax:</p>
+<div class="highlight-python"><pre>- set dll_directory = {{{ call GetDLLDirectory() }}}</pre>
+</div>
 <p class="versionchanged">
 <span class="versionmodified">Changed in version 1.2.0: </span>allowed function arguments to contain spaces.</p>
 </div>
