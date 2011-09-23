@@ -953,7 +953,10 @@ class VariableDefinition(Step):
     def execute(self, variables, phase):
         """Set the variable
 
-        Note - we don't replace all sub variables at this point."""
+        If delayed is not set - then all sub variables and executable sections
+        will be replaced. Otherwise they will only be replaced where they are
+        used.
+        """
 
         new_val = self.value
         if 'delayed' not in self.qualifiers:
