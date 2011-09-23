@@ -90,12 +90,17 @@ class BuiltInCommandsTests(unittest.TestCase):
                 "echo here" + "888" * 4000, [])
 
     def test_SystemCommand_with_spaces(self):
+        if 'ProgramFiles(x86)' in os.environ:
+            path = "c:\Program Files (x86)\Common Files\Microsoft Shared\DW\DW20.EXE"
+        else:
+            path = "c:\Program Files\Common Files\Microsoft Shared\DW\DW20.EXE"
         ret = SystemCommand(
-            '"c:\Program Files\Common Files\Microsoft Shared\DW\DW20.EXE"', [])
+            '"%s"' % path, [])
+        print ret
         self.assertEqual(ret, (0, ''))
 
         ret = SystemCommand(
-            '"c:\Program Files\Common Files\Microsoft Shared\DW\DW20.EXE" "test here"', [])
+            '"%s" "test here"' % path, [])
         self.assertEqual(ret, (0, ''))
 
 
