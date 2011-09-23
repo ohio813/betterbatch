@@ -51,14 +51,14 @@ def get_value_from_ini_file(ini_file, section, value):
     return parser.get(matched_section, value)
 
 
-def main(ini_file, section, value, default):
+def main(ini_file, section, value, default = None):
 
     try:
         return_data = get_value_from_ini_file(ini_file, section, value)
         print return_data
         return 0
     except ConfigParser.NoOptionError:
-        if default:
+        if default is not None:
             print default
             return 0
         else:
