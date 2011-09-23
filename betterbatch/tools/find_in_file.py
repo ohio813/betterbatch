@@ -58,5 +58,5 @@ if __name__ == "__main__":
         for found_item in found:
             print found_item
 
-        # return success
-        sys.exit(0)
+    # return success
+    sys.exit(0)
