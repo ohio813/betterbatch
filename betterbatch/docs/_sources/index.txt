@@ -12,6 +12,7 @@ Contents
    
    readme
    built_in_commands.txt
+   troubleshooting.txt
    comparison.txt
    CHANGES.txt
    LICENSE.txt
