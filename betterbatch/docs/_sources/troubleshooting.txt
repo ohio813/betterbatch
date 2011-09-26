@@ -1,0 +1,99 @@
+******************************************************
+Trouble shooting
+******************************************************
+
+.. contents::
+
+
+======================================================
+File type association
+======================================================
+
+Sometimes after upgrading BetterBatch or installing a second copy in a 
+different directory will cause .BB extension to no longer be associated with
+the ``bbrun.py`` script.
+
+Also if you modify the default 'open' application in Windows it may also
+break the file association (often characterized by ``.BB`` files opening in an 
+editor rather than executing.
+
+
+Validate the extension is correctly associated
+-------------------------------------------------------
+The DOS command ``assoc`` prints out the association of a filetype. Check that
+``.BB`` files are associated with BetterBatch by running the following command::
+
+    assoc .bb
+    
+Which should give the following output::
+ 
+    .bb=BetterBatchScriptFile
+    
+
+If the .bb filetype is associated with any other type - then it's association
+needs to be fixed by running ``associate_bb_filetype.py`` (see below)
+
+
+======================================================
+Associated program
+======================================================
+
+Once the file type association has been verified, the next step is to validate
+that the default program used to execute the ``BetterBatchScriptFile`` file 
+type is correct.
+
+Validate default executable
+-------------------------------------------------------
+The DOS command ``ftype`` returns command line used to execute a particular
+file type.
+
+Run the following to get the command line::
+    
+    ftype BetterBatchScriptFile
+
+The output should be something like::
+
+    BetterBatchScriptFile=C:\tools\Python271\python.exe c:\tools\BetterBatch\bbrun.py  "%1" %*
+
+Note - the path to Python and the path to BetterBatch may be different on your system!
+
+If the command line is not ``...\bbrun...`` or if the path to BetterBatch is 
+not the version of BetterBatch you wanted to use then the command line will 
+need to be re-associated.  (see below)
+
+
+======================================================
+Fixing the file type association & default command
+======================================================
+
+If you have found an issue in the file type association or command then the
+``associate_bb_filetype`` script can be used to fix it
+
+``associate_bb_filetype.bb``
+-------------------------------------------------------
+This script is quite short and simple - and calls the underlying DOS commands
+and sets a registry entry.
+
+It does the following:
+* Uses ``assoc`` to link the ``.bb`` extention to ``BetterBatchScriptFile``
+* Uses ``ftype`` to set the default command for ``BetterBatchScriptFile``
+* Adds ``.BB`` to PATHEXT environment variable if is it not already there.
+
+``associate_bb_filetype.bb`` has the following help text (which can be accessed
+by running ``associate_bb_filetype.bb -h``::
+
+    Usage: Associate BetterBatch files on Windows
+
+    Options:
+      -h, --help            show this help message and exit
+      -b BBRUN, --bbrun=BBRUN
+                            use the path to the specified bbrun.py
+      -t, --timed           register bbrun.py so that scripts will be timed
+
+If you would like the run-time of ``.BB`` scripts to be output after each 
+script is run then add the -t option.
+
+Generally just running ``associate_bb_filetype.bb`` with no parameters is 
+enough to fix the registration (it looks for ``bbrun.py`` in the same directory
+as ``associate_bb_filetype.py``)
+
