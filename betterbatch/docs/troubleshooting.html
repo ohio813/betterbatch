@@ -1,0 +1,220 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Trouble shooting &mdash; BetterBatch v1.3.2 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.3.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="BetterBatch v1.3.2 documentation" href="index.html" />
+    <link rel="next" title="Comparing BetterBatch to ..." href="comparison.html" />
+    <link rel="prev" title="The available built-in commands are:" href="built_in_commands.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="comparison.html" title="Comparing BetterBatch to ..."
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="built_in_commands.html" title="The available built-in commands are:"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">BetterBatch v1.3.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="trouble-shooting">
+<h1><a class="toc-backref" href="#id1">Trouble shooting</a><a class="headerlink" href="#trouble-shooting" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#trouble-shooting" id="id1">Trouble shooting</a><ul>
+<li><a class="reference internal" href="#file-type-association" id="id2">File type association</a><ul>
+<li><a class="reference internal" href="#validate-the-extension-is-correctly-associated" id="id3">Validate the extension is correctly associated</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#associated-program" id="id4">Associated program</a><ul>
+<li><a class="reference internal" href="#validate-default-executable" id="id5">Validate default executable</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fixing-the-file-type-association-default-command" id="id6">Fixing the file type association &amp; default command</a><ul>
+<li><a class="reference internal" href="#associate-bb-filetype-bb" id="id7"><tt class="docutils literal"><span class="pre">associate_bb_filetype.bb</span></tt></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="file-type-association">
+<h2><a class="toc-backref" href="#id2">File type association</a><a class="headerlink" href="#file-type-association" title="Permalink to this headline">¶</a></h2>
+<p>Sometimes after upgrading BetterBatch or installing a second copy in a
+different directory will cause .BB extension to no longer be associated with
+the <tt class="docutils literal"><span class="pre">bbrun.py</span></tt> script.</p>
+<p>Also if you modify the default &#8216;open&#8217; application in Windows it may also
+break the file association (often characterized by <tt class="docutils literal"><span class="pre">.BB</span></tt> files opening in an
+editor rather than executing.</p>
+<div class="section" id="validate-the-extension-is-correctly-associated">
+<h3><a class="toc-backref" href="#id3">Validate the extension is correctly associated</a><a class="headerlink" href="#validate-the-extension-is-correctly-associated" title="Permalink to this headline">¶</a></h3>
+<p>The DOS command <tt class="docutils literal"><span class="pre">assoc</span></tt> prints out the association of a filetype. Check that
+<tt class="docutils literal"><span class="pre">.BB</span></tt> files are associated with BetterBatch by running the following command:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">assoc</span> <span class="o">.</span><span class="n">bb</span>
+</pre></div>
+</div>
+<p>Which should give the following output:</p>
+<div class="highlight-python"><pre>.bb=BetterBatchScriptFile</pre>
+</div>
+<p>If the .bb filetype is associated with any other type - then it&#8217;s association
+needs to be fixed by running <tt class="docutils literal"><span class="pre">associate_bb_filetype.py</span></tt> (see below)</p>
+</div>
+</div>
+<div class="section" id="associated-program">
+<h2><a class="toc-backref" href="#id4">Associated program</a><a class="headerlink" href="#associated-program" title="Permalink to this headline">¶</a></h2>
+<p>Once the file type association has been verified, the next step is to validate
+that the default program used to execute the <tt class="docutils literal"><span class="pre">BetterBatchScriptFile</span></tt> file
+type is correct.</p>
+<div class="section" id="validate-default-executable">
+<h3><a class="toc-backref" href="#id5">Validate default executable</a><a class="headerlink" href="#validate-default-executable" title="Permalink to this headline">¶</a></h3>
+<p>The DOS command <tt class="docutils literal"><span class="pre">ftype</span></tt> returns command line used to execute a particular
+file type.</p>
+<p>Run the following to get the command line:</p>
+<div class="highlight-python"><pre>ftype BetterBatchScriptFile</pre>
+</div>
+<p>The output should be something like:</p>
+<div class="highlight-python"><pre>BetterBatchScriptFile=C:\tools\Python271\python.exe c:\tools\BetterBatch\bbrun.py  "%1" %*</pre>
+</div>
+<p>Note - the path to Python and the path to BetterBatch may be different on your system!</p>
+<p>If the command line is not <tt class="docutils literal"><span class="pre">...\bbrun...</span></tt> or if the path to BetterBatch is
+not the version of BetterBatch you wanted to use then the command line will
+need to be re-associated.  (see below)</p>
+</div>
+</div>
+<div class="section" id="fixing-the-file-type-association-default-command">
+<h2><a class="toc-backref" href="#id6">Fixing the file type association &amp; default command</a><a class="headerlink" href="#fixing-the-file-type-association-default-command" title="Permalink to this headline">¶</a></h2>
+<p>If you have found an issue in the file type association or command then the
+<tt class="docutils literal"><span class="pre">associate_bb_filetype</span></tt> script can be used to fix it</p>
+<div class="section" id="associate-bb-filetype-bb">
+<h3><a class="toc-backref" href="#id7"><tt class="docutils literal"><span class="pre">associate_bb_filetype.bb</span></tt></a><a class="headerlink" href="#associate-bb-filetype-bb" title="Permalink to this headline">¶</a></h3>
+<p>This script is quite short and simple - and calls the underlying DOS commands
+and sets a registry entry.</p>
+<p>It does the following:
+* Uses <tt class="docutils literal"><span class="pre">assoc</span></tt> to link the <tt class="docutils literal"><span class="pre">.bb</span></tt> extention to <tt class="docutils literal"><span class="pre">BetterBatchScriptFile</span></tt>
+* Uses <tt class="docutils literal"><span class="pre">ftype</span></tt> to set the default command for <tt class="docutils literal"><span class="pre">BetterBatchScriptFile</span></tt>
+* Adds <tt class="docutils literal"><span class="pre">.BB</span></tt> to PATHEXT environment variable if is it not already there.</p>
+<p><tt class="docutils literal"><span class="pre">associate_bb_filetype.bb</span></tt> has the following help text (which can be accessed
+by running <tt class="docutils literal"><span class="pre">associate_bb_filetype.bb</span> <span class="pre">-h</span></tt>:</p>
+<div class="highlight-python"><pre>Usage: Associate BetterBatch files on Windows
+
+Options:
+  -h, --help            show this help message and exit
+  -b BBRUN, --bbrun=BBRUN
+                        use the path to the specified bbrun.py
+  -t, --timed           register bbrun.py so that scripts will be timed</pre>
+</div>
+<p>If you would like the run-time of <tt class="docutils literal"><span class="pre">.BB</span></tt> scripts to be output after each
+script is run then add the -t option.</p>
+<p>Generally just running <tt class="docutils literal"><span class="pre">associate_bb_filetype.bb</span></tt> with no parameters is
+enough to fix the registration (it looks for <tt class="docutils literal"><span class="pre">bbrun.py</span></tt> in the same directory
+as <tt class="docutils literal"><span class="pre">associate_bb_filetype.py</span></tt>)</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Trouble shooting</a><ul>
+<li><a class="reference internal" href="#file-type-association">File type association</a><ul>
+<li><a class="reference internal" href="#validate-the-extension-is-correctly-associated">Validate the extension is correctly associated</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#associated-program">Associated program</a><ul>
+<li><a class="reference internal" href="#validate-default-executable">Validate default executable</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fixing-the-file-type-association-default-command">Fixing the file type association &amp; default command</a><ul>
+<li><a class="reference internal" href="#associate-bb-filetype-bb"><tt class="docutils literal"><span class="pre">associate_bb_filetype.bb</span></tt></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="built_in_commands.html"
+                        title="previous chapter">The available built-in commands are:</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="comparison.html"
+                        title="next chapter">Comparing BetterBatch to ...</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/troubleshooting.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="comparison.html" title="Comparing BetterBatch to ..."
+             >next</a> |</li>
+        <li class="right" >
+          <a href="built_in_commands.html" title="The available built-in commands are:"
+             >previous</a> |</li>
+        <li><a href="index.html">BetterBatch v1.3.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Mark Mc Mahon.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>
